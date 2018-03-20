@@ -1,0 +1,312 @@
+package myGameEngine.Controllers;
+
+import a2.Actions.ActionMove;
+import a2.Actions.ActionRotate;
+import com.bulletphysics.collision.dispatch.CollisionWorld;
+import com.bulletphysics.dynamics.DynamicsWorld;
+import com.bulletphysics.dynamics.InternalTickCallback;
+import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.linearmath.Transform;
+import myGameEngine.Singletons.PhysicsManager;
+import myGameEngine.Singletons.TimeManager;
+import ray.rage.scene.SceneNode;
+import ray.rml.Radianf;
+import ray.rml.Vector3;
+import ray.rml.Vector3f;
+
+public class CharacterController extends InternalTickCallback {
+    private SceneNode node;
+    private SceneNode cameraNode;
+    private RigidBody body;
+    private boolean attacking;
+    private boolean jumping;
+    private int jumpTicks;
+    private float forwardMove;
+    private float rightMove;
+    private Vector3 lastMovement = Vector3f.createZeroVector();
+    private javax.vecmath.Vector3f linearVelocity = new javax.vecmath.Vector3f();
+    private javax.vecmath.Vector3f gravity = new javax.vecmath.Vector3f();
+
+    private boolean onGround;
+    private boolean wasOnGround;
+    private Vector3 normal;
+    private float groundY;
+
+    private final float groundAcceleration = 70;
+    private final float airAcceleration = 20;
+    private final float maxSpeed = 14;
+    private final float groundFriction = 0.95f;
+    private final float rotationSensititvity = 1;
+
+
+    public CharacterController(SceneNode node, SceneNode cameraNode, RigidBody body) {
+        this.node = node;
+        this.cameraNode = cameraNode;
+        this.body = body;
+        PhysicsManager.addCallback(this);
+    }
+
+    public void move(ActionMove.Direction direction, float value) {
+        // remember movement directions, to be applied on physics tick
+        switch (direction) {
+            case FORWARD:
+                forwardMove = value;
+                break;
+            case BACKWARD:
+                forwardMove = -value;
+                break;
+            case LEFT:
+                rightMove = value;
+                break;
+            case RIGHT:
+                rightMove = -value;
+                break;
+        }
+    }
+
+    public void rotate(ActionRotate.Direction direction, float speed) {
+        // perform rotation on proper node immediately
+        double mult = rotationSensititvity / 3500f;
+        Radianf angle = Radianf.createFrom(0);
+        switch (direction) {
+            case X:
+                angle = Radianf.createFrom((float)(TimeManager.getDelta() * -mult) * speed);
+                node.yaw(angle);
+                break;
+            case Y:
+                angle = Radianf.createFrom((float)(TimeManager.getDelta() * mult) * speed);
+                cameraNode.pitch(angle);
+                break;
+        }
+    }
+
+    public void attack() {
+        // player requested attack
+        attacking = true;
+    }
+
+    public void jump() {
+        // player requested jump
+        jumping = true;
+    }
+
+    private float twoDimensionalLength(javax.vecmath.Vector3f vec) {
+        // find length along x/z only
+        return (float)Math.sqrt(Math.pow(vec.x, 2) + Math.pow(vec.z, 2));
+    }
+
+    private Vector3 getMovementDirection() {
+        // convert forward/right requested movement into vector
+        Vector3 forward = node.getWorldForwardAxis().mult(forwardMove);
+        Vector3 right = node.getWorldRightAxis().mult(rightMove);
+        Vector3 movement = forward.add(right);
+        return movement.length() <= 1 ? movement : movement.normalize();
+    }
+
+    private void groundTrace() {
+        // make many raycasts around the player's position in order to determine if they are on the ground
+        float stepSize = 0.1f; // defines how far from the origin to check
+        normal = null;
+        groundY = node.getWorldPosition().y();
+        onGround = false;
+
+        // trace 9 times
+        for (int x = -1; x <= 1; x += 2) {
+            for (int z = -1; z <= 1; z += 2) {
+                // setup trace
+                Vector3 from = node.getWorldPosition().add(x * stepSize, 0, z * stepSize);
+                Vector3 to = node.getWorldPosition().sub(0, 2, 0);
+                CollisionWorld.ClosestRayResultCallback trace = new CollisionWorld.ClosestRayResultCallback(from.toJavaX(), to.toJavaX());
+                PhysicsManager.getWorld().rayTest(from.toJavaX(), to.toJavaX(), trace);
+
+                // detect collision
+                if (trace.hasHit()) {
+                    onGround = true; // we found ground
+                    Vector3 traceNormal = Vector3f.createFrom(trace.hitNormalWorld).normalize();
+                    if (normal == null || traceNormal.y() > normal.y()) {
+                        // remember the least extreme normal (and the groundY for that trace)
+                        normal = traceNormal;
+                        groundY = trace.hitPointWorld.y;
+                    }
+                }
+            }
+        }
+
+        if (normal == null || normal.y() < 0.5f) {
+            // if our normal is too extreme, override to say we aren't on the ground
+            normal = Vector3f.createUnitVectorY();
+            onGround = false;
+        }
+    }
+
+    @Override
+    public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
+        // keep linearVelocity up to date
+        body.getLinearVelocity(linearVelocity);
+
+        groundTrace();
+
+        checkAttack();
+
+        checkJump();
+
+        // do ground or air movement depending on onGround status
+        // store current movement in order to undo it on next tick
+        if (onGround) {
+            lastMovement = groundMove();
+        } else {
+            lastMovement = airMove();
+        }
+
+        // keep linearVelocity up to date
+        body.setLinearVelocity(linearVelocity);
+        body.activate();
+
+        wasOnGround = onGround;
+    }
+
+    private Vector3 groundMove() {
+        float acceleration = groundAcceleration;
+        Vector3 movement = getMovementDirection().mult(acceleration);
+
+        // apply friction
+        linearVelocity.scale(groundFriction);
+
+        if (movement.length() >= 0.2f) {
+            // undo the previous movement's changes to velocity
+            // this is done so that we do not feel like we're skating on ice
+            body.applyCentralImpulse(lastMovement.mult(-0.99f).toJavaX());
+
+            float speed = movement.length();
+            try {
+                // adjust desired movement to align along ground plane
+                movement = clipVelocity(movement, normal).normalize().mult(speed);
+            } catch (Exception ex) {}
+
+            // apply new movement to velocity
+            float previousSpeed = linearVelocity.length();
+            body.setLinearVelocity(linearVelocity);
+            body.applyCentralImpulse(movement.toJavaX());
+            body.getLinearVelocity(linearVelocity);
+            float currentSpeed = linearVelocity.length();
+
+            // cap movement speed so we do not constantly gain more momentum
+            if (currentSpeed > previousSpeed && currentSpeed > maxSpeed) {
+                linearVelocity.normalize();
+                linearVelocity.scale(Math.max(previousSpeed, maxSpeed));
+            }
+        }
+
+        // remove gravity
+        gravity.y = 0;
+        body.setGravity(gravity);
+
+        // hover character slightly above the ground
+        // this is so we don't bounce off ramps and changing elevations
+        com.bulletphysics.linearmath.Transform t = new com.bulletphysics.linearmath.Transform();
+        body.getWorldTransform(t);
+        t.origin.y = groundY + 1.85f;
+        body.proceedToTransform(t);
+
+        return movement;
+    }
+
+    private Vector3 airMove() {
+        float acceleration = airAcceleration;
+        Vector3 movement = getMovementDirection().mult(acceleration);
+
+        if (movement.length() >= 0.2f) {
+            // undo the previous movement's changes to velocity
+            // this is done so that we do not feel like we're skating on ice
+            if (wasOnGround == onGround) {
+                body.applyCentralImpulse(lastMovement.mult(-0.99f).toJavaX());
+            }
+
+            // apply new movement to velocity
+            float previousSpeed = twoDimensionalLength(linearVelocity);
+            body.setLinearVelocity(linearVelocity);
+            body.applyCentralImpulse(movement.toJavaX());
+            body.getLinearVelocity(linearVelocity);
+            float currentSpeed = twoDimensionalLength(linearVelocity);
+
+            // cap movement speed so we do not constantly gain more momentum
+            if (currentSpeed > previousSpeed && currentSpeed > maxSpeed) {
+                float oldY = linearVelocity.y;
+                linearVelocity.y = 0;
+                linearVelocity.normalize();
+                linearVelocity.scale(Math.max(previousSpeed, maxSpeed));
+                linearVelocity.y = oldY;
+            }
+        }
+
+        // apply gravity
+        PhysicsManager.getWorld().getGravity(gravity);
+        body.setGravity(gravity);
+
+        return movement;
+    }
+
+    private void checkAttack() {
+        if (!attacking) { return; }
+        attacking = false;
+
+        Vector3 toPosition = cameraNode.getWorldPosition().add(cameraNode.getWorldForwardAxis().mult(5f));
+        javax.vecmath.Vector3f from = cameraNode.getWorldPosition().toJavaX();
+        javax.vecmath.Vector3f to = toPosition.toJavaX();
+        CollisionWorld.ClosestRayResultCallback closest = new CollisionWorld.ClosestRayResultCallback(from, to);
+        PhysicsManager.getWorld().rayTest(from, to, closest);
+        System.out.println(closest.hasHit());
+        if (closest.hasHit()) {
+            if (closest.collisionObject instanceof RigidBody) {
+                RigidBody rb = (RigidBody) closest.collisionObject;
+                javax.vecmath.Vector3f force = cameraNode.getWorldForwardAxis().mult(20000f).toJavaX();
+
+                Transform t = new Transform();
+                rb.getWorldTransform(t);
+                javax.vecmath.Vector3f relative = (javax.vecmath.Vector3f)closest.hitPointWorld.clone();
+                relative.sub(t.origin);
+                rb.applyImpulse(force, relative);
+
+                rb.activate();
+                System.out.println("RIGID");
+            }
+        }
+    }
+
+    private void checkJump() {
+        if (jumpTicks > 0) {
+            // prevent onGround status for a few ticks after starting jump
+            jumpTicks--;
+            onGround = false;
+            normal = Vector3f.createUnitVectorY();
+            return;
+        }
+
+        // make sure we are pressing jump
+        if (!jumping) { return; }
+        jumping = false;
+
+        // make sure we are on the ground
+        if (!onGround) { return; }
+
+        // jump off the ground
+        linearVelocity.add(normal.mult(12).toJavaX());
+        onGround = false;
+        normal = Vector3f.createUnitVectorY();
+        jumpTicks = 8;
+    }
+
+    private Vector3 clipVelocity(Vector3 in, Vector3 normal) {
+        // magic to convert a flat movement vector into one based on the ground plane
+        // shamelessly stolen from Quake 3
+        // https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/bg_pmove.c
+        float overbounce = 1.001f;
+        float backoff = in.dot(normal);
+        if (backoff < 0) {
+            backoff *= overbounce;
+        } else {
+            backoff /= overbounce;
+        }
+        return in.sub(normal.mult(backoff));
+    }
+}

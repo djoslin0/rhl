@@ -1,0 +1,1 @@
+javac a2\*.java a2\Actions\*.java a2\GameEntities\*.java myGameEngine\Controllers\*.java myGameEngine\GameEntities\*.java myGameEngine\Helpers\*.java myGameEngine\Singletons\*.java ray\rage\rendersystem\gl4\*.java
