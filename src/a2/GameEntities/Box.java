@@ -2,12 +2,10 @@ package a2.GameEntities;
 
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
@@ -18,7 +16,6 @@ import ray.rml.Vector3;
 import java.io.IOException;
 
 public class Box extends GameEntity {
-    private SceneNode node;
     private Entity obj;
 
     public Box(Vector3 location, float scale) throws IOException {
@@ -43,28 +40,15 @@ public class Box extends GameEntity {
     }
 
     private void initPhysics() {
-        // NOTE: Re-using the same collision is better for memory usage and performance
-        ConvexHullShape colShape = BulletConvert.entityToConvexHullShape(obj);
-        colShape.setLocalScaling(node.getLocalScale().toJavaX());
-
-        // Create Dynamic Object
-        /*float mass = 100f;// * node.getLocalScale().x();
-        javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0, 0);
-        colShape.calculateLocalInertia(mass, localInertia);*/
-
         float mass = 0f;
-        javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0f, 0);
+        MotionStateController motionState = new MotionStateController(this.node);
+        ConvexHullShape collisionShape = BulletConvert.entityToConvexHullShape(obj);
+        collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
 
-        // using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-        MotionStateController myMotionState = new MotionStateController(this.node);
-        RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
-        RigidBody body = new RigidBody(rbInfo);
+        RigidBody body = createBody(mass, motionState, collisionShape);
         body.setRestitution(0.1f);
         body.setFriction(0.9f);
         body.setDamping(0.05f, 0.05f);
-
-        PhysicsManager.getWorld().addRigidBody(body);
-        //body.setActivationState(RigidBody.ISLAND_SLEEPING);
     }
 
     public String listedName() { return "box"; }

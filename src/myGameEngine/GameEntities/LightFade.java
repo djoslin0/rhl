@@ -33,7 +33,7 @@ public class LightFade extends GameEntity {
         light.setLinearAttenuation(attenuation);
         light.setRange(range);
 
-        SceneNode node = parentNode.createChildSceneNode(parentNode.getName() + "LightNode" + unique);
+        node = parentNode.createChildSceneNode(parentNode.getName() + "LightNode" + unique);
         addResponsibility(node);
         node.attachObject(light);
     }

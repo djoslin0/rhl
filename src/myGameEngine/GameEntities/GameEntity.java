@@ -1,8 +1,15 @@
 package myGameEngine.GameEntities;
 
+import com.bulletphysics.collision.narrowphase.ManifoldPoint;
+import com.bulletphysics.collision.narrowphase.PersistentManifold;
+import com.bulletphysics.collision.shapes.CollisionShape;
+import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
+import com.bulletphysics.linearmath.MotionState;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.EntityManager;
+import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UpdateManager;
 import ray.rage.asset.material.Material;
 import ray.rage.asset.mesh.Mesh;
@@ -11,6 +18,7 @@ import ray.rage.scene.*;
 import java.util.ArrayList;
 
 public class GameEntity implements Updatable {
+    protected SceneNode node;
     private boolean destroyed = false;
 
     // keep track of entities that need to be cleaned up / destroyed
@@ -19,6 +27,7 @@ public class GameEntity implements Updatable {
     private ArrayList<Material> materialResponsibility = new ArrayList<>();
     private ArrayList<GameEntity> gameEntityResponsibility = new ArrayList<>();
     private ArrayList<Light> lightResponsibility = new ArrayList<>();
+    private ArrayList<RigidBody> bodyResponsibility = new ArrayList<>();
 
     public GameEntity(boolean updatable) {
         if (updatable) {
@@ -30,6 +39,8 @@ public class GameEntity implements Updatable {
     }
 
     public String listedName() { return null; }
+    public boolean registerCollisions() { return false; }
+    public SceneNode getNode() { return node; }
 
     // keep track of entities that need to be cleaned up / destroyed
     public void addResponsibility(SceneNode node) { nodeResponsibility.add(node); }
@@ -37,6 +48,7 @@ public class GameEntity implements Updatable {
     public void addResponsibility(Material material) { materialResponsibility.add(material); }
     public void addResponsibility(GameEntity gameEntity) { gameEntityResponsibility.add(gameEntity); }
     public void addResponsibility(Light light) { lightResponsibility.add(light); }
+    public void addResponsibility(RigidBody body) { bodyResponsibility.add(body); }
 
     public boolean isDestroyed() { return destroyed; }
 
@@ -77,6 +89,14 @@ public class GameEntity implements Updatable {
         }
         objectResponsibility.clear();
 
+        // bodies
+        for (RigidBody body : bodyResponsibility) {
+            PhysicsManager.unregisterCollision(body);
+            PhysicsManager.getWorld().removeRigidBody(body);
+            body.destroy();
+        }
+        bodyResponsibility.clear();
+
         // lights
         for (Light light : lightResponsibility) {
             light.detachFromParent();
@@ -99,9 +119,32 @@ public class GameEntity implements Updatable {
         }
     }
 
+    protected RigidBody createBody(float mass, MotionState motionState, CollisionShape collisionShape) {
+        javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0f, 0);
+        if (mass > 0) {
+            collisionShape.calculateLocalInertia(mass, localInertia);
+        }
+
+        RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, motionState, collisionShape, localInertia);
+        RigidBody body = new RigidBody(rbInfo);
+        body.setUserPointer(this);
+
+        PhysicsManager.getWorld().addRigidBody(body);
+        addResponsibility(body);
+
+        if (registerCollisions()) {
+            PhysicsManager.registerCollision(body);
+        }
+
+        return body;
+    }
+
+    public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) { }
+
     @Override
     public void update(float delta) { }
 
     @Override
     public boolean blockUpdates() { return false; }
+
 }

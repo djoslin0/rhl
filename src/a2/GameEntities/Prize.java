@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.Random;
 
 public class Prize extends GameEntity {
-    private SceneNode node;
     private Entity obj;
     private CollectController collectController;
 
@@ -73,26 +72,16 @@ public class Prize extends GameEntity {
     }
 
     private void initPhysics() {
-        // NOTE: Re-using the same collision is better for memory usage and performance
-        ConvexHullShape colShape = BulletConvert.entityToConvexHullShape(obj);
-        colShape.setLocalScaling(node.getLocalScale().toJavaX());
-
         // Create Dynamic Object
         float mass = 100f;
+        MotionStateController motionState = new MotionStateController(this.node);
+        ConvexHullShape collisionShape = BulletConvert.entityToConvexHullShape(obj);
+        collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
 
-        javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0, 0);
-        colShape.calculateLocalInertia(mass, localInertia);
-
-        // using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-        MotionStateController myMotionState = new MotionStateController(this.node);
-        RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
-        RigidBody body = new RigidBody(rbInfo);
+        RigidBody body = createBody(mass, motionState, collisionShape);
         body.setRestitution(0.9f);
         body.setFriction(0.1f);
         body.setDamping(0.05f, 0.05f);
-
-        body.setUserPointer(this);
-        PhysicsManager.getWorld().addRigidBody(body);
     }
 
     public String listedName() { return "prize"; }

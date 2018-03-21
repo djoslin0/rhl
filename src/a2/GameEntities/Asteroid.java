@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.util.Random;
 
 public class Asteroid extends GameEntity {
-    private SceneNode node;
     private float scale;
     private float speed;
     private float size;

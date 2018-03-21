@@ -2,11 +2,15 @@ package myGameEngine.Controllers;
 
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
+import com.bulletphysics.collision.broadphase.Dispatcher;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
+import com.bulletphysics.collision.narrowphase.ManifoldPoint;
+import com.bulletphysics.collision.narrowphase.PersistentManifold;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.Transform;
+import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.TimeManager;
 import ray.rage.scene.SceneNode;
@@ -31,6 +35,8 @@ public class CharacterController extends InternalTickCallback {
     private boolean wasOnGround;
     private Vector3 normal;
     private float groundY;
+
+    private int knockbackAmount = 0;
 
     private final float groundAcceleration = 70;
     private final float airAcceleration = 20;
@@ -88,6 +94,11 @@ public class CharacterController extends InternalTickCallback {
     public void jump() {
         // player requested jump
         jumping = true;
+    }
+
+    public void knockback(Vector3 vec) {
+        knockbackAmount = (int)(vec.length() / 10f);
+        body.applyCentralImpulse(vec.toJavaX());
     }
 
     private float twoDimensionalLength(javax.vecmath.Vector3f vec) {
@@ -150,6 +161,8 @@ public class CharacterController extends InternalTickCallback {
 
         checkJump();
 
+        if (knockbackAmount > 0) { --knockbackAmount; }
+
         // do ground or air movement depending on onGround status
         // store current movement in order to undo it on next tick
         if (onGround) {
@@ -170,7 +183,9 @@ public class CharacterController extends InternalTickCallback {
         Vector3 movement = getMovementDirection().mult(acceleration);
 
         // apply friction
-        linearVelocity.scale(groundFriction);
+        float friction = MathHelper.lerp(groundFriction, 1, knockbackAmount / 100f);
+        if (friction > 1) { friction = 1; }
+        linearVelocity.scale(friction);
 
         if (movement.length() >= 0.2f) {
             // undo the previous movement's changes to velocity
@@ -268,7 +283,6 @@ public class CharacterController extends InternalTickCallback {
                 rb.applyImpulse(force, relative);
 
                 rb.activate();
-                System.out.println("RIGID");
             }
         }
     }

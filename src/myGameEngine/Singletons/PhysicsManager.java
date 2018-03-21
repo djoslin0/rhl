@@ -2,14 +2,20 @@ package myGameEngine.Singletons;
 
 import com.bulletphysics.collision.broadphase.BroadphaseInterface;
 import com.bulletphysics.collision.broadphase.DbvtBroadphase;
+import com.bulletphysics.collision.broadphase.Dispatcher;
 import com.bulletphysics.collision.dispatch.CollisionDispatcher;
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration;
+import com.bulletphysics.collision.narrowphase.ManifoldPoint;
+import com.bulletphysics.collision.narrowphase.PersistentManifold;
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
+import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
 import myGameEngine.Controllers.CharacterController;
+import myGameEngine.GameEntities.GameEntity;
+import ray.rml.Vector3;
 
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
@@ -26,6 +32,7 @@ public class PhysicsManager extends InternalTickCallback {
     private static ConstraintSolver solver;
     private static DefaultCollisionConfiguration collisionConfiguration;
     private ArrayList<InternalTickCallback> callbacks = new ArrayList<>();
+    private ArrayList<RigidBody> registeredCollisions = new ArrayList<>();
 
     public static void initPhysics() {
 
@@ -56,12 +63,43 @@ public class PhysicsManager extends InternalTickCallback {
 
     @Override
     public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
+        checkCollisions();
         for(InternalTickCallback callback : instance.callbacks) {
             callback.internalTick(dynamicsWorld, timeStep);
         }
     }
 
+    private void checkCollisions() {
+        Dispatcher dispatcher = PhysicsManager.getWorld().getDispatcher();
+        int manifoldCount = dispatcher.getNumManifolds();
+        for (int i = 0; i < manifoldCount; i++) {
+            PersistentManifold manifold = dispatcher.getManifoldByIndexInternal(i);
+            RigidBody object1 = (RigidBody)manifold.getBody0();
+            RigidBody object2 = (RigidBody)manifold.getBody1();
+            if (!registeredCollisions.contains(object1)) { continue; }
+            if (!registeredCollisions.contains(object2)) { continue; }
+
+            for (int j = 0; j < manifold.getNumContacts(); j++) {
+                ManifoldPoint contactPoint = manifold.getContactPoint(j);
+                if (contactPoint.getDistance() < 0) {
+                    ((GameEntity)object1.getUserPointer()).collision((GameEntity) object2.getUserPointer(), contactPoint, true);
+                    ((GameEntity)object2.getUserPointer()).collision((GameEntity) object1.getUserPointer(), contactPoint, false);
+                }
+            }
+        }
+
+    }
+
     public static void addCallback(InternalTickCallback callback) {
         instance.callbacks.add(callback);
     }
+
+    public static void registerCollision(RigidBody body) {
+        instance.registeredCollisions.add(body);
+    }
+
+    public static void unregisterCollision(RigidBody body) {
+        instance.registeredCollisions.remove(body);
+    }
+
 }

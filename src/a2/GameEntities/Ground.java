@@ -26,7 +26,6 @@ import java.io.IOException;
 
 public class Ground extends GameEntity {
     private ManualObject obj;
-    protected SceneNode node;
 
     public Ground() {
         super(false);
@@ -96,23 +95,15 @@ public class Ground extends GameEntity {
     }
 
     private void initPhysics() {
-        CollisionShape groundShape = new BoxShape(new javax.vecmath.Vector3f(100f, 2f, 100f));
-        //CollisionShape groundShape = new StaticPlaneShape(new javax.vecmath.Vector3f(0, 1, 0), 1);
+        float mass = 0f;
 
         Transform groundTransform = new Transform();
         groundTransform.setIdentity();
         groundTransform.origin.set(0, -2.3f, 0);
+        DefaultMotionState motionState = new DefaultMotionState(groundTransform);
 
-        float mass = 0f;
-        javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0f, 0);
+        CollisionShape collisionShape = new BoxShape(new javax.vecmath.Vector3f(100f, 2f, 100f));
 
-        // using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-        DefaultMotionState myMotionState = new DefaultMotionState(groundTransform);
-        RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, groundShape, localInertia);
-        RigidBody body = new RigidBody(rbInfo);
-        //body.setFriction(1f);
-
-        // add the body to the dynamics world
-        PhysicsManager.getWorld().addRigidBody(body);
+        createBody(mass, motionState, collisionShape);
     }
 }

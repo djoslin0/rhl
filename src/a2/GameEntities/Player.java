@@ -2,12 +2,10 @@ package a2.GameEntities;
 
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
 import myGameEngine.Controllers.CharacterController;
 import myGameEngine.Controllers.PlayerMotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Camera;
@@ -19,7 +17,6 @@ import ray.rml.Vector3;
 import java.io.IOException;
 
 public class Player extends GameEntity {
-    private SceneNode node;
     private SceneNode cameraNode;
     private RigidBody body;
     private CharacterController controller;
@@ -56,33 +53,22 @@ public class Player extends GameEntity {
     }
 
     private void initPhysics() {
-        // NOTE: Re-using the same collision is better for memory usage and performance
-        CapsuleShape colShape = new CapsuleShape(0.75f, 1.8f);
-
-        // Create Dynamic Object
         float mass = 70;
+        PlayerMotionStateController motionState = new PlayerMotionStateController(this.node);
+        CapsuleShape collisionShape = new CapsuleShape(0.75f, 1.8f);
 
-        javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0, 0);
-        colShape.calculateLocalInertia(mass, localInertia);
-
-        // using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-        PlayerMotionStateController myMotionState = new PlayerMotionStateController(this.node);
-        RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
-        body = new RigidBody(rbInfo);
+        body = createBody(mass, motionState, collisionShape);
         body.setRestitution(0f);
-        body.setFriction(0.3f);
+        body.setFriction(0.1f);
         body.setAngularFactor(0);
         body.setDamping(0.05f, 0f);
-
-        body.setUserPointer(this);
-        PhysicsManager.getWorld().addRigidBody(body);
 
         controller = new CharacterController(node, cameraNode, body);
     }
 
-    public String listedName() { return "player"; }
+    public boolean registerCollisions() { return true; }
 
-    public SceneNode getNode() { return node; }
+    public String listedName() { return "player"; }
     public SceneNode getCameraNode() { return cameraNode; }
     public RigidBody getBody() { return body; }
     public CharacterController getController() { return controller; }

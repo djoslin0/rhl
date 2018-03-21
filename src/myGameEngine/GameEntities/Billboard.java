@@ -17,7 +17,6 @@ import java.io.IOException;
 
 public class Billboard extends GameEntity implements Camera.Listener {
     private ManualObject obj;
-    protected SceneNode node;
     private SceneNode parentNode;
     private Camera camera;
     private TextureState texState;

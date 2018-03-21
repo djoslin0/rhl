@@ -1,9 +1,11 @@
 package a2.GameEntities;
 
+import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
 import myGameEngine.Controllers.MotionStateController;
+import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
@@ -11,15 +13,24 @@ import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
+import ray.rage.scene.Node;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
+import ray.rml.Matrix3f;
+import ray.rml.Radianf;
 import ray.rml.Vector3;
+import ray.rml.Vector3f;
 
+import java.awt.*;
 import java.io.IOException;
 
 public class Puck extends GameEntity {
-    private SceneNode node;
     private Entity obj;
+    private RigidBody body;
+    private SceneNode angularTestNode;
+
+    private float angularPushScale = 100f;
+    private float linearPushScale = 70f;
 
     public Puck(Vector3 location) throws IOException {
         super(true);
@@ -38,30 +49,66 @@ public class Puck extends GameEntity {
         node.attachObject(obj);
         node.setLocalPosition(location);
 
+        angularTestNode = sm.getRootSceneNode().createChildSceneNode(obj.getName() + "TestNode");
+        addResponsibility(angularTestNode);
+
         initPhysics();
     }
 
     private void initPhysics() {
-        // NOTE: Re-using the same collision is better for memory usage and performance
-        ConvexHullShape colShape = BulletConvert.entityToConvexHullShape(obj);
-        colShape.setLocalScaling(node.getLocalScale().toJavaX());
-
-        // Create Dynamic Object
         float mass = 1000f;
+        MotionStateController motionState = new MotionStateController(this.node);
+        ConvexHullShape collisionShape = BulletConvert.entityToConvexHullShape(obj);
+        collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
 
-        javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0, 0);
-        colShape.calculateLocalInertia(mass, localInertia);
-
-        // using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-        MotionStateController myMotionState = new MotionStateController(this.node);
-        RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
-        RigidBody body = new RigidBody(rbInfo);
+        body = createBody(mass, motionState, collisionShape);
         body.setRestitution(0.6f);
         body.setFriction(0.2f);
         body.setDamping(0.05f, 0f);
+    }
 
-        body.setUserPointer(this);
-        PhysicsManager.getWorld().addRigidBody(body);
+    public boolean registerCollisions() { return true; }
+
+    public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
+        // only check on player
+        if (!(entity instanceof Player)) { return; }
+        Player player = (Player) entity;
+        Vector3 entityPosition = entity.getNode().getWorldPosition();
+        Vector3 thisPosition = node.getWorldPosition();
+
+        // get linear velocity
+        javax.vecmath.Vector3f linearVelocityJavaX = new javax.vecmath.Vector3f();
+        body.getLinearVelocity(linearVelocityJavaX);
+        Vector3 linearVelocity = Vector3f.createFrom(linearVelocityJavaX);
+
+        // get angular velocity
+        javax.vecmath.Vector3f angularVelocityJavaX = new javax.vecmath.Vector3f();
+        body.getAngularVelocity(angularVelocityJavaX);
+        Vector3 angularVelocity = Vector3f.createFrom(angularVelocityJavaX);
+
+        // calculate angular push vector
+        float dist = entityPosition.sub(thisPosition).length();
+        angularTestNode.setLocalPosition(thisPosition);
+        angularTestNode.lookAt(entity.getNode());
+        angularTestNode.pitch(Radianf.createFrom(angularVelocity.x() / 5f));
+        angularTestNode.yaw(Radianf.createFrom(angularVelocity.y() / 5f));
+        angularTestNode.roll(Radianf.createFrom(angularVelocity.z() / 5f));
+        angularTestNode.moveForward(dist);
+        Vector3 angularPush = angularTestNode.getWorldPosition().sub(entityPosition).mult(angularPushScale);
+
+        // calculate linear push vector
+        Vector3 linearPush = Vector3f.createZeroVector();
+        Vector3 diff = entityPosition.sub(thisPosition);
+        float dot = linearVelocity.normalize().dot(diff.normalize());
+        if (dot > 0.5f) { dot = 0.5f; }
+        dot = dot * 2f;
+        if (dot > 0) {
+            linearPush = linearVelocity.mult(linearPushScale * dot);
+        }
+
+        // push player
+        Vector3 push = angularPush.add(linearPush);
+        player.getController().knockback(push);
     }
 
     public String listedName() { return "puck"; }

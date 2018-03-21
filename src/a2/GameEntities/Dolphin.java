@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Random;
 
 public class Dolphin extends GameEntity {
-    private SceneNode node;
     private TronTrail tron;
     private OrbitCameraController cameraController;
     private NodeController nodeController;
