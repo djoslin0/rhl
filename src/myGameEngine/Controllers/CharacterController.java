@@ -36,7 +36,8 @@ public class CharacterController extends InternalTickCallback {
     private Vector3 normal;
     private float groundY;
 
-    private int knockbackAmount = 0;
+    private int knockbackTimeout = 0;
+    private int ignoreKnockTimeout = 0;
 
     private final float groundAcceleration = 70;
     private final float airAcceleration = 20;
@@ -97,7 +98,10 @@ public class CharacterController extends InternalTickCallback {
     }
 
     public void knockback(Vector3 vec) {
-        knockbackAmount = (int)(vec.length() / 10f);
+        if (ignoreKnockTimeout > 0) { return; }
+        ignoreKnockTimeout = 10;
+        knockbackTimeout = (int)(vec.length() / 10f);
+        if (knockbackTimeout > 100) { knockbackTimeout = 100; }
         body.applyCentralImpulse(vec.toJavaX());
     }
 
@@ -161,7 +165,8 @@ public class CharacterController extends InternalTickCallback {
 
         checkJump();
 
-        if (knockbackAmount > 0) { --knockbackAmount; }
+        if (knockbackTimeout > 0) { --knockbackTimeout; }
+        if (ignoreKnockTimeout > 0) { --ignoreKnockTimeout; }
 
         // do ground or air movement depending on onGround status
         // store current movement in order to undo it on next tick
@@ -183,7 +188,7 @@ public class CharacterController extends InternalTickCallback {
         Vector3 movement = getMovementDirection().mult(acceleration);
 
         // apply friction
-        float friction = MathHelper.lerp(groundFriction, 1, knockbackAmount / 100f);
+        float friction = MathHelper.lerp(groundFriction, 1, knockbackTimeout / 100f);
         if (friction > 1) { friction = 1; }
         linearVelocity.scale(friction);
 

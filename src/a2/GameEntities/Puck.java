@@ -29,8 +29,8 @@ public class Puck extends GameEntity {
     private RigidBody body;
     private SceneNode angularTestNode;
 
-    private float angularPushScale = 100f;
-    private float linearPushScale = 70f;
+    private float angularPushScale = 400f;
+    private float linearPushScale = 200f;
 
     public Puck(Vector3 location) throws IOException {
         super(true);
@@ -73,6 +73,7 @@ public class Puck extends GameEntity {
         // only check on player
         if (!(entity instanceof Player)) { return; }
         Player player = (Player) entity;
+
         Vector3 entityPosition = entity.getNode().getWorldPosition();
         Vector3 thisPosition = node.getWorldPosition();
 
