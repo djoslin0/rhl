@@ -9,12 +9,14 @@ import ray.rage.scene.SceneNode;
 
 import java.awt.*;
 
-public class LightFade extends GameEntityUpdatable {
+public class LightFade extends GameEntity {
     private Light light;
     private Duration duration;
     private float range;
 
     public LightFade(SceneNode parentNode, Color color, float range, float attenuation, float maxDuration) {
+        super(true);
+
         SceneManager sm = EngineManager.getSceneManager();
 
         this.range = range;

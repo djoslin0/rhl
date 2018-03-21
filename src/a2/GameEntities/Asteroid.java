@@ -24,6 +24,8 @@ public class Asteroid extends GameEntity {
     private long uniqueCount;
 
     public Asteroid(SceneNode parent, Vector3 location, float speed, float size) throws IOException {
+        super(false);
+
         SceneManager sm = EngineManager.getSceneManager();
         uniqueCount = UniqueCounter.next();
         String name = "Asteroid" + uniqueCount;

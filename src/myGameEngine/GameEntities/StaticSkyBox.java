@@ -18,6 +18,7 @@ import java.io.IOException;
 
 public class StaticSkyBox extends GameEntity {
     public StaticSkyBox(SceneNode parentNode) throws IOException {
+        super(false);
         // create sides
         float size = 500f;
         CreateSide(parentNode,"front",

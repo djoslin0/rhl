@@ -1,14 +1,16 @@
 package myGameEngine.GameEntities;
 
+import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.EntityManager;
+import myGameEngine.Singletons.UpdateManager;
 import ray.rage.asset.material.Material;
 import ray.rage.asset.mesh.Mesh;
 import ray.rage.scene.*;
 
 import java.util.ArrayList;
 
-public class GameEntity {
+public class GameEntity implements Updatable {
     private boolean destroyed = false;
 
     // keep track of entities that need to be cleaned up / destroyed
@@ -18,7 +20,10 @@ public class GameEntity {
     private ArrayList<GameEntity> gameEntityResponsibility = new ArrayList<>();
     private ArrayList<Light> lightResponsibility = new ArrayList<>();
 
-    public GameEntity() {
+    public GameEntity(boolean updatable) {
+        if (updatable) {
+            UpdateManager.add(this);
+        }
         if (listedName() != null) {
             EntityManager.add(listedName(), this);
         }
@@ -40,18 +45,25 @@ public class GameEntity {
         if (destroyed) { return; }
         destroyed = true;
 
+        // disable update calls
+        UpdateManager.remove(this);
+
+        // clean up responsibilities
         SceneManager sm = EngineManager.getSceneManager();
 
+        // game entities
         for (GameEntity gameEntity : gameEntityResponsibility) {
             gameEntity.destroy();
         }
         gameEntityResponsibility.clear();
 
+        // materials
         for (Material material : materialResponsibility) {
             sm.getMaterialManager().removeAssetByName(material.getName());
         }
         materialResponsibility.clear();
 
+        // objects
         for (SceneObject object : objectResponsibility) {
             object.detachFromParent();
             if (object instanceof ManualObject) {
@@ -65,12 +77,14 @@ public class GameEntity {
         }
         objectResponsibility.clear();
 
+        // lights
         for (Light light : lightResponsibility) {
             light.detachFromParent();
             sm.destroyLight(light);
         }
         lightResponsibility.clear();
 
+        // nodes
         for (SceneNode node : nodeResponsibility) {
             if (node.getParent() != null) {
                 node.getParent().detachChild(node);
@@ -79,8 +93,15 @@ public class GameEntity {
         }
         nodeResponsibility.clear();
 
+        // have entitiy manager forget about this entity
         if (listedName() != null) {
             EntityManager.remove(listedName(), this);
         }
     }
+
+    @Override
+    public void update(float delta) { }
+
+    @Override
+    public boolean blockUpdates() { return false; }
 }

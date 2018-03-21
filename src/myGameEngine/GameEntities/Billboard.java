@@ -15,7 +15,7 @@ import ray.rage.util.BufferUtil;
 import java.awt.*;
 import java.io.IOException;
 
-public class Billboard extends GameEntityUpdatable implements Camera.Listener {
+public class Billboard extends GameEntity implements Camera.Listener {
     private ManualObject obj;
     protected SceneNode node;
     private SceneNode parentNode;
@@ -25,7 +25,8 @@ public class Billboard extends GameEntityUpdatable implements Camera.Listener {
     private Texture clear;
 
     public Billboard(SceneNode parentNode, float width, float height, String textureName, Color color) throws IOException {
-        super();
+        super(false);
+
         Engine engine = EngineManager.getEngine();
         SceneManager sm = EngineManager.getSceneManager();
 

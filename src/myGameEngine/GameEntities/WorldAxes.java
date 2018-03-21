@@ -20,6 +20,7 @@ import java.io.IOException;
 // The WorldAxes is an entity that displays a line for the X, Y, and Z axes
 public class WorldAxes extends GameEntity {
     public WorldAxes() {
+        super(false);
         // Create each axis
         CreateAxis("X", Color.RED, new float[] {
                 0, 0, 0,

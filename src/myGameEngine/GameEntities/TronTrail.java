@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-public class TronTrail extends GameEntityUpdatable {
+public class TronTrail extends GameEntity {
     public ManualObject obj;
     private float[] vertices;
     private SceneNode trailNode;
@@ -36,6 +36,8 @@ public class TronTrail extends GameEntityUpdatable {
     private ArrayList<Vector3> segments = new ArrayList();
 
     public TronTrail(SceneNode trailNode, Color color) throws IOException {
+        super(true);
+
         Engine engine = EngineManager.getEngine();
         SceneManager sm = EngineManager.getSceneManager();
 

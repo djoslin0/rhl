@@ -29,6 +29,7 @@ public class Ground extends GameEntity {
     protected SceneNode node;
 
     public Ground() {
+        super(false);
         Engine engine = EngineManager.getEngine();
         SceneManager sm = EngineManager.getSceneManager();
 

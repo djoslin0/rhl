@@ -1,27 +1,28 @@
 package a2.GameEntities;
 
-import a2.Actions.ActionMove;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
 import com.bulletphysics.dynamics.RigidBody;
 import myGameEngine.Controllers.NodeController;
 import myGameEngine.Controllers.OrbitCameraController;
 import myGameEngine.GameEntities.*;
-import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Helpers.HudText;
-import myGameEngine.Helpers.MathHelper;
-import myGameEngine.Helpers.Updatable;
-import myGameEngine.Singletons.*;
+import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.PhysicsManager;
+import myGameEngine.Singletons.TimeManager;
+import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
-import ray.rage.scene.*;
+import ray.rage.scene.Camera;
+import ray.rage.scene.Entity;
+import ray.rage.scene.SceneManager;
+import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Random;
 
-public class Dolphin extends GameEntityUpdatable {
+public class Dolphin extends GameEntity {
     private SceneNode node;
     private TronTrail tron;
     private OrbitCameraController cameraController;
@@ -36,7 +37,7 @@ public class Dolphin extends GameEntityUpdatable {
     private Vector3 lastWorldPosition;
 
     public Dolphin(Camera camera, Vector3 location, Color color, String objName, HudText hud) throws IOException {
-        super();
+        super(true);
         SceneManager sm = EngineManager.getSceneManager();
         String name = "Dolphin" + UniqueCounter.next();
         this.color = color;

@@ -3,16 +3,17 @@ package a2.GameEntities;
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
-import com.bulletphysics.util.ObjectArrayList;
 import myGameEngine.Controllers.CollectController;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.Billboard;
-import myGameEngine.GameEntities.GameEntityUpdatable;
+import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
-import myGameEngine.Singletons.*;
+import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.PhysicsManager;
+import myGameEngine.Singletons.TimeManager;
+import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.asset.material.Material;
-import ray.rage.asset.mesh.SubMesh;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
@@ -22,15 +23,16 @@ import ray.rml.Vector3f;
 
 import java.awt.*;
 import java.io.IOException;
-import java.nio.FloatBuffer;
 import java.util.Random;
 
-public class Prize extends GameEntityUpdatable {
+public class Prize extends GameEntity {
     private SceneNode node;
     private Entity obj;
     private CollectController collectController;
 
     public Prize(Vector3 location) throws IOException {
+        super(true);
+
         SceneManager sm = EngineManager.getSceneManager();
 
         long unique = UniqueCounter.next();
@@ -89,8 +91,8 @@ public class Prize extends GameEntityUpdatable {
         body.setFriction(0.1f);
         body.setDamping(0.05f, 0.05f);
 
+        body.setUserPointer(this);
         PhysicsManager.getWorld().addRigidBody(body);
-        //body.setActivationState(RigidBody.ISLAND_SLEEPING);
     }
 
     public String listedName() { return "prize"; }

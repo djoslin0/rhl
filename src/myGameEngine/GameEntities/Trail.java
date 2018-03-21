@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
 
-public class Trail extends GameEntityUpdatable {
+public class Trail extends GameEntity {
     public ManualObject obj;
     private float[] vertices;
     private SceneNode[] trailNodes;
@@ -29,6 +29,7 @@ public class Trail extends GameEntityUpdatable {
     private float size;
 
     public Trail(SceneNode trailNode, Vector3 line, int segments, float speed, Color color) throws IOException {
+        super(true);
         Engine engine = EngineManager.getEngine();
         SceneManager sm = EngineManager.getSceneManager();
 

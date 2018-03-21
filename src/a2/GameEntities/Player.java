@@ -1,14 +1,11 @@
 package a2.GameEntities;
 
-import com.bulletphysics.collision.dispatch.CollisionWorld;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
-import com.bulletphysics.linearmath.Transform;
-import myGameEngine.Controllers.OrbitCameraController;
-import myGameEngine.Controllers.PlayerMotionStateController;
 import myGameEngine.Controllers.CharacterController;
-import myGameEngine.GameEntities.GameEntityUpdatable;
+import myGameEngine.Controllers.PlayerMotionStateController;
+import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
@@ -18,18 +15,18 @@ import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
-import ray.rml.Vector3f;
 
 import java.io.IOException;
 
-public class Player extends GameEntityUpdatable {
+public class Player extends GameEntity {
     private SceneNode node;
     private SceneNode cameraNode;
     private RigidBody body;
     private CharacterController controller;
 
     public Player(Camera camera, Vector3 location) throws IOException {
-        super();
+        super(true);
+
         SceneManager sm = EngineManager.getSceneManager();
         String name = "Player" + UniqueCounter.next();
 
@@ -77,6 +74,7 @@ public class Player extends GameEntityUpdatable {
         body.setAngularFactor(0);
         body.setDamping(0.05f, 0f);
 
+        body.setUserPointer(this);
         PhysicsManager.getWorld().addRigidBody(body);
 
         controller = new CharacterController(node, cameraNode, body);
