@@ -1,7 +1,10 @@
 package a2;
 
+import Networking.UDPClient;
+import Networking.UDPServer;
 import a2.GameEntities.*;
 import com.jogamp.opengl.util.gl2.GLUT;
+import myGameEngine.GameEntities.ShaderSkyBox;
 import myGameEngine.GameEntities.StaticSkyBox;
 import myGameEngine.GameEntities.WorldAxes;
 import myGameEngine.Helpers.HudText;
@@ -10,6 +13,8 @@ import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.TimeManager;
 import myGameEngine.Singletons.UpdateManager;
 import ray.input.GenericInputManager;
+import ray.networking.IGameConnection;
+import ray.networking.client.UDPClientSocket;
 import ray.rage.Engine;
 import ray.rage.game.VariableFrameRateGame;
 import ray.rage.rendersystem.RenderSystem;
@@ -23,12 +28,17 @@ import ray.rage.scene.SceneNode;
 import ray.rage.scene.controllers.RotationController;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
+import Networking.UDPServer;
 
 import java.awt.*;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Random;
 
 public class MyGame extends VariableFrameRateGame {
+
+    //Networking arguments
+    private String args[];
 
     private GenericInputManager im;
     private Camera camera;
@@ -38,21 +48,35 @@ public class MyGame extends VariableFrameRateGame {
     private HudText score2Text = new HudText(15, 15, Color.RED, GLUT.BITMAP_HELVETICA_18);
     private HudText fpsText = new HudText(-80, -30, Color.white, GLUT.BITMAP_8_BY_13);
 
-    public static void main(String[] args) {
-        MyGame game = new MyGame();
-        try {
-            game.startup();
-            game.run();
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-        } finally {
-            game.shutdown();
-            game.exit();
-        }
+    public static void main(String[] args) throws IOException {
+        System.out.println(args.length);
+                System.out.println(args.length);
+                MyGame game = new MyGame(args);
+                try {
+
+                    game.startup();
+                    game.run();
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                } finally {
+                    game.shutdown();
+                    game.exit();
+                }
     }
 
-    public MyGame() {
+    public MyGame(String[] args) {
         super();
+        this.args=args;
+    }
+    private void setupNetWorking() throws IOException {
+        if(args.length > 0){
+            if(args[0].equals("s")){
+                UDPServer.createServer(8800, IGameConnection.ProtocolType.UDP);
+            }else if(args[0].equals("c")){
+                UDPClient.getClient(InetAddress.getByName(args[1]),Integer.parseInt(args[2]), IGameConnection.ProtocolType.UDP,camera);
+                UDPClient.getClient().RequestJoin();
+            }
+        }
     }
 
     @Override
@@ -76,7 +100,7 @@ public class MyGame extends VariableFrameRateGame {
     protected void setupScene(Engine engine, SceneManager sm) throws IOException {
         EngineManager.init(engine);
         PhysicsManager.initPhysics();
-
+        new ShaderSkyBox(engine,sm,this);
         new WorldAxes();
         new Ground();
 
@@ -93,10 +117,6 @@ public class MyGame extends VariableFrameRateGame {
         dlightNode.attachObject(dlight);
         dlightNode.setLocalPosition(1f, 1f, 1f);
 
-        // setup dolphin & player
-
-        new Player(camera, Vector3f.createFrom(20f, 5f, -2f));
-        player = new Player(camera, Vector3f.createFrom(0f, 5f, -2f));
 
         new Puck(Vector3f.createFrom(15, 15, 15));
 
@@ -129,7 +149,7 @@ public class MyGame extends VariableFrameRateGame {
         }
 
         // setup skybox
-        new StaticSkyBox(rootNode);
+        //new StaticSkyBox(rootNode);
 
         GL4RenderSystem rs = (GL4RenderSystem) engine.getRenderSystem();
         rs.addHud(score1Text);
@@ -137,24 +157,51 @@ public class MyGame extends VariableFrameRateGame {
         rs.addHud(fpsText);
         score2Text.text = "Score: 0";
         score1Text.text = "Press START on gamepad to begin.";
+        setupNetWorking();
+        try {
+            createplayer();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         setupInputs();
+    }
+    private void createplayer() throws IOException, InterruptedException {
+        if(UDPClient.getClient()!=null){
+            while(player == null){
+                System.out.println("waiting");
+                player = UDPClient.getClient().getPlayer();
+                UDPClient.getClient().processPackets();
+            }
+            System.out.println("connected to Server");
+        }
+        else {
+            System.out.println("continuting without networking");
+            player = new Player(camera, Vector3f.createFrom(0f, 0f, 60f), 40000);
+        }
     }
     private void setupInputs() {
         im = new GenericInputManager();
-
         InputSetup.setupKeyboard(im, player);
         InputSetup.setupMouse(im, player);
         InputSetup.listenToControllers(im, player, score1Text);
     }
-
+    public void processNetworking(float elapseTime){
+        if(UDPClient.getClient()!=null) {
+            UDPClient.getClient().processPackets();
+        }
+    }
     @Override
     protected void update(Engine engine) {
+
         float delta = engine.getElapsedTimeMillis();
+        processNetworking(delta);
         TimeManager.update(delta);
         PhysicsManager.getWorld().stepSimulation(delta / 1000f, 10, 1f / 144f);
         im.update(delta);
         UpdateManager.update(delta);
         fpsText.text = "FPS: " + TimeManager.getFps();
 
+
     }
 }
+

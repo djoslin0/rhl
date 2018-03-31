@@ -15,17 +15,49 @@ import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
 
 import java.io.IOException;
+import java.util.UUID;
 
 public class Player extends GameEntity {
     private SceneNode cameraNode;
     private RigidBody body;
     private CharacterController controller;
+    private Integer playerID;
+    private int playerSide;
 
-    public Player(Camera camera, Vector3 location) throws IOException {
+    public Player (Vector3 location,int side,Integer playerID) throws IOException{
         super(true);
-
+        this.playerID = playerID;
+        playerSide = side;
         SceneManager sm = EngineManager.getSceneManager();
-        String name = "Player" + UniqueCounter.next();
+        String name = "Player" + playerID;
+        // load model
+        Entity entity = sm.createEntity(name, "cube.obj");
+        entity.setPrimitive(Renderable.Primitive.TRIANGLES);
+        addResponsibility(entity);
+
+        // create entity's base node, and move to desired location
+        node = sm.getRootSceneNode().createChildSceneNode(name + "Node");
+        node.setLocalPosition(location);
+        addResponsibility(node);
+
+        SceneNode objNode = node.createChildSceneNode(name + "ObjNode");
+        objNode.attachObject(entity);
+        objNode.setLocalScale(0.75f, 1.8f, 0.75f);
+        addResponsibility(objNode);
+
+        // create entity's camera node
+        cameraNode = node.createChildSceneNode(name + "CameraNode");
+        cameraNode.setLocalPosition(0, 1.5f, 0);
+        addResponsibility(cameraNode);
+        initPhysics();
+    }
+
+    public Player(Camera camera, Vector3 location,int side) throws IOException {
+        super(true);
+        System.out.println(location.toString());
+        this.playerSide = side;
+        SceneManager sm = EngineManager.getSceneManager();
+        String name = "User Character" + side;
 
         // load model
         Entity entity = sm.createEntity(name, "cube.obj");
@@ -51,7 +83,9 @@ public class Player extends GameEntity {
 
         initPhysics();
     }
-
+    public int getside(){
+        return playerSide;
+    }
     private void initPhysics() {
         float mass = 70;
         PlayerMotionStateController motionState = new PlayerMotionStateController(this.node);
