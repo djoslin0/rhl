@@ -185,16 +185,24 @@ public class MyGame extends VariableFrameRateGame {
         InputSetup.setupMouse(im, player);
         InputSetup.listenToControllers(im, player, score1Text);
     }
-    public void processNetworking(float elapseTime){
+    public void processNetworking(float elapseTime) throws IOException {
         if(UDPClient.getClient()!=null) {
             UDPClient.getClient().processPackets();
+            UDPClient.getClient().RequestPlayers();
+            UDPClient.getClient().SendPositionInfo(player);
         }
     }
     @Override
     protected void update(Engine engine) {
 
         float delta = engine.getElapsedTimeMillis();
-        processNetworking(delta);
+        if(UDPClient.getClient()!= null){
+            try {
+                processNetworking(delta);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         TimeManager.update(delta);
         PhysicsManager.getWorld().stepSimulation(delta / 1000f, 10, 1f / 144f);
         im.update(delta);

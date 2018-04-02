@@ -41,7 +41,7 @@ public class UDPClient extends GameConnectionClient {
     {
         String message = (String) msg;
         String[] msgtokens = message.split(",");
-        System.out.println(message);
+        //System.out.println(message);
         if(msgtokens.length > 0){
             switch (switchVals.get(msgtokens[0])) {
                 case 28:
@@ -64,15 +64,23 @@ public class UDPClient extends GameConnectionClient {
                     }
                     break;
                 case 29:
-
-                    for(int i =2;i<Integer.parseInt(msgtokens[1]);i+=4){
-
-                        Vector3 location = Vector3f.createFrom(Float.parseFloat(msgtokens[i]),Float.parseFloat(msgtokens[i+1]),Float.parseFloat(msgtokens[i+2]));
-                        try {
-                            otherplayers.put(id,new Player(location,Integer.parseInt(msgtokens[i+3]),id));
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    //System.out.println(message);
+                    for(int i =2;i<(Integer.parseInt(msgtokens[1])*4)+2;i+=4){
+                        //aaSystem.out.println(i);
+                        if(otherplayers.get((i-2)/4) != null){
+                            Vector3 oldPosition = otherplayers.get((i-2)/4).getNode().getLocalPosition();
+                            otherplayers.get((i-2)/4).getBody().translate(new javax.vecmath.Vector3f(Float.parseFloat(msgtokens[i])-oldPosition.x(), Float.parseFloat(msgtokens[i+1])-oldPosition.y(),Float.parseFloat(msgtokens[i+2])-oldPosition.z()));
+                        }else if(msgtokens.length > 2) {
+                            System.out.println("Player created with id:"+ id);
+                            Vector3 location = Vector3f.createFrom(Float.parseFloat(msgtokens[i]),Float.parseFloat(msgtokens[i+1]),Float.parseFloat(msgtokens[i+2]));
+                            try {
+                                otherplayers.put(id,new Player(location,Integer.parseInt(msgtokens[i+3]),id));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            id++;
                         }
+
                     }
                     break;
             }
@@ -87,6 +95,13 @@ public class UDPClient extends GameConnectionClient {
     }
     public void RequestPlayers() throws IOException {
         sendPacket("getPlayers");
+    }
+    public void SendPositionInfo(Player player) throws IOException {
+        String message = "M";
+        message += "," + String.valueOf(player.getNode().getLocalPosition().x());
+        message += "," + String.valueOf(player.getNode().getLocalPosition().y());
+        message += "," + String.valueOf(player.getNode().getLocalPosition().z());
+        sendPacket(message);
     }
     public Player getPlayer(){
         return player;

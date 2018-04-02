@@ -1,5 +1,6 @@
 package Networking;
 
+import com.sun.glass.ui.SystemClipboard;
 import myGameEngine.NetworkHelpers.AlphabetHashTable;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import ray.networking.server.GameConnectionServer;
@@ -24,7 +25,7 @@ public class UDPServer extends GameConnectionServer<Integer>{
     private UDPServer(int localPort, ProtocolType protocolType) throws IOException {
         super(localPort, protocolType);
         cliententities = new ConcurrentHashMap<>();
-        clientmap = new ConcurrentHashMap<String, Integer>();
+        clientmap = new ConcurrentHashMap<>();
         switchVals = new AlphabetHashTable();
 
         System.out.println("server running on port:" + localPort);
@@ -66,12 +67,12 @@ public class UDPServer extends GameConnectionServer<Integer>{
                             packetInfo += "," + 0;
                             sendPacket(packetInfo,id);
                             id++;
+                            redSide++;
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }else{
                         try {
-                            System.out.println(ci.toString());
                             addClient(ci,id);
                             clientmap.put(cli.info(),id);
                             createClient(1,ci);
@@ -83,6 +84,7 @@ public class UDPServer extends GameConnectionServer<Integer>{
                             packetInfo += "," + 1;
                             sendPacket(packetInfo,id);
                             id++;
+                            blueSide++;
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -93,45 +95,37 @@ public class UDPServer extends GameConnectionServer<Integer>{
                 case 27:
                     String packetInfo;
                     packetInfo = "Players";
-                    packetInfo += "," + String.valueOf(cliententities.values().size());
+                    packetInfo += "," + String.valueOf(cliententities.values().size()-1);
                     for(Object c : cliententities.values()){
-                        packetInfo += "," + String.valueOf(((Player)c).getNode().getLocalPosition().x());
-                        packetInfo += "," + String.valueOf(((Player)c).getNode().getLocalPosition().y());
-                        packetInfo += "," + String.valueOf(((Player)c).getNode().getLocalPosition().z());
-                        packetInfo += "," + String.valueOf(((Player)c).getside());
+                        if(((Player)c).getId() != clientmap.get(cli.info())) {
+                            packetInfo += "," + String.valueOf(((Player) c).getNode().getLocalPosition().x());
+                            packetInfo += "," + String.valueOf(((Player) c).getNode().getLocalPosition().y());
+                            packetInfo += "," + String.valueOf(((Player) c).getNode().getLocalPosition().z());
+                            packetInfo += "," + String.valueOf(((Player) c).getside());
+                        }
                     }
                     try {
-                        sendPacket(packetInfo,clientmap.get(cli));
+                        cli = new ClientInfo(senderIP.toString(),String.valueOf(sndPort));
+                        sendPacket(packetInfo,clientmap.get(cli.info()));
 
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     break;
-                    //forward
-                case 22:
+                   //player has moved
+                case 12:
+                    Vector3 oldlocation = cliententities.get(clientmap.get(cli.info())).getNode().getLocalPosition();
+                    cliententities.get(clientmap.get(cli.info())).getBody().translate( new javax.vecmath.Vector3f
+                            (Float.valueOf(msgTokens[1])-oldlocation.x(),Float.valueOf(msgTokens[2])- oldlocation.y(),Float.valueOf(msgTokens[3])-oldlocation.z()));
                     break;
                     //backward
-                case 18:
-                    break;
-                    //left
-                case 0:
-                    break;
-                    //right
-                case 3:
-                    break;
-                    //jump
-                case 9:
-                    break;
-                    //punch/fire
-                case 15:
-                    break;
-
             }
 
         }
     }
     private void createClient(int side,IClientInfo ci) throws IOException {
         Player newPlayer =  new Player(Spawn(side),side,id);
+        newPlayer.getNode().setLocalPosition(0f,1.5f,0f);
         cliententities.put(id,newPlayer);
     }
 

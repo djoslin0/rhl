@@ -1,5 +1,6 @@
 package myGameEngine.Controllers;
 
+import Networking.UDPClient;
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
 import com.bulletphysics.collision.broadphase.Dispatcher;
@@ -44,6 +45,7 @@ public class CharacterController extends InternalTickCallback {
     private final float maxSpeed = 14;
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
+
 
 
     public CharacterController(SceneNode node, SceneNode cameraNode, RigidBody body) {

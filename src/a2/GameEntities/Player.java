@@ -1,5 +1,6 @@
 package a2.GameEntities;
 
+import Networking.UDPClient;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
 import myGameEngine.Controllers.CharacterController;
@@ -76,13 +77,19 @@ public class Player extends GameEntity {
 
         // create entity's camera node
         cameraNode = node.createChildSceneNode(name + "CameraNode");
-        cameraNode.setLocalPosition(0, 1.5f, 0);
+        if(UDPClient.getClient()==null){
+            cameraNode.setLocalPosition(0, 50f, 0);
+        }else{
+            cameraNode.setLocalPosition(0, 1.5f, 0);
+        }
+
         addResponsibility(cameraNode);
         cameraNode.attachObject(camera);
         camera.setMode('n');
 
         initPhysics();
     }
+    public int getId(){return playerID;}
     public int getside(){
         return playerSide;
     }
