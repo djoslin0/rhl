@@ -47,6 +47,7 @@ import ray.rage.rendersystem.shader.glsl.GlslProgramFactory;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.scene.AmbientLight;
 import ray.rage.scene.Light;
+import ray.rage.scene.TessellationBody;
 import ray.rml.Matrix4;
 import ray.rml.Matrix4f;
 import ray.rml.Vector3;
@@ -304,6 +305,11 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
                 break;
             case VERTEX_BUFFER:
                 gl.glDrawArrays(primitive, 0, r.getVertexBuffer().capacity());
+                break;
+            case TESS_VERT_BUFFER:
+                int quality = ((TessellationBody)r).getQualityTotal();
+                gl.glPatchParameteri(36466, 4);
+                gl.glDrawArraysInstanced(14, 0, 4, quality * quality);
                 break;
             default:
                 logger.severe("Draw call skipped. Invalid " + DataSource.class.getName() + ": " + source);

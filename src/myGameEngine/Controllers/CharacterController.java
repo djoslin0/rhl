@@ -11,7 +11,9 @@ import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.Transform;
+import myGameEngine.GameEntities.Terrain;
 import myGameEngine.Helpers.MathHelper;
+import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.TimeManager;
 import ray.rage.scene.SceneNode;
@@ -32,6 +34,7 @@ public class CharacterController extends InternalTickCallback {
     private javax.vecmath.Vector3f linearVelocity = new javax.vecmath.Vector3f();
     private javax.vecmath.Vector3f gravity = new javax.vecmath.Vector3f();
 
+    private Terrain terrain;
     private boolean onGround;
     private boolean wasOnGround;
     private Vector3 normal;
@@ -46,13 +49,16 @@ public class CharacterController extends InternalTickCallback {
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
 
-
-
     public CharacterController(SceneNode node, SceneNode cameraNode, RigidBody body) {
         this.node = node;
         this.cameraNode = cameraNode;
         this.body = body;
         PhysicsManager.addCallback(this);
+
+        for (Object o : EntityManager.get("terrain")) {
+            terrain = (Terrain) o;
+            break;
+        }
     }
 
     public void move(ActionMove.Direction direction, float value) {
@@ -146,6 +152,16 @@ public class CharacterController extends InternalTickCallback {
                         groundY = trace.hitPointWorld.y;
                     }
                 }
+            }
+        }
+
+        // check terrain
+        if (terrain != null) {
+            float terrainHeight = terrain.getHeight(node.getWorldPosition());
+            if ((!onGround || terrainHeight > groundY) && node.getWorldPosition().y() - 2 < terrainHeight) {
+                onGround = true;
+                groundY = terrain.getHeight(node.getWorldPosition());
+                normal = terrain.getNormal(node.getWorldPosition(), node.getWorldForwardAxis(), node.getWorldRightAxis());
             }
         }
 

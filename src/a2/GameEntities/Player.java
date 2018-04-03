@@ -77,11 +77,7 @@ public class Player extends GameEntity {
 
         // create entity's camera node
         cameraNode = node.createChildSceneNode(name + "CameraNode");
-        if(UDPClient.getClient() == null) {
-            cameraNode.setLocalPosition(0, 50f, 0);
-        } else {
-            cameraNode.setLocalPosition(0, 1.5f, 0);
-        }
+        cameraNode.setLocalPosition(0, 1.5f, 0);
 
         addResponsibility(cameraNode);
         cameraNode.attachObject(camera);

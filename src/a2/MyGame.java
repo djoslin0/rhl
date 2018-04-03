@@ -5,6 +5,7 @@ import Networking.UDPServer;
 import a2.GameEntities.*;
 import com.jogamp.opengl.util.gl2.GLUT;
 import myGameEngine.GameEntities.ShaderSkyBox;
+import myGameEngine.GameEntities.Terrain;
 import myGameEngine.GameEntities.WorldAxes;
 import myGameEngine.Helpers.HudText;
 import myGameEngine.Singletons.EngineManager;
@@ -98,6 +99,7 @@ public class MyGame extends VariableFrameRateGame {
         new ShaderSkyBox(engine, sm, this);
         new WorldAxes();
         new Ground();
+        new Terrain();
 
         // set up lights
         sm.getAmbientLight().setIntensity(new Color(.1f, .1f, .1f));
