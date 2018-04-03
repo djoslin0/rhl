@@ -7,16 +7,15 @@ import ray.rage.asset.texture.TextureManager;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SkyBox;
 
-import javax.security.auth.login.Configuration;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 
 public class ShaderSkyBox {
     public ShaderSkyBox(Engine eng, SceneManager sm,MyGame game) throws IOException {
-        initiatSkyBox(eng , sm, game);
+        initiateSkyBox(eng, sm, game);
 
     }
-    private void initiatSkyBox(Engine eng, SceneManager sm, MyGame game)throws IOException{
+    private void initiateSkyBox(Engine eng, SceneManager sm, MyGame game)throws IOException{
         // set up sky box
         ray.rage.util.Configuration conf = eng.getConfiguration();
         TextureManager tm = game.getEngine().getTextureManager();

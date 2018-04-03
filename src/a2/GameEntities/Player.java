@@ -77,9 +77,9 @@ public class Player extends GameEntity {
 
         // create entity's camera node
         cameraNode = node.createChildSceneNode(name + "CameraNode");
-        if(UDPClient.getClient()==null){
+        if(UDPClient.getClient() == null) {
             cameraNode.setLocalPosition(0, 50f, 0);
-        }else{
+        } else {
             cameraNode.setLocalPosition(0, 1.5f, 0);
         }
 
@@ -89,10 +89,12 @@ public class Player extends GameEntity {
 
         initPhysics();
     }
-    public int getId(){return playerID;}
-    public int getside(){
+
+    public int getId() { return playerID; }
+    public int getSide(){
         return playerSide;
     }
+
     private void initPhysics() {
         float mass = 70;
         PlayerMotionStateController motionState = new PlayerMotionStateController(this.node);
