@@ -21,8 +21,12 @@ public class Settings {
     public Color diffuseColor;
     public Color specularColor;
     public Vector3 lightDirection;
+
     public Vector3 spawnPoint;
     public Vector3 puckSpawnPoint;
+
+    public Color terrainEmissive;
+    public Color terrainSpecular;
 
     public static void initScript() {
         ScriptEngineManager factory = new ScriptEngineManager();
@@ -40,9 +44,13 @@ public class Settings {
             instance.ambientColor = (Color)(instance.jsEngine.eval("ambientColor"));
             instance.diffuseColor = (Color)(instance.jsEngine.eval("diffuseColor"));
             instance.specularColor = (Color)(instance.jsEngine.eval("specularColor"));
-            instance.lightDirection = (Vector3) (instance.jsEngine.eval("lightDirection"));
-            instance.spawnPoint = (Vector3) (instance.jsEngine.eval("spawnPoint"));
-            instance.puckSpawnPoint = (Vector3) (instance.jsEngine.eval("puckSpawnPoint"));
+            instance.lightDirection = (Vector3)(instance.jsEngine.eval("lightDirection"));
+
+            instance.spawnPoint = (Vector3)(instance.jsEngine.eval("spawnPoint"));
+            instance.puckSpawnPoint = (Vector3)(instance.jsEngine.eval("puckSpawnPoint"));
+
+            instance.terrainEmissive = (Color)(instance.jsEngine.eval("terrainEmissive"));
+            instance.terrainSpecular = (Color)(instance.jsEngine.eval("terrainSpecular"));
 
         } catch (FileNotFoundException e) {
             System.out.println(instance.scriptFile + " not found " + e);

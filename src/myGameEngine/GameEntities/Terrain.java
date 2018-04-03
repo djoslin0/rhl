@@ -1,12 +1,18 @@
 package myGameEngine.GameEntities;
 
 import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.Settings;
 import ray.rage.Engine;
+import ray.rage.asset.material.Material;
+import ray.rage.rendersystem.states.RenderState;
+import ray.rage.rendersystem.states.TextureState;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
 import ray.rage.scene.Tessellation;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
+
+import java.awt.*;
 
 public class Terrain extends GameEntity {
     private Tessellation tessellation;
@@ -25,6 +31,11 @@ public class Terrain extends GameEntity {
         Engine engine = EngineManager.getEngine();
         tessellation.setHeightMap(engine, "terrain.png");
         tessellation.setTexture(engine, "snow.png");
+
+        Material mat = engine.getMaterialManager().createManualAsset("tessellationMaterial");
+        mat.setEmissive(Settings.get().terrainEmissive);
+        mat.setSpecular(Settings.get().terrainSpecular);
+        tessellation.getTessellationBody().setMaterial(mat);
     }
 
     @Override
