@@ -24,7 +24,7 @@ public class Terrain extends GameEntity {
 
         Engine engine = EngineManager.getEngine();
         tessellation.setHeightMap(engine, "terrain.png");
-        tessellation.setTexture(engine, "terrain.png");
+        tessellation.setTexture(engine, "snow.png");
     }
 
     @Override

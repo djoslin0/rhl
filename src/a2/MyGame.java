@@ -106,8 +106,8 @@ public class MyGame extends VariableFrameRateGame {
 
         Light dlight = sm.createLight("testLamp1", Light.Type.DIRECTIONAL);
         dlight.setAmbient(new Color(0, 0, 0));
-        dlight.setDiffuse(new Color(.5f, .5f, 1f));
-        dlight.setSpecular(new Color(0.5f, 0.4f, 1f));
+        dlight.setDiffuse(new Color(.75f, .75f, 1f));
+        dlight.setSpecular(new Color(0.75f, 0.74f, 1f));
 
         SceneNode rootNode = sm.getRootSceneNode();
         SceneNode dlightNode = rootNode.createChildSceneNode("dlightNode");
