@@ -1,0 +1,59 @@
+package myGameEngine.Singletons;
+
+import ray.rml.Vector3;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import java.awt.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class Settings {
+    private static final Settings instance = new Settings();
+
+    private ScriptEngine jsEngine;
+    private File scriptFile;
+
+    public Color ambientColor;
+    public Color diffuseColor;
+    public Color specularColor;
+    public Vector3 lightDirection;
+    public Vector3 spawnPoint;
+    public Vector3 puckSpawnPoint;
+
+    public static void initScript() {
+        ScriptEngineManager factory = new ScriptEngineManager();
+        instance.jsEngine = factory.getEngineByName("js");
+        instance.scriptFile = new File("assets/scripts/Settings.js");
+        instance.runScript();
+    }
+
+    public static void runScript() {
+        try {
+            FileReader fileReader = new FileReader(instance.scriptFile);
+            instance.jsEngine.eval(fileReader);
+            fileReader.close();
+
+            instance.ambientColor = (Color)(instance.jsEngine.eval("ambientColor"));
+            instance.diffuseColor = (Color)(instance.jsEngine.eval("diffuseColor"));
+            instance.specularColor = (Color)(instance.jsEngine.eval("specularColor"));
+            instance.lightDirection = (Vector3) (instance.jsEngine.eval("lightDirection"));
+            instance.spawnPoint = (Vector3) (instance.jsEngine.eval("spawnPoint"));
+            instance.puckSpawnPoint = (Vector3) (instance.jsEngine.eval("puckSpawnPoint"));
+
+        } catch (FileNotFoundException e) {
+            System.out.println(instance.scriptFile + " not found " + e);
+        } catch (IOException e) {
+            System.out.println("IO problem with " + instance.scriptFile + ": " + e);
+        } catch (ScriptException e) {
+            System.out.println("Settings Exception in " + instance.scriptFile + ": " + e);
+        } catch (NullPointerException e) {
+            System.out.println("Null pointer exception reading " + instance.scriptFile + ": " + e);
+        }
+    }
+
+    public static Settings get() { return instance; }
+}

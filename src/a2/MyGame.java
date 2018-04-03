@@ -8,10 +8,7 @@ import myGameEngine.GameEntities.ShaderSkyBox;
 import myGameEngine.GameEntities.Terrain;
 import myGameEngine.GameEntities.WorldAxes;
 import myGameEngine.Helpers.HudText;
-import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.PhysicsManager;
-import myGameEngine.Singletons.TimeManager;
-import myGameEngine.Singletons.UpdateManager;
+import myGameEngine.Singletons.*;
 import ray.input.GenericInputManager;
 import ray.networking.IGameConnection;
 import ray.rage.Engine;
@@ -23,14 +20,12 @@ import ray.rage.scene.Camera;
 import ray.rage.scene.Light;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
-import ray.rage.scene.controllers.RotationController;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
 import java.awt.*;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Random;
 
 public class MyGame extends VariableFrameRateGame {
 
@@ -96,6 +91,7 @@ public class MyGame extends VariableFrameRateGame {
     protected void setupScene(Engine engine, SceneManager sm) throws IOException {
         EngineManager.init(engine);
         PhysicsManager.initPhysics();
+        Settings.initScript();
         new ShaderSkyBox(engine, sm, this);
         new WorldAxes();
         new Ground();
@@ -105,30 +101,17 @@ public class MyGame extends VariableFrameRateGame {
         sm.getAmbientLight().setIntensity(new Color(.1f, .1f, .1f));
 
         Light dlight = sm.createLight("testLamp1", Light.Type.DIRECTIONAL);
-        dlight.setAmbient(new Color(0, 0, 0));
-        dlight.setDiffuse(new Color(.75f, .75f, 1f));
-        dlight.setSpecular(new Color(0.75f, 0.74f, 1f));
+        dlight.setAmbient(Settings.get().ambientColor);
+        dlight.setDiffuse(Settings.get().diffuseColor);
+        dlight.setSpecular(Settings.get().specularColor);
 
         SceneNode rootNode = sm.getRootSceneNode();
         SceneNode dlightNode = rootNode.createChildSceneNode("dlightNode");
         dlightNode.attachObject(dlight);
-        dlightNode.setLocalPosition(1f, 1f, 1f);
+        dlightNode.setLocalPosition(Settings.get().lightDirection);
 
 
-        new Puck(Vector3f.createFrom(15, 15, 15));
-
-        // setup asteroid field
-        Random rnd = new Random();
-        SceneNode asteroidGroupNode = rootNode.createChildSceneNode("Asteroids");
-        Vector3 rotationAxis = Vector3f.createFrom(rnd.nextFloat() - 0.5f, rnd.nextFloat() - 0.5f, rnd.nextFloat() - 0.5f).normalize();
-        RotationController rc = new RotationController(rotationAxis, 0.005f);
-        rc.addNode(asteroidGroupNode);
-        sm.addController(rc);
-        for (int i = 0; i < 8; i++) {
-            Vector3 pLocation = Vector3f.createFrom(rnd.nextFloat() - 0.5f, rnd.nextFloat() - 0.5f, rnd.nextFloat() - 0.5f).normalize();
-            pLocation = pLocation.mult(40f + 40f * rnd.nextFloat());
-            new Asteroid(asteroidGroupNode, pLocation, 1f, 1f);
-        }
+        new Puck(Settings.get().puckSpawnPoint);
 
         // setup initial prizes
         for (int i = 0; i < 8; i++) {
@@ -147,8 +130,8 @@ public class MyGame extends VariableFrameRateGame {
         rs.addHud(score1Text);
         rs.addHud(score2Text);
         rs.addHud(fpsText);
-        score2Text.text = "Score: 0";
-        score1Text.text = "Press START on gamepad to begin.";
+        score2Text.text = "Here too!";
+        score1Text.text = "Text goes here.";
 
         setupNetworking();
         try {
@@ -159,7 +142,7 @@ public class MyGame extends VariableFrameRateGame {
         setupInputs();
     }
     private void createPlayer() throws IOException, InterruptedException {
-        if(UDPClient.getClient()!=null) {
+        if(UDPClient.getClient() != null) {
             while(player == null) {
                 System.out.println("waiting");
                 player = UDPClient.getClient().getPlayer();
@@ -168,7 +151,7 @@ public class MyGame extends VariableFrameRateGame {
             System.out.println("connected to Server");
         } else {
             System.out.println("continuing without networking");
-            player = new Player(camera, Vector3f.createFrom(0f, 0f, 60f), 40000);
+            player = new Player(camera, Settings.get().spawnPoint, 40000);
         }
     }
 
