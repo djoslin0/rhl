@@ -83,7 +83,7 @@ float get_attenuation(
     float a0  = light.const_attenuation;
     float a1  = light.linear_attenuation;
     float a2  = light.quadratic_attenuation;
-    return 1.0 / (a0 + a1 * d + a2 * dd);
+    return ((light.range - d) / light.range) * 1.0 / (a0 + a1 * d + a2 * dd);
 }
 
 
@@ -162,6 +162,19 @@ vec4 get_light_effect(
  */
 void main()
 {
+    /*if (ssbo.lights.length() == 1)
+    {
+        fragment = material.ambient;
+        return;
+    }*/
+    // do not light materials with a white emissive
+    vec4 texel = texture2D(texture_sampler, fs_in.vertex_texcoord);
+    if (material.emissive.x == 1 && material.emissive.y == 1 && material.emissive.z == 1)
+    {
+        fragment = texel * material.ambient;
+        return;
+    }
+
     // account for global ambient light regardless of
     // whether local lights exist or not
     vec4 effect = material.ambient * global_light.intensity;
@@ -169,5 +182,5 @@ void main()
     for (int i = 0; i < ssbo.lights.length(); ++i)
         effect += get_light_effect(ssbo.lights[i], material);
 
-    fragment = texture2D(texture_sampler, fs_in.vertex_texcoord) * effect;
+    fragment = texel * effect;
 }
