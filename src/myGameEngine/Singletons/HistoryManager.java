@@ -27,7 +27,7 @@ public class HistoryManager {
         int rewoundState = (maxHistory + wasOnState - amount) % maxHistory;
 
         // forget history of rigid bodies
-        for (int i = instance.onState; i != instance.onState; i = (maxHistory + i - 1) % maxHistory) {
+        for (int i = instance.onState; i != rewoundState; i = (maxHistory + i - 1) % maxHistory) {
             instance.historyRigidBodies[i] = null;
         }
 
@@ -44,7 +44,7 @@ public class HistoryManager {
 
         // apply rewound rigid bodies
         hp.apply();
-
+n
         // apply rewound character controllers
         HistoryCharacterControllers hcc = instance.historyCharacterControllers[instance.onState];
         hcc.fullApply();
