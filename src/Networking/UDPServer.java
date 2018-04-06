@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 public class UDPServer extends GameConnectionServer<Integer>{
-    private Integer id = 0;
+    private Integer id = 1;
     private int redSide = 0;
     private int blueSide = 0;
     private ConcurrentHashMap<Integer,Player> clientEntities;
@@ -55,56 +55,49 @@ public class UDPServer extends GameConnectionServer<Integer>{
                 case 26:
                     System.out.println(sndPort);
                     System.out.println("client join with credentials: " + senderIP + " " + sndPort);
-                    if(blueSide > redSide) {
-                        try {
-                            addClient(ci, id);
-                            clientMap.put(cli.info(), id);
-                            createClient(0, ci);
-                            String packetInfo;
-                            packetInfo = "Success";
-                            packetInfo += "," + String.valueOf(clientEntities.get(id).getNode().getLocalPosition().x());
-                            packetInfo += "," + String.valueOf(clientEntities.get(id).getNode().getLocalPosition().y());
-                            packetInfo += "," + String.valueOf(clientEntities.get(id).getNode().getLocalPosition().z());
-                            packetInfo += "," + 0;
-                            sendPacket(packetInfo, id);
+                    try {
+                        int side = ((blueSide > redSide) ? 0 : 1);
+                        int cId;
+                        if (clientMap.contains(ci)) {
+                            cId = clientMap.get(id);
+                        } else {
+                            cId = id;
+                            addClient(ci, cId);
+                            clientMap.put(cli.info(), cId);
+                            createClient(side, ci);
                             id++;
-                            redSide++;
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            if(blueSide > redSide) {
+                                redSide++;
+                            } else {
+                                blueSide++;
+                            }
                         }
-                    } else {
-                        try {
-                            addClient(ci, id);
-                            clientMap.put(cli.info(), id);
-                            createClient(1, ci);
-                            String packetInfo;
-                            packetInfo = "Success";
-                            packetInfo += "," + String.valueOf(clientEntities.get(id).getNode().getLocalPosition().x());
-                            packetInfo += "," + String.valueOf(clientEntities.get(id).getNode().getLocalPosition().y());
-                            packetInfo += "," + String.valueOf(clientEntities.get(id).getNode().getLocalPosition().z());
-                            packetInfo += "," + 1;
-                            sendPacket(packetInfo, id);
-                            id++;
-                            blueSide++;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
+                        String packetInfo;
+                        Player player = clientEntities.get(cId);
+                        packetInfo = "Success";
+                        packetInfo += "," + cId;
+                        packetInfo += "," + String.valueOf(player.getNode().getLocalPosition().x());
+                        packetInfo += "," + String.valueOf(player.getNode().getLocalPosition().y());
+                        packetInfo += "," + String.valueOf(player.getNode().getLocalPosition().z());
+                        packetInfo += "," + side;
+                        sendPacket(packetInfo, cId);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                     break;
                     //sendclientgamestate
                 case 27:
                     String packetInfo;
                     packetInfo = "Players";
-                    packetInfo += "," + String.valueOf(clientEntities.values().size()-1);
-                    for(Object c : clientEntities.values()){
-                        if(((Player)c).getId() != clientMap.get(cli.info())) {
-                            packetInfo += "," + String.valueOf(((Player) c).getNode().getLocalPosition().x());
-                            packetInfo += "," + String.valueOf(((Player) c).getNode().getLocalPosition().y());
-                            packetInfo += "," + String.valueOf(((Player) c).getNode().getLocalPosition().z());
-                            packetInfo += "," + String.valueOf(((Player) c).getSide());
-                        }
+                    packetInfo += "," + String.valueOf(clientEntities.values().size());
+                    for(Object c : clientEntities.values()) {
+                        packetInfo += "," + ((Player) c).getId();
+                        packetInfo += "," + ((Player) c).getNode().getLocalPosition().x();
+                        packetInfo += "," + ((Player) c).getNode().getLocalPosition().y();
+                        packetInfo += "," + ((Player) c).getNode().getLocalPosition().z();
+                        packetInfo += "," + ((Player) c).getSide();
                     }
+                    System.out.println(packetInfo);
                     try {
                         cli = new ClientInfo(senderIP.toString(),String.valueOf(sndPort));
                         sendPacket(packetInfo, clientMap.get(cli.info()));
@@ -123,8 +116,9 @@ public class UDPServer extends GameConnectionServer<Integer>{
 
         }
     }
+
     private void createClient(int side, IClientInfo ci) throws IOException {
-        Player newPlayer =  new Player(spawn(side),side, id);
+        Player newPlayer =  new Player(id, null, spawn(side), side);
         newPlayer.getNode().setLocalPosition(0f, 1.5f,0f);
         clientEntities.put(id, newPlayer);
     }

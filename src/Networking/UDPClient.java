@@ -17,7 +17,7 @@ public class UDPClient extends GameConnectionClient {
     private Hashtable<Integer,Player> otherPlayers;
     private AlphabetHashTable switchVals;
     private static UDPClient client = null;
-    private int id = 0;
+    private int id = -1;
 
     private UDPClient(InetAddress remoteAddr, int remotePort, ProtocolType protocolType, Camera camera) throws IOException {
         super(remoteAddr, remotePort, protocolType);
@@ -45,20 +45,26 @@ public class UDPClient extends GameConnectionClient {
         String message = (String) msg;
         String[] msgTokens = message.split(",");
         //System.out.println(message);
+        int id = 0;
         if(msgTokens.length > 0){
             switch (switchVals.get(msgTokens[0])) {
                 case 28:
+                    //Success
                     float pos[] = new float[3];
                     int side;
-                    pos[0] = Float.parseFloat(msgTokens[1]);
-                    pos[1] = Float.parseFloat(msgTokens[2]);
-                    pos[2] = Float.parseFloat(msgTokens[3]);
-                    side = Integer.parseInt(msgTokens[4]);
-                    try {
-                        player = new Player(camera, Vector3f.createFrom(pos[0], pos[1], pos[2]), side);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    id = Integer.parseInt(msgTokens[1]);
+                    pos[0] = Float.parseFloat(msgTokens[2]);
+                    pos[1] = Float.parseFloat(msgTokens[3]);
+                    pos[2] = Float.parseFloat(msgTokens[4]);
+                    side = Integer.parseInt(msgTokens[5]);
+                    if (this.id == -1) {
+                        try {
+                                player = new Player(id, camera, Vector3f.createFrom(pos[0], pos[1], pos[2]), side);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
+                    this.id = id;
                     try {
                         requestPlayers();
                     } catch (IOException e) {
@@ -66,17 +72,25 @@ public class UDPClient extends GameConnectionClient {
                     }
                     break;
                 case 29:
-                    //System.out.println(message);
-                    for(int i =2; i < (Integer.parseInt(msgTokens[1])*4)+2; i+=4){
-                        //aaSystem.out.println(i);
-                        if(otherPlayers.get((i-2)/4) != null){
-                            Vector3 oldPosition = otherPlayers.get((i-2)/4).getNode().getLocalPosition();
-                            otherPlayers.get((i-2)/4).getBody().translate(new javax.vecmath.Vector3f(Float.parseFloat(msgTokens[i])-oldPosition.x(), Float.parseFloat(msgTokens[i+1])-oldPosition.y(),Float.parseFloat(msgTokens[i+2])-oldPosition.z()));
-                        }else if(msgTokens.length > 2) {
-                            System.out.println("Player created with id:"+ id);
-                            Vector3 location = Vector3f.createFrom(Float.parseFloat(msgTokens[i]),Float.parseFloat(msgTokens[i+1]),Float.parseFloat(msgTokens[i+2]));
+                    //Players
+                    int playerCount = Integer.parseInt(msgTokens[1]);
+                    for(int i = 0; i < playerCount; i++){
+                        System.out.println(i);
+                        id = Integer.parseInt(msgTokens[i*5 + 2]);
+                        float x = Float.parseFloat(msgTokens[i*5 + 3]);
+                        float y = Float.parseFloat(msgTokens[i*5 + 4]);
+                        float z = Float.parseFloat(msgTokens[i*5 + 5]);
+                        side = Integer.parseInt(msgTokens[i*5 + 6]);
+                        if (id == this.id) { continue; }
+
+                        if(otherPlayers.get(id) != null) {
+                            Vector3 oldPosition = otherPlayers.get(id).getNode().getLocalPosition();
+                            otherPlayers.get(id).getBody().translate(new javax.vecmath.Vector3f(x - oldPosition.x(), y - oldPosition.y(),z - oldPosition.z()));
+                        } else if (id != this.id) {
+                            System.out.println("Player created with id: "+ id);
+                            Vector3 location = Vector3f.createFrom(x, y, z);
                             try {
-                                otherPlayers.put(id,new Player(location,Integer.parseInt(msgTokens[i+3]),id));
+                                otherPlayers.put(id, new Player(id, null, location, side));
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }

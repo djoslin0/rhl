@@ -81,15 +81,15 @@ public class CharacterController extends InternalTickCallback {
 
     public void rotate(ActionRotate.Direction direction, float speed) {
         // perform rotation on proper node immediately
-        double mult = rotationSensititvity / 3500f;
+        double mult = rotationSensititvity / 500f;
         Radianf angle = Radianf.createFrom(0);
         switch (direction) {
             case X:
-                angle = Radianf.createFrom((float)(TimeManager.getDelta() * -mult) * speed);
+                angle = Radianf.createFrom((float)mult * -speed);
                 node.yaw(angle);
                 break;
             case Y:
-                angle = Radianf.createFrom((float)(TimeManager.getDelta() * mult) * speed);
+                angle = Radianf.createFrom((float)mult * speed);
                 cameraNode.pitch(angle);
                 break;
         }

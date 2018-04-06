@@ -26,6 +26,7 @@ import ray.rml.Vector3f;
 import java.awt.*;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.sql.Time;
 
 public class MyGame extends VariableFrameRateGame {
 
@@ -141,17 +142,23 @@ public class MyGame extends VariableFrameRateGame {
         }
         setupInputs();
     }
+
     private void createPlayer() throws IOException, InterruptedException {
         if(UDPClient.getClient() != null) {
+            long nextPacket = System.currentTimeMillis() + 1000;
             while(player == null) {
-                System.out.println("waiting");
+                if (System.currentTimeMillis() > nextPacket) {
+                    nextPacket = System.currentTimeMillis() + 1000;
+                    System.out.println("joining...");
+                    UDPClient.getClient().requestJoin();
+                }
                 player = UDPClient.getClient().getPlayer();
                 UDPClient.getClient().processPackets();
             }
             System.out.println("connected to Server");
         } else {
             System.out.println("continuing without networking");
-            player = new Player(camera, Settings.get().spawnPoint, 40000);
+            player = new Player(0, camera, Settings.get().spawnPoint, 40000);
         }
     }
 
