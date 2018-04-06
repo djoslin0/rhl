@@ -67,7 +67,8 @@ public class Puck extends GameEntity {
         body.setDamping(0.05f, 0f);
     }
 
-    public boolean registerCollisions() { return true; }
+    @Override
+    public boolean shouldRegisterCollision() { return true; }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         // only check on player

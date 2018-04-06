@@ -73,10 +73,11 @@ public class Player extends GameEntity {
         body.setAngularFactor(0);
         body.setDamping(0.05f, 0f);
 
-        controller = new CharacterController(node, cameraNode, body);
+        controller = new CharacterController(this);
     }
 
-    public boolean registerCollisions() { return true; }
+    @Override
+    public boolean shouldRegisterCollision() { return true; }
 
     public String listedName() { return "player"; }
     public SceneNode getCameraNode() { return cameraNode; }

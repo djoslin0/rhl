@@ -188,7 +188,6 @@ public class MyGame extends VariableFrameRateGame {
             }
         }
         TimeManager.update(delta);
-        PhysicsManager.getWorld().stepSimulation(delta / 1000f, 10, 1f / 144f);
         im.update(delta);
         UpdateManager.update(delta);
         fpsText.text = "FPS: " + TimeManager.getFps();

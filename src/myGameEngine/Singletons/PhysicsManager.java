@@ -1,5 +1,6 @@
 package myGameEngine.Singletons;
 
+import a2.GameEntities.Player;
 import com.bulletphysics.collision.broadphase.BroadphaseInterface;
 import com.bulletphysics.collision.broadphase.DbvtBroadphase;
 import com.bulletphysics.collision.broadphase.Dispatcher;
@@ -15,13 +16,15 @@ import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
 import myGameEngine.Controllers.CharacterController;
 import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.Helpers.Updatable;
 import ray.rml.Vector3;
 
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 
-public class PhysicsManager extends InternalTickCallback {
+public class PhysicsManager extends InternalTickCallback implements Updatable {
     private static final PhysicsManager instance = new PhysicsManager();
+    public static int tickRate = 144;
 
     // this is the most important class
     private static DynamicsWorld world = null;
@@ -33,6 +36,9 @@ public class PhysicsManager extends InternalTickCallback {
     private static DefaultCollisionConfiguration collisionConfiguration;
     private ArrayList<InternalTickCallback> callbacks = new ArrayList<>();
     private ArrayList<RigidBody> registeredCollisions = new ArrayList<>();
+    private ArrayList<RigidBody> rigidBodies = new ArrayList<>();
+
+    public Player REWRITE = null;
 
     public static void initPhysics() {
 
@@ -55,11 +61,25 @@ public class PhysicsManager extends InternalTickCallback {
 
         instance.world.setGravity(new Vector3f(0f, -20f, 0f));
         instance.world.setInternalTickCallback(instance, null);
+
+        UpdateManager.add(instance);
     }
 
     public static DynamicsWorld getWorld() {
         return instance.world;
     }
+
+    public static void addRigidBody(RigidBody rigidBody) {
+        instance.rigidBodies.add(rigidBody);
+        instance.world.addRigidBody(rigidBody);
+    }
+
+    public static void removeRigidBody(RigidBody rigidBody) {
+        instance.rigidBodies.remove(rigidBody);
+        instance.world.removeRigidBody(rigidBody);
+    }
+
+    public static ArrayList<RigidBody> getRigidBodies() { return instance.rigidBodies; }
 
     @Override
     public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
@@ -67,6 +87,7 @@ public class PhysicsManager extends InternalTickCallback {
         for(InternalTickCallback callback : instance.callbacks) {
             callback.internalTick(dynamicsWorld, timeStep);
         }
+        HistoryManager.internalTick(timeStep);
     }
 
     private void checkCollisions() {
@@ -102,4 +123,19 @@ public class PhysicsManager extends InternalTickCallback {
         instance.registeredCollisions.remove(body);
     }
 
+    public static void setREWRITE(Player player) { instance.REWRITE = player; }
+
+    @Override
+    public void update(float delta) {
+        if (REWRITE != null) {
+            HistoryManager.rewind(REWRITE, 100);
+            REWRITE = null;
+        }
+        PhysicsManager.getWorld().stepSimulation(delta / 1000f, 10, 1f / (float)PhysicsManager.tickRate);
+    }
+
+    @Override
+    public boolean blockUpdates() {
+        return false;
+    }
 }

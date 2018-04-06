@@ -3,6 +3,7 @@ package myGameEngine.Controllers;
 import Networking.UDPClient;
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
+import a2.GameEntities.Player;
 import com.bulletphysics.collision.broadphase.Dispatcher;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
@@ -17,42 +18,49 @@ import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.TimeManager;
 import ray.rage.scene.SceneNode;
+import ray.rml.Matrix3;
 import ray.rml.Radianf;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
 public class CharacterController extends InternalTickCallback {
+
+    // auto-set
+    private Player player;
     private SceneNode node;
     private SceneNode cameraNode;
     private RigidBody body;
+    private javax.vecmath.Vector3f linearVelocity = new javax.vecmath.Vector3f();
+    private javax.vecmath.Vector3f gravity = new javax.vecmath.Vector3f();
+    private Terrain terrain;
+    private boolean onGround;
+    private Vector3 normal;
+    private float groundY;
+
+    // track in history
+    private boolean wasOnGround;
     private boolean attacking;
     private boolean jumping;
     private int jumpTicks;
     private float forwardMove;
     private float rightMove;
     private Vector3 lastMovement = Vector3f.createZeroVector();
-    private javax.vecmath.Vector3f linearVelocity = new javax.vecmath.Vector3f();
-    private javax.vecmath.Vector3f gravity = new javax.vecmath.Vector3f();
-
-    private Terrain terrain;
-    private boolean onGround;
-    private boolean wasOnGround;
-    private Vector3 normal;
-    private float groundY;
-
     private int knockbackTimeout = 0;
     private int ignoreKnockTimeout = 0;
+    // note: also track cameraNode orientation
 
+    // constants
     private final float groundAcceleration = 70;
     private final float airAcceleration = 20;
     private final float maxSpeed = 14;
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
 
-    public CharacterController(SceneNode node, SceneNode cameraNode, RigidBody body) {
-        this.node = node;
-        this.cameraNode = cameraNode;
-        this.body = body;
+    public CharacterController(Player player) {
+        this.player = player;
+        this.node = player.getNode();
+        this.cameraNode = player.getCameraNode();
+        this.body = player.getBody();
         PhysicsManager.addCallback(this);
 
         for (Object o : EntityManager.get("terrain")) {
@@ -345,5 +353,66 @@ public class CharacterController extends InternalTickCallback {
             backoff /= overbounce;
         }
         return in.sub(normal.mult(backoff));
+    }
+
+    public HistoryCharacterController remember() {
+        return new HistoryCharacterController(player);
+    }
+
+    public class HistoryCharacterController {
+        private Player player;
+        private CharacterController cc;
+        private boolean wasOnGround;
+        private boolean attacking;
+        private boolean jumping;
+        private int jumpTicks;
+        private float forwardMove;
+        private float rightMove;
+        private Vector3 lastMovement;
+        private int knockbackTimeout;
+        private int ignoreKnockTimeout;
+        private Matrix3 nodeRotation;
+        private Matrix3 cameraNodeRotation;
+
+        private HistoryCharacterController(Player player) {
+            this.player = player;
+            this.cc = player.getController();
+            wasOnGround = cc.wasOnGround;
+            attacking = cc.attacking;
+            jumping = cc.jumping;
+            jumpTicks = cc.jumpTicks;
+            forwardMove = cc.forwardMove;
+            rightMove = cc.rightMove;
+            lastMovement = cc.lastMovement.add(0, 0, 0);
+            knockbackTimeout = cc.knockbackTimeout;
+            ignoreKnockTimeout = cc.ignoreKnockTimeout;
+            nodeRotation = cc.node.getLocalRotation();
+            cameraNodeRotation = cc.cameraNode.getLocalRotation();
+        }
+
+        public void fullApply() {
+            cc.wasOnGround = wasOnGround;
+            cc.attacking = attacking;
+            cc.jumping = jumping;
+            cc.jumpTicks = jumpTicks;
+            cc.forwardMove = forwardMove;
+            cc.rightMove = rightMove;
+            cc.lastMovement = lastMovement;
+            cc.knockbackTimeout = knockbackTimeout;
+            cc.ignoreKnockTimeout = ignoreKnockTimeout;
+            cc.node.setLocalRotation(nodeRotation);
+            cc.cameraNode.setLocalRotation(cameraNodeRotation);
+        }
+
+        public void inputApply() {
+            cc.attacking = attacking;
+            cc.jumping = jumping;
+            cc.forwardMove = forwardMove;
+            cc.rightMove = rightMove;
+            cc.node.setLocalRotation(nodeRotation);
+            cc.cameraNode.setLocalRotation(cameraNodeRotation);
+        }
+
+        public Player getPlayer() { return player; }
     }
 }

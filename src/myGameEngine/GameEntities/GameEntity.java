@@ -1,7 +1,6 @@
 package myGameEngine.GameEntities;
 
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
-import com.bulletphysics.collision.narrowphase.PersistentManifold;
 import com.bulletphysics.collision.shapes.CollisionShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
@@ -39,7 +38,8 @@ public class GameEntity implements Updatable {
     }
 
     public String listedName() { return null; }
-    public boolean registerCollisions() { return false; }
+    public boolean shouldRegisterCollision() { return false; }
+
     public SceneNode getNode() { return node; }
 
     // keep track of entities that need to be cleaned up / destroyed
@@ -92,7 +92,7 @@ public class GameEntity implements Updatable {
         // bodies
         for (RigidBody body : bodyResponsibility) {
             PhysicsManager.unregisterCollision(body);
-            PhysicsManager.getWorld().removeRigidBody(body);
+            PhysicsManager.removeRigidBody(body);
             body.destroy();
         }
         bodyResponsibility.clear();
@@ -129,10 +129,10 @@ public class GameEntity implements Updatable {
         RigidBody body = new RigidBody(rbInfo);
         body.setUserPointer(this);
 
-        PhysicsManager.getWorld().addRigidBody(body);
+        PhysicsManager.addRigidBody(body);
         addResponsibility(body);
 
-        if (registerCollisions()) {
+        if (shouldRegisterCollision()) {
             PhysicsManager.registerCollision(body);
         }
 
