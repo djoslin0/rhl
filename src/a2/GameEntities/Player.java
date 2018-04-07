@@ -2,10 +2,11 @@ package a2.GameEntities;
 
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
-import myGameEngine.Controllers.CharacterController;
+import a2.Contollers.CharacterController;
 import myGameEngine.Controllers.PlayerMotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.EntityManager;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Camera;
 import ray.rage.scene.Entity;
@@ -19,10 +20,10 @@ public class Player extends GameEntity {
     private SceneNode cameraNode;
     private RigidBody body;
     private CharacterController controller;
-    private Integer playerId;
-    private int playerSide;
+    private byte playerId;
+    private byte playerSide;
 
-    public Player(Integer playerId, Camera camera, Vector3 location, int side) throws IOException{
+    public Player(byte playerId, boolean isClient, byte side, Vector3 location) {
         super(true);
         this.playerId = playerId;
         playerSide = side;
@@ -30,9 +31,14 @@ public class Player extends GameEntity {
         String name = "Player" + playerId;
 
         // load model
-        Entity entity = sm.createEntity(name, "cube.obj");
-        entity.setPrimitive(Renderable.Primitive.TRIANGLES);
-        addResponsibility(entity);
+        Entity entity = null;
+        try {
+            entity = sm.createEntity(name, "cube.obj");
+            entity.setPrimitive(Renderable.Primitive.TRIANGLES);
+            addResponsibility(entity);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // create entity's base node, and move to desired location
         node = sm.getRootSceneNode().createChildSceneNode(name + "Node");
@@ -49,7 +55,8 @@ public class Player extends GameEntity {
         cameraNode.setLocalPosition(0, 1.5f, 0);
         addResponsibility(cameraNode);
 
-        if (camera != null) {
+        if (isClient) {
+            Camera camera = EngineManager.getSceneManager().getCamera("MainCamera");
             cameraNode.attachObject(camera);
             camera.setMode('n');
         }
@@ -57,8 +64,8 @@ public class Player extends GameEntity {
         initPhysics();
     }
 
-    public int getId() { return playerId; }
-    public int getSide(){
+    public byte getId() { return playerId; }
+    public byte getSide(){
         return playerSide;
     }
 

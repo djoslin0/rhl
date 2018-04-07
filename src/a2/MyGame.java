@@ -1,5 +1,6 @@
 package a2;
 
+import Networking.PacketJoin;
 import Networking.UDPClient;
 import Networking.UDPServer;
 import a2.GameEntities.*;
@@ -63,12 +64,28 @@ public class MyGame extends VariableFrameRateGame {
     private void setupNetworking() throws IOException {
         if(args.length > 0) {
             if(args[0].equals("s")) {
-                UDPServer.createServer(8800, IGameConnection.ProtocolType.UDP);
+                UDPServer.createServer(8800);
+                player = new Player((byte)0, true, (byte)0, Settings.get().spawnPoint);
+                return;
             }else if(args[0].equals("c")) {
-                UDPClient.getClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]), IGameConnection.ProtocolType.UDP,camera);
-                UDPClient.getClient().requestJoin();
+                UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
+
+                long nextPacket = System.currentTimeMillis() - 1;
+                while(player == null) {
+                    if (System.currentTimeMillis() > nextPacket) {
+                        nextPacket = System.currentTimeMillis() + 1000;
+                        System.out.println("joining...");
+                        UDPClient.send(new PacketJoin());
+                    }
+                    player = UDPClient.getPlayer(UDPClient.getPlayerId());
+                    UDPClient.doProcessPackets();
+                }
+                return;
             }
         }
+
+        System.out.println("continuing without networking");
+        player = new Player((byte)0, true, (byte)0, Settings.get().spawnPoint);
     }
 
     @Override
@@ -84,7 +101,7 @@ public class MyGame extends VariableFrameRateGame {
 
     @Override
     protected void setupCameras(SceneManager sm, RenderWindow rw) {
-        camera = sm.createCamera("Camera1", Camera.Frustum.Projection.PERSPECTIVE);
+        camera = sm.createCamera("MainCamera", Camera.Frustum.Projection.PERSPECTIVE);
         rw.getViewport(0).setCamera(camera);
     }
 
@@ -135,31 +152,7 @@ public class MyGame extends VariableFrameRateGame {
         score1Text.text = "Text goes here.";
 
         setupNetworking();
-        try {
-            createPlayer();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         setupInputs();
-    }
-
-    private void createPlayer() throws IOException, InterruptedException {
-        if(UDPClient.getClient() != null) {
-            long nextPacket = System.currentTimeMillis() + 1000;
-            while(player == null) {
-                if (System.currentTimeMillis() > nextPacket) {
-                    nextPacket = System.currentTimeMillis() + 1000;
-                    System.out.println("joining...");
-                    UDPClient.getClient().requestJoin();
-                }
-                player = UDPClient.getClient().getPlayer();
-                UDPClient.getClient().processPackets();
-            }
-            System.out.println("connected to Server");
-        } else {
-            System.out.println("continuing without networking");
-            player = new Player(0, camera, Settings.get().spawnPoint, 40000);
-        }
     }
 
     private void setupInputs() {
@@ -169,23 +162,11 @@ public class MyGame extends VariableFrameRateGame {
         InputSetup.listenToControllers(im, player, score1Text);
     }
 
-    public void processNetworking(float elapseTime) throws IOException {
-        if(UDPClient.getClient()!=null) {
-            UDPClient.getClient().processPackets();
-            UDPClient.getClient().requestPlayers();
-            UDPClient.getClient().sendPositionInfo(player);
-        }
-    }
-    
     @Override
     protected void update(Engine engine) {
         float delta = engine.getElapsedTimeMillis();
-        if(UDPClient.getClient() != null){
-            try {
-                processNetworking(delta);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if(UDPClient.hasClient()) {
+            UDPClient.doProcessPackets();
         }
         TimeManager.update(delta);
         im.update(delta);

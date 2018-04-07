@@ -14,10 +14,8 @@ import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
-import myGameEngine.Controllers.CharacterController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.Updatable;
-import ray.rml.Vector3;
 
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
@@ -84,7 +82,7 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
     @Override
     public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
         checkCollisions();
-        for(InternalTickCallback callback : instance.callbacks) {
+        for(InternalTickCallback callback : (ArrayList<InternalTickCallback>)instance.callbacks.clone()) {
             callback.internalTick(dynamicsWorld, timeStep);
         }
         HistoryManager.internalTick(timeStep);

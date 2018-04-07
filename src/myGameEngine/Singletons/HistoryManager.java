@@ -3,9 +3,8 @@ package myGameEngine.Singletons;
 import a2.GameEntities.Player;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.Transform;
-import myGameEngine.Controllers.CharacterController;
+import a2.Contollers.CharacterController;
 
-import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 import java.util.*;
 
@@ -44,7 +43,7 @@ public class HistoryManager {
 
         // apply rewound rigid bodies
         hp.apply();
-n
+
         // apply rewound character controllers
         HistoryCharacterControllers hcc = instance.historyCharacterControllers[instance.onState];
         hcc.fullApply();
