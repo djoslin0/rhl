@@ -4,6 +4,9 @@ package myGameEngine.Singletons;
 public class TimeManager {
     private static final TimeManager instance = new TimeManager();
 
+    // store current tick
+    private short tick;
+
     // store elapsed time and delta time
     private double elapsed;
     private double delta;
@@ -22,6 +25,9 @@ public class TimeManager {
         return instance.displayFps;
     }
     public static double getElapsed() { return instance.elapsed; }
+    public static short getTick() { return instance.tick; }
+    public static void setTick(short tick) { instance.tick = tick; }
+    public static void incrementTick() { instance.tick++; }
 
     public static void update(float delta) {
         instance.elapsed += delta;

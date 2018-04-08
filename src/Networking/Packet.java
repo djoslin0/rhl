@@ -28,7 +28,7 @@ public abstract class Packet {
     public abstract boolean isReliable();
     public abstract byte getId();
     public abstract ByteBuffer writeInfo();
-    public abstract void readInfo(ByteBuffer info);
+    public abstract void readInfo(ByteBuffer buffer);
     public abstract void receivedOnServer(ClientInfo cli);
     public abstract void receivedOnClient();
 

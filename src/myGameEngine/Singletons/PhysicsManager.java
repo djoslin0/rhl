@@ -81,6 +81,9 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
 
     @Override
     public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
+        // increment tick
+        TimeManager.incrementTick();
+
         checkCollisions();
         for(InternalTickCallback callback : (ArrayList<InternalTickCallback>)instance.callbacks.clone()) {
             callback.internalTick(dynamicsWorld, timeStep);

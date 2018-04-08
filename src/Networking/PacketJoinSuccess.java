@@ -47,13 +47,13 @@ public class PacketJoinSuccess extends Packet {
     }
 
     @Override
-    public void readInfo(ByteBuffer info) {
-        id = info.get();
-        side = info.get();
+    public void readInfo(ByteBuffer buffer) {
+        id = buffer.get();
+        side = buffer.get();
         position = Vector3f.createFrom(
-                NetworkFloat.decode(info.getShort()),
-                NetworkFloat.decode(info.getShort()),
-                NetworkFloat.decode(info.getShort())
+                NetworkFloat.decode(buffer.getShort()),
+                NetworkFloat.decode(buffer.getShort()),
+                NetworkFloat.decode(buffer.getShort())
         );
     }
 

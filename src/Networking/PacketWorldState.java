@@ -6,6 +6,7 @@ import com.bulletphysics.linearmath.Transform;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.EntityManager;
+import myGameEngine.Singletons.TimeManager;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
@@ -15,10 +16,11 @@ public class PacketWorldState extends Packet {
     // write variables
 
     // read variables
-    Vector3 puckPosition;
-    javax.vecmath.Quat4f puckOrientation = new javax.vecmath.Quat4f();
-    javax.vecmath.Vector3f puckLinearVelocity = new javax.vecmath.Vector3f();
-    javax.vecmath.Vector3f puckAngularVelocity = new javax.vecmath.Vector3f();
+    private short tick;
+    private Vector3 puckPosition;
+    private javax.vecmath.Quat4f puckOrientation = new javax.vecmath.Quat4f();
+    private javax.vecmath.Vector3f puckLinearVelocity = new javax.vecmath.Vector3f();
+    private javax.vecmath.Vector3f puckAngularVelocity = new javax.vecmath.Vector3f();
 
     @Override
     public boolean isReliable() { return false; }
@@ -28,12 +30,15 @@ public class PacketWorldState extends Packet {
 
     @Override
     public ByteBuffer writeInfo() {
-        ByteBuffer buffer = ByteBuffer.allocate(26);
+        ByteBuffer buffer = ByteBuffer.allocate(28);
         Puck puck = (Puck) EntityManager.get("puck").get(0);
         puckPosition = puck.getNode().getWorldPosition();
         puck.getBody().getOrientation(puckOrientation);
         puck.getBody().getLinearVelocity(puckLinearVelocity);
         puck.getBody().getAngularVelocity(puckAngularVelocity);
+
+        // tick
+        buffer.putShort(TimeManager.getTick());
 
         // position
         buffer.putShort(NetworkFloat.encode(puckPosition.x()));
@@ -64,29 +69,34 @@ public class PacketWorldState extends Packet {
     }
 
     @Override
-    public void readInfo(ByteBuffer info) {
+    public void readInfo(ByteBuffer buffer) {
+        tick = buffer.getShort();
+
         puckPosition = Vector3f.createFrom(
-                NetworkFloat.decode(info.getShort()),
-                NetworkFloat.decode(info.getShort()),
-                NetworkFloat.decode(info.getShort())
+                NetworkFloat.decode(buffer.getShort()),
+                NetworkFloat.decode(buffer.getShort()),
+                NetworkFloat.decode(buffer.getShort())
         );
 
-        puckOrientation.w = NetworkFloat.decode(info.getShort());
-        puckOrientation.x = NetworkFloat.decode(info.getShort());
-        puckOrientation.y = NetworkFloat.decode(info.getShort());
-        puckOrientation.z = NetworkFloat.decode(info.getShort());
+        puckOrientation.w = NetworkFloat.decode(buffer.getShort());
+        puckOrientation.x = NetworkFloat.decode(buffer.getShort());
+        puckOrientation.y = NetworkFloat.decode(buffer.getShort());
+        puckOrientation.z = NetworkFloat.decode(buffer.getShort());
 
-        puckLinearVelocity.x = NetworkFloat.decode(info.getShort());
-        puckLinearVelocity.y = NetworkFloat.decode(info.getShort());
-        puckLinearVelocity.z = NetworkFloat.decode(info.getShort());
+        puckLinearVelocity.x = NetworkFloat.decode(buffer.getShort());
+        puckLinearVelocity.y = NetworkFloat.decode(buffer.getShort());
+        puckLinearVelocity.z = NetworkFloat.decode(buffer.getShort());
 
-        puckAngularVelocity.x = NetworkFloat.decode(info.getShort());
-        puckAngularVelocity.y = NetworkFloat.decode(info.getShort());
-        puckAngularVelocity.z = NetworkFloat.decode(info.getShort());
+        puckAngularVelocity.x = NetworkFloat.decode(buffer.getShort());
+        puckAngularVelocity.y = NetworkFloat.decode(buffer.getShort());
+        puckAngularVelocity.z = NetworkFloat.decode(buffer.getShort());
     }
 
     @Override
     public void receivedOnClient() {
+        // TODO: rewind and stuff
+        TimeManager.setTick(tick);
+
         Puck puck = (Puck) EntityManager.get("puck").get(0);
 
         // set position
@@ -103,5 +113,64 @@ public class PacketWorldState extends Packet {
         puck.getBody().setAngularVelocity(puckAngularVelocity);
 
         System.out.println("world state.");
+
+        /*
+            TODO PLAN:
+            servertime is a short that wraps
+            custom time difference function
+            custom time within function
+            custom time max/min funtions
+
+            joinSuccess NEEDS server time
+                set client time to (server time + 1)
+
+            client @t0 -(10)-> @t10	server
+                rewind & apply input from client & fastforward
+                    apply list of client inputs
+                    fastforward to server time
+
+            server @t10 -(10)-> @t10 client
+                rewind & apply input from client & 'fastforward' if required
+                    keep and apply list of client inputs
+                    if client time > server time + server tickrate
+                        client time = client time - 1
+
+                        rewind to server time
+                        apply state
+                            ignore client's server state if the positions are within a defined acceptable error distance
+                            never override client inputs
+                            save history @ server time
+                        fast forward to client time
+                            apply client inputs
+
+                        apply real client inputs
+                        jumping/attacking/etc is true
+                            if previous (client time + 1) input is true
+                            if real input is true
+                    else if client time > server time
+                        rewind to server time
+                        apply state
+                            ignore client's server state if the positions are within a defined acceptable error distance
+                            never override client inputs
+                            save history @ server time
+                        fast forward to client time
+                            apply client inputs
+
+                        apply real client inputs
+                        jumping/attacking/etc is true
+                            if real input is true
+
+                    else (client time <= server time)
+                        fast forward to server time
+                        apply state
+                            ignore client's server state if the positions are within a defined acceptable error distance
+                            never override client inputs
+                            save history @ server time
+                        apply real client inputs
+                        jumping/attacking/etc is true
+                            if real input is true
+                        fast forward one tick
+
+         */
     }
 }

@@ -18,7 +18,7 @@ public class PacketJoin extends Packet {
     public ByteBuffer writeInfo() { return ByteBuffer.allocate(0); }
 
     @Override
-    public void readInfo(ByteBuffer info) { }
+    public void readInfo(ByteBuffer buffer) { }
 
     @Override
     public void receivedOnServer(ClientInfo cli) {

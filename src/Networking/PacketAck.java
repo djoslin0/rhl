@@ -27,7 +27,7 @@ public class PacketAck extends Packet {
     public ByteBuffer writeInfo() { return ByteBuffer.allocate(1).put(number); }
 
     @Override
-    public void readInfo(ByteBuffer info) { number = info.get(); }
+    public void readInfo(ByteBuffer buffer) { number = buffer.get(); }
 
     @Override
     public void receivedOnServer(ClientInfo cli) {

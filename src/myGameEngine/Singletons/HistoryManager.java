@@ -11,7 +11,7 @@ import java.util.*;
 public class HistoryManager {
     private static final HistoryManager instance = new HistoryManager();
     private static final int maxHistory = 144;
-    private int[] historyTick = new int[maxHistory];
+    private short[] historyTick = new short[maxHistory];
     private HistoryRigidBodies[] historyRigidBodies = new HistoryRigidBodies[maxHistory];
     private HistoryCharacterControllers[] historyCharacterControllers = new HistoryCharacterControllers[maxHistory];
     private int onState = 0;
@@ -61,7 +61,7 @@ public class HistoryManager {
         instance.onState = (instance.onState + 1) % maxHistory;
 
         // remember tick
-        instance.historyTick[instance.onState] = 0;  // TODO: track time properly
+        instance.historyTick[instance.onState] = TimeManager.getTick();  // TODO: track time properly
 
         // remember rigid bodies
         instance.historyRigidBodies[instance.onState] = new HistoryRigidBodies();
