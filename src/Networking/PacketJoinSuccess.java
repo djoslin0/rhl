@@ -6,7 +6,6 @@ import myGameEngine.NetworkHelpers.NetworkFloat;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class PacketJoinSuccess extends Packet {

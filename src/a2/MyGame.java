@@ -73,7 +73,7 @@ public class MyGame extends VariableFrameRateGame {
 
                 while(player == null) {
                     player = UDPClient.getPlayer(UDPClient.getPlayerId());
-                    UDPClient.doProcessPackets();
+                    UDPClient.update();
                 }
                 return;
             }
@@ -160,8 +160,10 @@ public class MyGame extends VariableFrameRateGame {
     @Override
     protected void update(Engine engine) {
         float delta = engine.getElapsedTimeMillis();
-        if(UDPClient.hasClient()) {
-            UDPClient.doProcessPackets();
+        if (UDPClient.hasClient()) {
+            UDPClient.update();
+        } else if (UDPServer.hasServer()) {
+            UDPServer.update();
         }
         TimeManager.update(delta);
         im.update(delta);

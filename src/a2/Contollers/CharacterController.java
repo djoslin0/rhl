@@ -199,7 +199,6 @@ public class CharacterController extends InternalTickCallback {
 
         // keep linearVelocity up to date
         body.setLinearVelocity(linearVelocity);
-        body.activate();
 
         wasOnGround = onGround;
     }

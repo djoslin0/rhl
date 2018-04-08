@@ -1,5 +1,6 @@
 package a2.GameEntities;
 
+import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
 import a2.Contollers.CharacterController;
@@ -79,6 +80,7 @@ public class Player extends GameEntity {
         body.setFriction(0.1f);
         body.setAngularFactor(0);
         body.setDamping(0.05f, 0f);
+        body.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
 
         controller = new CharacterController(this);
     }

@@ -13,7 +13,8 @@ public abstract class Packet {
             // list all packets here
             new PacketAck(),
             new PacketJoin(),
-            new PacketJoinSuccess()
+            new PacketJoinSuccess(),
+            new PacketWorldState()
     });
 
     public static HashMap<ClientInfo, HashMap<Byte, Packet>> unackedPackets = new HashMap<>();

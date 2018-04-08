@@ -45,16 +45,16 @@ public class UDPClient extends GameConnectionClient {
         }
     }
 
-    public static void doProcessPackets() {
-        instance.processPackets();
-        Packet.resendUnackedPackets();
-    }
-
     public void processPacket(Object o)
     {
         ByteBuffer buffer = ByteBuffer.wrap((byte[])o);
         Packet packet = Packet.read(null, buffer);
         packet.receivedOnClient();
         if (packet.isReliable()) { packet.sendAck(null); }
+    }
+
+    public static void update() {
+        instance.processPackets();
+        Packet.resendUnackedPackets();
     }
 }

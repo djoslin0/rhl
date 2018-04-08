@@ -1,5 +1,6 @@
 package a2.GameEntities;
 
+import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
@@ -65,6 +66,7 @@ public class Puck extends GameEntity {
         body.setRestitution(0.6f);
         body.setFriction(0.2f);
         body.setDamping(0.05f, 0f);
+        body.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
     }
 
     @Override
@@ -115,6 +117,7 @@ public class Puck extends GameEntity {
 
     public String listedName() { return "puck"; }
     public SceneNode getNode() { return node; }
+    public RigidBody getBody() { return body; }
 
     @Override
     public void update(float delta) {
