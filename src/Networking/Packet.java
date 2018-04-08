@@ -11,10 +11,16 @@ import java.util.HashMap;
 public abstract class Packet {
     public static HashMap<Byte, Packet> packets = createPacketIds(new Packet[] {
             // list all packets here
+            new PacketAck(),
             new PacketJoin(),
             new PacketJoinSuccess()
     });
 
+    public static HashMap<ClientInfo, HashMap<Byte, Packet>> unackedPackets = new HashMap<>();
+    public static HashMap<ClientInfo, Byte> nextPacketNumber = new HashMap<>();
+    private Byte number = null;
+
+    public Byte getNumber() { return number; }
     public abstract boolean isReliable();
     public abstract byte getId();
     public abstract ByteBuffer writeInfo();
@@ -30,27 +36,72 @@ public abstract class Packet {
         return packets;
     }
 
-    public Serializable write() {
+    public Serializable write(ClientInfo cli) {
         ByteBuffer info = writeInfo();
-        ByteBuffer packet = ByteBuffer.allocate(3 + info.position());
-        packet.put(getId());
-        packet.putShort((short)info.position());
-        for (byte b : info.array()) { packet.put(b); }
-        System.out.println("writing packet: " + debugString(packet));
-        return packet.array();
+        int headerSize = isReliable() ? 4 : 3;
+        ByteBuffer buffer = ByteBuffer.allocate(headerSize + info.position());
+
+        // id
+        buffer.put(getId());
+
+        // number
+        if (isReliable()) {
+            if (getNumber() == null) {
+                if (!unackedPackets.containsKey(cli)) {
+                    // this is our first reliable packet to this destination
+                    unackedPackets.put(cli, new HashMap<>());
+                    nextPacketNumber.put(cli, (byte)0);
+                }
+                // store this packet as unacked
+                number = nextPacketNumber.get(cli);
+                unackedPackets.get(cli).put(number, this);
+                // increment packet number
+                nextPacketNumber.put(cli, (byte)(number + 1));
+            }
+            buffer.put(getNumber());
+        }
+
+        // length
+        buffer.putShort((short)info.position());
+
+        // info
+        for (byte b : info.array()) { buffer.put(b); }
+
+        System.out.println("writing packet: " + debugString(buffer));
+        return buffer.array();
     }
 
     public static Packet read(ClientInfo cli, ByteBuffer buffer) {
         System.out.println("reading packet: " + debugString(buffer));
+        // id
         byte id = buffer.get();
-        short length = buffer.getShort();
-        byte[] packetInfo = new byte[length];
-        System.out.println("  ID: " + (char)id + " LENGTH: " + length + " POS: " + buffer.position());
-        if (length != 0) {
-            buffer.get(packetInfo, 0, length);
+
+        // number
+        Packet packet = Packet.packets.get(id);
+        if (packet.isReliable()) {
+            packet.number = buffer.get();
         }
-        Packet.packets.get(id).readInfo(ByteBuffer.wrap(packetInfo));
-        return Packet.packets.get(id);
+
+        // length
+        short length = buffer.getShort();
+
+        // info
+        byte[] packetInfo = new byte[length];
+        if (length != 0) { buffer.get(packetInfo, 0, length); }
+        packet.readInfo(ByteBuffer.wrap(packetInfo));
+
+        System.out.println("  ID: " + (char)id + " LENGTH: " + length + " POS: " + buffer.position());
+        return packet;
+    }
+
+    public void sendAck(ClientInfo cli) {
+        System.out.println("tx ack " + (UDPClient.hasClient() ? "" : cli.info()) + ": " + number);
+        PacketAck ack = new PacketAck(number);
+        if (UDPClient.hasClient()) {
+            UDPClient.send(ack);
+        } else {
+            UDPServer.sendTo(cli, ack);
+        }
     }
 
     public static String debugString(ByteBuffer buffer) {

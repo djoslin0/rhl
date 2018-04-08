@@ -19,7 +19,8 @@ public class UDPServer extends GameConnectionServer<Byte> {
 
     private byte nextId = 1;
     private byte nextSide = 0;
-    private ConcurrentHashMap<String, Player> clientPlayers = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<ClientInfo, Player> clientPlayers = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, ClientInfo> clientInfos = new ConcurrentHashMap<>();
 
     private UDPServer(int localPort) throws IOException {
         super(localPort, IGameConnection.ProtocolType.UDP);
@@ -35,7 +36,7 @@ public class UDPServer extends GameConnectionServer<Byte> {
             return instance.clientPlayers.get(cli.toString());
         } else {
             Player player = new Player(instance.nextId, false, instance.nextSide, Settings.get().spawnPoint);
-            instance.clientPlayers.put(cli.info(), player);
+            instance.clientPlayers.put(cli, player);
             try {
                 IClientInfo ci = instance.getServerSocket().createClientInfo(cli.getIp(), cli.getPort());
                 instance.addClient(ci, instance.nextId);
@@ -52,10 +53,12 @@ public class UDPServer extends GameConnectionServer<Byte> {
         return instance.clientPlayers.get(cli.info());
     }
 
-    public static void sendTo(byte playerId, Packet packet) {
-        System.out.println("sending to " + playerId + "...");
+    public static void sendTo(ClientInfo cli, Packet packet) {
+        System.out.println("sending to " + cli.info() + "...");
         try {
-            instance.sendPacket(packet.write(), playerId);
+            Player player = clientPlayers.get(cli);
+            System.out.println(">> " + cli.info() + ", " + (player != null) + ", " + (packet != null));
+            instance.sendPacket(packet.write(cli), player.getId());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -63,7 +66,10 @@ public class UDPServer extends GameConnectionServer<Byte> {
 
     public static void sendToAll(Packet packet) {
         try {
-            instance.sendPacketToAll(packet.write());
+            for (ClientInfo cli : clientInfos.values()) {
+                Player player = clientPlayers.get(cli);
+                instance.sendPacket(packet.write(cli), player.getId());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -72,7 +78,14 @@ public class UDPServer extends GameConnectionServer<Byte> {
     @Override
     public void processPacket(Object o, InetAddress senderIP, int sndPort) {
         ClientInfo cli = new ClientInfo(senderIP, sndPort);
+        if (clientInfos.contains(cli.info())) {
+            cli = clientInfos.get(cli.info());
+        } else {
+            clientInfos.put(cli.info(), cli);
+        }
         ByteBuffer buffer = ByteBuffer.wrap((byte[])o);
-        Packet.read(cli, buffer).receivedOnServer(cli);
+        Packet packet = Packet.read(cli, buffer);
+        packet.receivedOnServer(cli);
+        if (packet.isReliable()) { packet.sendAck(cli); }
     }
 }

@@ -29,7 +29,7 @@ public class UDPClient extends GameConnectionClient {
 
     public static void send(Packet packet) {
         try {
-            instance.sendPacket(packet.write());
+            instance.sendPacket(packet.write(null));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -52,6 +52,8 @@ public class UDPClient extends GameConnectionClient {
     public void processPacket(Object o)
     {
         ByteBuffer buffer = ByteBuffer.wrap((byte[])o);
-        Packet.read(null, buffer).receivedOnClient();
+        Packet packet = Packet.read(null, buffer);
+        packet.receivedOnClient();
+        if (packet.isReliable()) { packet.sendAck(null); }
     }
 }

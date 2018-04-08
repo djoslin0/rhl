@@ -25,7 +25,7 @@ public class PacketJoin extends Packet {
         System.out.println("client join with credentials: " + cli.getIp() + ":" + cli.getPort());
         Player player = UDPServer.getPlayer(cli);
         if (player == null) { player = UDPServer.createPlayer(cli); }
-        UDPServer.sendTo(player.getId(), new PacketJoinSuccess(player));
+        UDPServer.sendTo(cli, new PacketJoinSuccess(player));
     }
 
     @Override

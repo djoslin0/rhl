@@ -92,7 +92,7 @@ public class HistoryManager {
         }
 
         private void apply() {
-            for (HistoryRigidBody hrb: historyRigidBodies) {
+            for (HistoryRigidBody hrb : historyRigidBodies) {
                 RigidBody rb = hrb.rb;
                 PhysicsManager.addRigidBody(rb);
                 rb.setWorldTransform(hrb.worldTransform);
