@@ -19,6 +19,9 @@ public abstract class Packet {
     public static HashMap<ClientInfo, HashMap<Byte, Packet>> unackedPackets = new HashMap<>();
     public static HashMap<ClientInfo, Byte> nextPacketNumber = new HashMap<>();
     private Byte number = null;
+    private ClientInfo clientInfo;
+    private long nextSendTime;
+    private long sendTimeout = 250;
 
     public Byte getNumber() { return number; }
     public abstract boolean isReliable();
@@ -37,6 +40,9 @@ public abstract class Packet {
     }
 
     public Serializable write(ClientInfo cli) {
+        this.clientInfo = cli;
+        this.nextSendTime = java.lang.System.currentTimeMillis() + sendTimeout;
+        this.sendTimeout += 150;
         ByteBuffer info = writeInfo();
         int headerSize = isReliable() ? 4 : 3;
         ByteBuffer buffer = ByteBuffer.allocate(headerSize + info.position());
@@ -101,6 +107,21 @@ public abstract class Packet {
             UDPClient.send(ack);
         } else {
             UDPServer.sendTo(cli, ack);
+        }
+    }
+
+    public static void resendUnackedPackets() {
+        long currentTime = java.lang.System.currentTimeMillis();
+        for (HashMap<Byte, Packet> map : unackedPackets.values()) {
+            for (Packet packet : map.values()) {
+                if (packet.nextSendTime > currentTime) { continue; }
+                System.out.println("resending packet #" + packet.getNumber());
+                if (UDPClient.hasClient()) {
+                    UDPClient.send(packet);
+                } else {
+                    UDPServer.sendTo(packet.clientInfo, packet);
+                }
+            }
         }
     }
 

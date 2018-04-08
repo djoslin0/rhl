@@ -69,14 +69,9 @@ public class MyGame extends VariableFrameRateGame {
                 return;
             }else if(args[0].equals("c")) {
                 UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
+                UDPClient.send(new PacketJoin());
 
-                long nextPacket = System.currentTimeMillis() - 1;
                 while(player == null) {
-                    if (System.currentTimeMillis() > nextPacket) {
-                        nextPacket = System.currentTimeMillis() + 1000;
-                        System.out.println("joining...");
-                        UDPClient.send(new PacketJoin());
-                    }
                     player = UDPClient.getPlayer(UDPClient.getPlayerId());
                     UDPClient.doProcessPackets();
                 }

@@ -47,6 +47,7 @@ public class UDPClient extends GameConnectionClient {
 
     public static void doProcessPackets() {
         instance.processPackets();
+        Packet.resendUnackedPackets();
     }
 
     public void processPacket(Object o)

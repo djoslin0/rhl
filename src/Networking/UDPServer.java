@@ -87,5 +87,6 @@ public class UDPServer extends GameConnectionServer<Byte> {
         Packet packet = Packet.read(cli, buffer);
         packet.receivedOnServer(cli);
         if (packet.isReliable()) { packet.sendAck(cli); }
+        Packet.resendUnackedPackets();
     }
 }
