@@ -28,15 +28,6 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/javagaming/rage165/ray.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
           <root url="jar://C:/javagaming/vecmath/vecmath.jar!/" />
         </CLASSES>
         <JAVADOC />
@@ -72,6 +63,15 @@
         </NATIVE>
         <SOURCES />
         <jarDirectory url="file://C:/javagaming/jinput/lib" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://C:/javagaming/rage165/rage165/ray.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
       </library>
     </orderEntry>
   </component>
