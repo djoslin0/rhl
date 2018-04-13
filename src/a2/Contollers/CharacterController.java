@@ -34,11 +34,13 @@ public class CharacterController extends InternalTickCallback {
 
     // track in history
     private boolean wasOnGround;
+    private boolean moveLeft;
+    private boolean moveRight;
+    private boolean moveForward;
+    private boolean moveBackward;
     private boolean attacking;
     private boolean jumping;
     private int jumpTicks;
-    private float forwardMove;
-    private float rightMove;
     private Vector3 lastMovement = Vector3f.createZeroVector();
     private int knockbackTimeout = 0;
     private int ignoreKnockTimeout = 0;
@@ -64,21 +66,33 @@ public class CharacterController extends InternalTickCallback {
         }
     }
 
-    public void move(ActionMove.Direction direction, float value) {
+    public byte getControls() {
+        byte controls = 0;
+        controls |= (moveLeft ? 1 : 0) << 0;
+        controls |= (moveRight ? 1 : 0) << 1;
+        controls |= (moveForward ? 1 : 0) << 2;
+        controls |= (moveBackward ? 1 : 0) << 3;
+        controls |= (jumping ? 1 : 0) << 4;
+        controls |= (attacking ? 1 : 0) << 5;
+        return controls;
+    }
+
+    public void setControls(byte controls) {
+        moveLeft = (controls & (1 << 0)) != 0;
+        moveRight = (controls & (1 << 1)) != 0;
+        moveForward = (controls & (1 << 2)) != 0;
+        moveBackward = (controls & (1 << 3)) != 0;
+        jumping = (controls & (1 << 4)) != 0;
+        attacking = (controls & (1 << 5)) != 0;
+    }
+
+    public void move(ActionMove.Direction direction, boolean value) {
         // remember movement directions, to be applied on physics tick
         switch (direction) {
-            case FORWARD:
-                forwardMove = value;
-                break;
-            case BACKWARD:
-                forwardMove = -value;
-                break;
-            case LEFT:
-                rightMove = value;
-                break;
-            case RIGHT:
-                rightMove = -value;
-                break;
+            case FORWARD: moveForward = value; break;
+            case BACKWARD: moveBackward = value; break;
+            case LEFT: moveLeft = value; break;
+            case RIGHT: moveRight = value; break;
         }
     }
 
@@ -123,8 +137,8 @@ public class CharacterController extends InternalTickCallback {
 
     private Vector3 getMovementDirection() {
         // convert forward/right requested movement into vector
-        Vector3 forward = node.getWorldForwardAxis().mult(forwardMove);
-        Vector3 right = node.getWorldRightAxis().mult(rightMove);
+        Vector3 forward = node.getWorldForwardAxis().mult((moveForward ? 1 : 0) - (moveBackward ? 1 : 0));
+        Vector3 right = node.getWorldRightAxis().mult((moveLeft ? 1 : 0) - (moveRight ? 1 : 0));
         Vector3 movement = forward.add(right);
         return movement.length() <= 1 ? movement : movement.normalize();
     }
@@ -181,6 +195,10 @@ public class CharacterController extends InternalTickCallback {
         body.getLinearVelocity(linearVelocity);
 
         groundTrace();
+
+        if (!onGround) {
+            System.out.println("NOT ON GROUND!");
+        }
 
         checkAttack();
 
@@ -357,11 +375,8 @@ public class CharacterController extends InternalTickCallback {
         private Player player;
         private CharacterController cc;
         private boolean wasOnGround;
-        private boolean attacking;
-        private boolean jumping;
+        private byte controls;
         private int jumpTicks;
-        private float forwardMove;
-        private float rightMove;
         private Vector3 lastMovement;
         private int knockbackTimeout;
         private int ignoreKnockTimeout;
@@ -372,11 +387,8 @@ public class CharacterController extends InternalTickCallback {
             this.player = player;
             this.cc = player.getController();
             wasOnGround = cc.wasOnGround;
-            attacking = cc.attacking;
-            jumping = cc.jumping;
+            controls = cc.getControls();
             jumpTicks = cc.jumpTicks;
-            forwardMove = cc.forwardMove;
-            rightMove = cc.rightMove;
             lastMovement = cc.lastMovement.add(0, 0, 0);
             knockbackTimeout = cc.knockbackTimeout;
             ignoreKnockTimeout = cc.ignoreKnockTimeout;
@@ -384,28 +396,32 @@ public class CharacterController extends InternalTickCallback {
             cameraNodeRotation = cc.cameraNode.getLocalRotation();
         }
 
-        public void fullApply() {
+        public void apply() {
             cc.wasOnGround = wasOnGround;
-            cc.attacking = attacking;
-            cc.jumping = jumping;
             cc.jumpTicks = jumpTicks;
-            cc.forwardMove = forwardMove;
-            cc.rightMove = rightMove;
             cc.lastMovement = lastMovement;
             cc.knockbackTimeout = knockbackTimeout;
             cc.ignoreKnockTimeout = ignoreKnockTimeout;
+            applyInput();
+        }
+
+        public void applyInput() {
+            cc.setControls(controls);
             cc.node.setLocalRotation(nodeRotation);
             cc.cameraNode.setLocalRotation(cameraNodeRotation);
         }
 
-        public void inputApply() {
-            cc.attacking = attacking;
-            cc.jumping = jumping;
-            cc.forwardMove = forwardMove;
-            cc.rightMove = rightMove;
-            cc.node.setLocalRotation(nodeRotation);
-            cc.cameraNode.setLocalRotation(cameraNodeRotation);
+        public void overwriteInput(byte controls, short aimX, short aimY) {
+            if (player.getId() == 0) { return; }
+            this.controls = controls;
+            /*
+                TODO: AIMX AIM Y
+                this.nodeRotation = nodeRotation;
+                this.cameraNodeRotation = cameraNodeRotation;
+            */
         }
+
+        public byte getControls() { return this.controls; }
 
         public Player getPlayer() { return player; }
     }

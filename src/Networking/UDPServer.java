@@ -9,20 +9,23 @@ import a2.GameEntities.Player;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
 import java.net.InetAddress;
 
 public class UDPServer extends GameConnectionServer<Byte> {
     private static UDPServer instance;
-    private static int updateRate = 20;
+    public static int updateRate = 20;
 
     private long nextWorldState;
     private byte nextId = 1;
     private byte nextSide = 0;
     private static ConcurrentHashMap<String, Player> clientPlayers = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, ClientInfo> clientInfos = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, ArrayList<Packet>> unreadPackets = new ConcurrentHashMap<>();
 
     private UDPServer(int localPort) throws IOException {
         super(localPort, IGameConnection.ProtocolType.UDP);
@@ -58,10 +61,12 @@ public class UDPServer extends GameConnectionServer<Byte> {
     }
 
     public static void sendTo(ClientInfo cli, Packet packet) {
-        System.out.println("sending to " + cli.info() + "...");
         try {
             Player player = clientPlayers.get(cli.info());
-            System.out.println(">> " + cli.info() + ", " + (player != null) + ", " + (packet != null));
+            if (player == null) {
+                System.out.println("ERROR: could not identify player");
+                return;
+            }
             instance.sendPacket(packet.write(cli), player.getId());
         } catch (IOException e) {
             e.printStackTrace();
@@ -86,11 +91,28 @@ public class UDPServer extends GameConnectionServer<Byte> {
         clientInfos.put(cli.info(), cli);
         ByteBuffer buffer = ByteBuffer.wrap((byte[]) o);
         Packet packet = Packet.read(cli, buffer);
-        packet.receivedOnServer(cli);
         if (packet.isReliable()) { packet.sendAck(cli); }
+
+        ArrayList<Packet> packets = unreadPackets.get(cli.info());
+        if (packets == null) {
+            packets = new ArrayList<>();
+            unreadPackets.put(cli.info(), packets);
+        }
+        synchronized (packets) {
+            packets.add(packet);
+        }
     }
 
     public static void update() {
+        for (ClientInfo cli : clientInfos.values()) {
+            ArrayList<Packet> packets = unreadPackets.get(cli.info());
+            synchronized (packets) {
+                for (Packet packet : packets) {
+                    packet.receivedOnServer(cli);
+                }
+                packets.clear();
+            }
+        }
         long currentTime = java.lang.System.currentTimeMillis();
         if (currentTime >= instance.nextWorldState) {
             instance.nextWorldState = java.lang.System.currentTimeMillis() + 1000 / updateRate;

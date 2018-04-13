@@ -32,7 +32,7 @@ public class PacketAck extends Packet {
     @Override
     public void receivedOnServer(ClientInfo cli) {
         System.out.println("rx ack " + cli.info() + ": " + number);
-        HashMap<Byte, Packet> map = Packet.unackedPackets.get(cli);
+        HashMap<Byte, Packet> map = Packet.unackedPackets.get(cli.info());
         if (map != null) { map.remove(number); }
     }
 

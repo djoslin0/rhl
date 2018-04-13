@@ -21,6 +21,6 @@ public class ActionMove implements Action {
     public void performAction(float time, Event event) {
         if (!EngineManager.isGameActive()) { return; }
         if (player.isDestroyed()) { return; }
-        player.getController().move(direction, Math.abs(event.getValue()));
+        player.getController().move(direction, Math.abs(event.getValue()) > 0.2f);
     }
 }

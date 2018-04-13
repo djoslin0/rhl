@@ -16,6 +16,7 @@ import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.Updatable;
+import myGameEngine.PhysicsWorld;
 
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
     public static int tickRate = 144;
 
     // this is the most important class
-    private static DynamicsWorld world = null;
+    private static PhysicsWorld world = null;
 
     // keep the collision shapes, for deletion/cleanup
     private static BroadphaseInterface broadphase;
@@ -55,10 +56,10 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
         // TODO: needed for SimpleDynamicsWorld
         //sol.setSolverMode(sol.getSolverMode() & ~SolverMode.SOLVER_CACHE_FRIENDLY.getMask());
 
-        instance.world = new DiscreteDynamicsWorld(instance.dispatcher, instance.broadphase, instance.solver, instance.collisionConfiguration);
+        instance.world = new PhysicsWorld(instance.dispatcher, instance.broadphase, instance.solver, instance.collisionConfiguration);
 
         instance.world.setGravity(new Vector3f(0f, -20f, 0f));
-        instance.world.setInternalTickCallback(instance, null);
+        instance.world.setPreInternalTickCallback(instance);
 
         UpdateManager.add(instance);
     }
@@ -84,11 +85,14 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
         // increment tick
         TimeManager.incrementTick();
 
+        HistoryManager.internalTick(timeStep);
+
         checkCollisions();
         for(InternalTickCallback callback : (ArrayList<InternalTickCallback>)instance.callbacks.clone()) {
             callback.internalTick(dynamicsWorld, timeStep);
         }
-        HistoryManager.internalTick(timeStep);
+
+
     }
 
     private void checkCollisions() {
@@ -128,11 +132,11 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
 
     @Override
     public void update(float delta) {
-        if (REWRITE != null) {
-            HistoryManager.rewind(REWRITE, 100);
+        /*if (REWRITE != null) {
+            HistoryManager.rewind(100);
             REWRITE = null;
-        }
-        PhysicsManager.getWorld().stepSimulation(delta / 1000f, 10, 1f / (float)PhysicsManager.tickRate);
+        }*/
+        PhysicsManager.getWorld().stepSimulation(delta / 1000f, 144, 1f / (float)PhysicsManager.tickRate);
     }
 
     @Override

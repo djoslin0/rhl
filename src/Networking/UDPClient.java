@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class UDPClient extends GameConnectionClient {
     private static UDPClient instance;
+    public static int updateRate = 20;
+    private long nextInputTime;
 
     private ConcurrentHashMap<Byte, Player> players = new ConcurrentHashMap<>();
     private byte playerId;
@@ -56,5 +58,11 @@ public class UDPClient extends GameConnectionClient {
     public static void update() {
         instance.processPackets();
         Packet.resendUnackedPackets();
+
+        long currentTime = java.lang.System.currentTimeMillis();
+        if (currentTime >= instance.nextInputTime) {
+            instance.nextInputTime = java.lang.System.currentTimeMillis() + 1000 / updateRate;
+            send(new PacketInput(getPlayer(instance.playerId)));
+        }
     }
 }

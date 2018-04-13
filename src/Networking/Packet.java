@@ -14,11 +14,12 @@ public abstract class Packet {
             new PacketAck(),
             new PacketJoin(),
             new PacketJoinSuccess(),
-            new PacketWorldState()
+            new PacketWorldState(),
+            new PacketInput()
     });
 
-    public static HashMap<ClientInfo, HashMap<Byte, Packet>> unackedPackets = new HashMap<>();
-    public static HashMap<ClientInfo, Byte> nextPacketNumber = new HashMap<>();
+    public static HashMap<String, HashMap<Byte, Packet>> unackedPackets = new HashMap<>();
+    public static HashMap<String, Byte> nextPacketNumber = new HashMap<>();
     private Byte number = null;
     private ClientInfo clientInfo;
     private long nextSendTime;
@@ -44,9 +45,9 @@ public abstract class Packet {
         this.clientInfo = cli;
         this.nextSendTime = java.lang.System.currentTimeMillis() + sendTimeout;
         this.sendTimeout += 150;
-        ByteBuffer info = writeInfo();
+        byte[] info = writeInfo().array();
         int headerSize = isReliable() ? 4 : 3;
-        ByteBuffer buffer = ByteBuffer.allocate(headerSize + info.position());
+        ByteBuffer buffer = ByteBuffer.allocate(headerSize + info.length);
 
         // id
         buffer.put(getId());
@@ -54,32 +55,33 @@ public abstract class Packet {
         // number
         if (isReliable()) {
             if (getNumber() == null) {
-                if (!unackedPackets.containsKey(cli)) {
+                String clientInfo = (cli == null) ? null : cli.info();
+                if (!unackedPackets.containsKey(clientInfo)) {
                     // this is our first reliable packet to this destination
-                    unackedPackets.put(cli, new HashMap<>());
-                    nextPacketNumber.put(cli, (byte)0);
+                    unackedPackets.put(clientInfo, new HashMap<>());
+                    nextPacketNumber.put(clientInfo, (byte)0);
                 }
                 // store this packet as unacked
-                number = nextPacketNumber.get(cli);
-                unackedPackets.get(cli).put(number, this);
+                number = nextPacketNumber.get(clientInfo);
+                unackedPackets.get(clientInfo).put(number, this);
                 // increment packet number
-                nextPacketNumber.put(cli, (byte)(number + 1));
+                nextPacketNumber.put(clientInfo, (byte)(number + 1));
             }
             buffer.put(getNumber());
         }
 
         // length
-        buffer.putShort((short)info.position());
+        buffer.putShort((short)info.length);
 
         // info
-        for (byte b : info.array()) { buffer.put(b); }
+        for (byte b : info) { buffer.put(b); }
 
-        System.out.println("writing packet: " + debugString(buffer));
+        //System.out.println("writing packet: " + debugString(buffer));
         return buffer.array();
     }
 
     public static Packet read(ClientInfo cli, ByteBuffer buffer) {
-        System.out.println("reading packet: " + debugString(buffer));
+        //System.out.println("reading packet: " + debugString(buffer));
         // id
         byte id = buffer.get();
 
@@ -97,7 +99,7 @@ public abstract class Packet {
         if (length != 0) { buffer.get(packetInfo, 0, length); }
         packet.readInfo(ByteBuffer.wrap(packetInfo));
 
-        System.out.println("  ID: " + (char)id + " LENGTH: " + length + " POS: " + buffer.position());
+        //System.out.println("  ID: " + (char)id + " LENGTH: " + length + " POS: " + buffer.position());
         return packet;
     }
 

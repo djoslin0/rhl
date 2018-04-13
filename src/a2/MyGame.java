@@ -65,7 +65,7 @@ public class MyGame extends VariableFrameRateGame {
         if(args.length > 0) {
             if(args[0].equals("s")) {
                 UDPServer.createServer(8800);
-                player = new Player((byte)0, true, (byte)0, Settings.get().spawnPoint);
+                player = new Player((byte)0, true, (byte)0, Settings.get().spawnPoint.add(0, 0, -10));
                 return;
             }else if(args[0].equals("c")) {
                 UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
@@ -128,7 +128,7 @@ public class MyGame extends VariableFrameRateGame {
 
         // setup initial prizes
         for (int i = 0; i < 8; i++) {
-            Vector3 pLocation = Vector3f.createFrom(0f, i * 10f, 0f);
+            Vector3 pLocation = Vector3f.createFrom(0f, i * 10f, 50f);
             new Prize(pLocation);
         }
 

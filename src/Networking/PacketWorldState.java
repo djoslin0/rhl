@@ -64,11 +64,6 @@ public class PacketWorldState extends Packet {
     }
 
     @Override
-    public void receivedOnServer(ClientInfo cli) {
-        // should not happen
-    }
-
-    @Override
     public void readInfo(ByteBuffer buffer) {
         tick = buffer.getShort();
 
@@ -93,9 +88,16 @@ public class PacketWorldState extends Packet {
     }
 
     @Override
+    public void receivedOnServer(ClientInfo cli) {
+        // should not happen
+    }
+
+    @Override
     public void receivedOnClient() {
         // TODO: rewind and stuff
-        TimeManager.setTick(tick);
+        if (tick - TimeManager.getTick() > 10 || tick - TimeManager.getTick() < 0) {
+            //TimeManager.setTick(tick);
+        }
 
         Puck puck = (Puck) EntityManager.get("puck").get(0);
 
@@ -112,7 +114,7 @@ public class PacketWorldState extends Packet {
         puck.getBody().setLinearVelocity(puckLinearVelocity);
         puck.getBody().setAngularVelocity(puckAngularVelocity);
 
-        System.out.println("world state.");
+        System.out.println("world state: " + tick);
 
         /*
             TODO PLAN:

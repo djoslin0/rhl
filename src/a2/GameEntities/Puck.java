@@ -103,11 +103,13 @@ public class Puck extends GameEntity {
         // calculate linear push vector
         Vector3 linearPush = Vector3f.createZeroVector();
         Vector3 diff = entityPosition.sub(thisPosition);
-        float dot = linearVelocity.normalize().dot(diff.normalize());
-        if (dot > 0.5f) { dot = 0.5f; }
-        dot = dot * 2f;
-        if (dot > 0) {
-            linearPush = linearVelocity.mult(linearPushScale * dot);
+        if (linearVelocity.lengthSquared() > 0) {
+            float dot = linearVelocity.normalize().dot(diff.normalize());
+            if (dot > 0.5f) { dot = 0.5f; }
+            dot = dot * 2f;
+            if (dot > 0) {
+                linearPush = linearVelocity.mult(linearPushScale * dot);
+            }
         }
 
         // push player
