@@ -94,6 +94,8 @@ public class MyGame extends VariableFrameRateGame {
         PhysicsManager.initPhysics();
         Settings.initScript();
        //new ShaderSkyBox(engine, sm, this);
+        new Goal(0);
+        new Goal(1);
         new StaticSkyBox(sm.getRootSceneNode(),camera);
         new WorldAxes();
         new Ground();

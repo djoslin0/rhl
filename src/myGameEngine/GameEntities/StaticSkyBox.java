@@ -24,6 +24,7 @@ public class StaticSkyBox extends GameEntity implements Camera.Listener{
         // attach skybox to node tree
         SceneManager sm = EngineManager.getSceneManager();
         skybox = parentNode.createChildSceneNode("skyboxNode");
+        addResponsibility(skybox);
         // create sides
         float size = 500f;
         CreateSide(parentNode,"front",
@@ -149,6 +150,7 @@ public class StaticSkyBox extends GameEntity implements Camera.Listener{
         TextureState texState = (TextureState) sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
         texState.setTexture(tex);
 
+
         // finish manual object setup
         obj.setMaterial(mat);
         obj.setDataSource(Renderable.DataSource.INDEX_BUFFER);
@@ -162,7 +164,6 @@ public class StaticSkyBox extends GameEntity implements Camera.Listener{
     public void onCameraPreRenderScene(Camera camera) {
         if(camera != null){
             skybox.setLocalPosition(camera.getParentNode().getWorldPosition());
-            System.out.println(skybox.getLocalPosition());
         }else{
             System.out.println("null");
         }
