@@ -6,6 +6,7 @@ import com.bulletphysics.linearmath.Transform;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.EntityManager;
+import myGameEngine.Singletons.HistoryManager;
 import myGameEngine.Singletons.TimeManager;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
@@ -37,6 +38,7 @@ public class PacketWorldState extends Packet {
         puck.getBody().getLinearVelocity(puckLinearVelocity);
         puck.getBody().getAngularVelocity(puckAngularVelocity);
 
+        System.out.println("WRITING WSTATE: " + TimeManager.getTick());
         // tick
         buffer.putShort(TimeManager.getTick());
 
@@ -94,10 +96,20 @@ public class PacketWorldState extends Packet {
 
     @Override
     public void receivedOnClient() {
-        // TODO: rewind and stuff
+        // TODO: rewrite and stuff
         if (tick - TimeManager.getTick() > 10 || tick - TimeManager.getTick() < 0) {
             //TimeManager.setTick(tick);
         }
+
+        if (tick + 1 - TimeManager.getTick() > 0) {
+            HistoryManager.fastForward((short)(tick + 1), false);
+        }
+
+        System.out.println("------");
+
+        short savedTick = TimeManager.getTick();
+        HistoryManager.rewind(tick);
+        System.out.println("Rewound to: " + TimeManager.getTick());
 
         Puck puck = (Puck) EntityManager.get("puck").get(0);
 
@@ -114,65 +126,8 @@ public class PacketWorldState extends Packet {
         puck.getBody().setLinearVelocity(puckLinearVelocity);
         puck.getBody().setAngularVelocity(puckAngularVelocity);
 
+        HistoryManager.fastForward(savedTick, true);
+        System.out.println("Fastforward to: " + TimeManager.getTick());
         System.out.println("world state: " + tick);
-
-        /*
-            TODO PLAN:
-            servertime is a short that wraps
-            custom time difference function
-            custom time within function
-            custom time max/min funtions
-
-            joinSuccess NEEDS server time
-                set client time to (server time + 1)
-
-            client @t0 -(10)-> @t10	server
-                rewind & apply input from client & fastforward
-                    apply list of client inputs
-                    fastforward to server time
-
-            server @t10 -(10)-> @t10 client
-                rewind & apply input from client & 'fastforward' if required
-                    keep and apply list of client inputs
-                    if client time > server time + server tickrate
-                        client time = client time - 1
-
-                        rewind to server time
-                        apply state
-                            ignore client's server state if the positions are within a defined acceptable error distance
-                            never override client inputs
-                            save history @ server time
-                        fast forward to client time
-                            apply client inputs
-
-                        apply real client inputs
-                        jumping/attacking/etc is true
-                            if previous (client time + 1) input is true
-                            if real input is true
-                    else if client time > server time
-                        rewind to server time
-                        apply state
-                            ignore client's server state if the positions are within a defined acceptable error distance
-                            never override client inputs
-                            save history @ server time
-                        fast forward to client time
-                            apply client inputs
-
-                        apply real client inputs
-                        jumping/attacking/etc is true
-                            if real input is true
-
-                    else (client time <= server time)
-                        fast forward to server time
-                        apply state
-                            ignore client's server state if the positions are within a defined acceptable error distance
-                            never override client inputs
-                            save history @ server time
-                        apply real client inputs
-                        jumping/attacking/etc is true
-                            if real input is true
-                        fast forward one tick
-
-         */
     }
 }

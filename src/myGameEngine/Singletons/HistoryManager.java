@@ -16,15 +16,17 @@ public class HistoryManager {
     private HistoryState[] states = new HistoryState[maxHistory];
     private int onState = 0;
     private boolean rewriting = false;
+    private int DEBUGREMOVEME = 0;
 
-    public static void rewind(short rewindTo) {
+    public static void rewrite(short rewindTo) {
+        if (instance.states[instance.onState] == null) { return; }
         int amount = instance.states[instance.onState].tick - rewindTo + 1;
         if (amount > maxHistory) { amount = maxHistory; }
         if (amount <= 0) { return; }
-
+        if (getState((short)(rewindTo - 1)) == null) { return; }
 
         // apply rewound state
-        HistoryState state = getState((rewindTo));
+        HistoryState state = getState(rewindTo);
         state.bodies.apply();
         state.controllers.apply();
 
@@ -35,8 +37,39 @@ public class HistoryManager {
 
         // resimulate physics
         instance.rewriting = true;
-        PhysicsManager.getWorld().stepSimulation((float)(amount / (1.0 * PhysicsManager.tickRate)), maxHistory, 1f / (float)PhysicsManager.tickRate);
+        instance.DEBUGREMOVEME = 1;
+        //System.out.println("1: " + state.bodies.bodies.get(1).worldTransform.origin);
+        PhysicsManager.stepSimulation((float)(amount / (1.0 * PhysicsManager.tickRate)));
         instance.rewriting = false;
+    }
+
+    public static void rewind(short rewindTo) {
+        if (instance.states[instance.onState] == null) { return; }
+        int amount = instance.states[instance.onState].tick - rewindTo;
+        if (amount > maxHistory) { amount = maxHistory; }
+        if (amount <= 0) { return; }
+
+        // apply rewound state
+        HistoryState state = getState(rewindTo);
+        if (state == null) { return; }
+        state.bodies.apply();
+        state.controllers.apply();
+
+        // set time and onstate backward
+        TimeManager.setTick(rewindTo);
+        instance.onState = state.index;
+    }
+
+    public static void fastForward(short fastForwardTo, boolean rewrite) {
+        if (instance.states[instance.onState] == null) { return; }
+        int amount = fastForwardTo - instance.states[instance.onState].tick;
+        if (amount > maxHistory) { amount = maxHistory; }
+        if (amount <= 0) { return; }
+
+        if (rewrite) { instance.rewriting = true; }
+        System.out.println("FF AMT: " + amount);
+        PhysicsManager.stepSimulation((float)(amount / (1.0 * PhysicsManager.tickRate)));
+        if (rewrite) { instance.rewriting = false; }
     }
 
     public static HistoryState getState(short atTick) {
@@ -63,19 +96,37 @@ public class HistoryManager {
 
         // apply history of player inputs
         if (instance.rewriting) {
-            instance.states[instance.onState].controllers.applyInput();
+            if (instance.states[instance.onState] != null) {
+                instance.states[instance.onState].controllers.applyInput();
+            }
         }
 
+        HistoryState oldState = instance.states[instance.onState];
         instance.states[instance.onState] = new HistoryState(instance.onState);
 
+        if (instance.DEBUGREMOVEME > 0) {
+            if (--instance.DEBUGREMOVEME == 0) {
+                Vector3f o1 = oldState.bodies.bodies.get(1).worldTransform.origin;
+                Vector3f o2 = instance.states[instance.onState].bodies.bodies.get(1).worldTransform.origin;
+                if (o1.x != o2.x || o1.y != o2.y || o1.z != o2.z) {
+                    System.out.println("2: " + oldState.bodies.bodies.get(1).worldTransform.origin);
+                    System.out.println("3: " + instance.states[instance.onState].bodies.bodies.get(1).worldTransform.origin);
+                }
+            }
+        }
+
         if (instance.rewriting || UDPClient.hasClient()) {
+            /*System.out.println("-------");
+            System.out.println(oldState.tick + ": " + oldState.bodies.bodies.get(1).worldTransform.origin);
+            System.out.println(instance.states[instance.onState].tick + ": " + instance.states[instance.onState].bodies.bodies.get(1).worldTransform.origin);
+
             for (Object p : EntityManager.get("player")) {
                 Player player = (Player) p;
                 if (((Player) p).getId() == 0) { continue; }
                 Transform t = new Transform();
                 player.getBody().getWorldTransform(t);
                 System.out.println("Tick: " + TimeManager.getTick() + ", " + player.getController().getControls() + ", " + t.origin);
-            }
+            }*/
         }
     }
 
@@ -89,14 +140,15 @@ public class HistoryManager {
 
     private static class HistoryRigidBodies {
         private ArrayList<HistoryRigidBody> bodies;
+        //private float localTime;
 
         private HistoryRigidBodies() {
             bodies = new ArrayList<>();
+            //localTime = PhysicsManager.getWorld().getLocalTime();
             for (RigidBody rb : PhysicsManager.getRigidBodies()) {
                 HistoryRigidBody hrb = new HistoryRigidBody();
                 hrb.rb = rb;
                 rb.getWorldTransform(hrb.worldTransform);
-                rb.getMotionState().setWorldTransform(hrb.worldTransform);
                 rb.getLinearVelocity(hrb.linearVelocity);
                 rb.getAngularVelocity(hrb.angularVelocity);
                 bodies.add(hrb);
@@ -104,14 +156,35 @@ public class HistoryManager {
         }
 
         private void apply() {
+            PhysicsManager.resetWorld();
+            //PhysicsManager.getWorld().setLocalTime(localTime);
+            /*for (HistoryRigidBody hrb : bodies) {
+                PhysicsManager.removeRigidBody(hrb.rb);
+            }*/
+
             for (HistoryRigidBody hrb : bodies) {
                 RigidBody rb = hrb.rb;
-                //PhysicsManager.addRigidBody(rb);
-                rb.setWorldTransform(hrb.worldTransform);
-                rb.setLinearVelocity(hrb.linearVelocity);
-                rb.setAngularVelocity(hrb.angularVelocity);
-                rb.getMotionState().setWorldTransform(hrb.worldTransform);
+
+
+                Transform worldTransform = new Transform();
+                worldTransform.set(hrb.worldTransform);
+                //rb.setWorldTransform(worldTransform);
+                rb.proceedToTransform(worldTransform);
+
+                Vector3f linearVelocity = new Vector3f();
+                linearVelocity.set(hrb.linearVelocity);
+                rb.setLinearVelocity(linearVelocity);
+
+                Vector3f angularVelocity = new Vector3f();
+                angularVelocity.set(hrb.angularVelocity);
+                rb.setAngularVelocity(angularVelocity);
+
+                rb.getMotionState().setWorldTransform(worldTransform);
             }
+            PhysicsManager.getWorld().synchronizeMotionStates();
+            /*for (HistoryRigidBody hrb : bodies) {
+                PhysicsManager.addRigidBody(hrb.rb);
+            }*/
         }
 
         private class HistoryRigidBody {

@@ -12,11 +12,9 @@ import myGameEngine.GameEntities.Terrain;
 import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.PhysicsManager;
+import myGameEngine.Singletons.TimeManager;
 import ray.rage.scene.SceneNode;
-import ray.rml.Matrix3;
-import ray.rml.Radianf;
-import ray.rml.Vector3;
-import ray.rml.Vector3f;
+import ray.rml.*;
 
 public class CharacterController extends InternalTickCallback {
 
@@ -26,6 +24,7 @@ public class CharacterController extends InternalTickCallback {
     private SceneNode cameraNode;
     private RigidBody body;
     private javax.vecmath.Vector3f linearVelocity = new javax.vecmath.Vector3f();
+    private javax.vecmath.Vector3f angularVelocity = new javax.vecmath.Vector3f();
     private javax.vecmath.Vector3f gravity = new javax.vecmath.Vector3f();
     private Terrain terrain;
     private boolean onGround;
@@ -38,8 +37,9 @@ public class CharacterController extends InternalTickCallback {
     private boolean moveRight;
     private boolean moveForward;
     private boolean moveBackward;
-    private boolean attacking;
     private boolean jumping;
+    private boolean attacking;
+    private boolean wrapYaw;
     private int jumpTicks;
     private Vector3 lastMovement = Vector3f.createZeroVector();
     private int knockbackTimeout = 0;
@@ -74,6 +74,7 @@ public class CharacterController extends InternalTickCallback {
         controls |= (moveBackward ? 1 : 0) << 3;
         controls |= (jumping ? 1 : 0) << 4;
         controls |= (attacking ? 1 : 0) << 5;
+        controls |= (wrapYaw ? 1 : 0) << 6;
         return controls;
     }
 
@@ -84,6 +85,11 @@ public class CharacterController extends InternalTickCallback {
         moveBackward = (controls & (1 << 3)) != 0;
         jumping = (controls & (1 << 4)) != 0;
         attacking = (controls & (1 << 5)) != 0;
+        wrapYaw = (controls & (1 << 6)) != 0;
+    }
+
+    private boolean wrapYawFromControl(byte controls) {
+        return (controls & (1 << 6)) != 0;
     }
 
     public void move(ActionMove.Direction direction, boolean value) {
@@ -191,8 +197,15 @@ public class CharacterController extends InternalTickCallback {
 
     @Override
     public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
+        // restrict angular velocity to 0
+        angularVelocity.set(0, 0, 0);
+        body.setAngularVelocity(angularVelocity);
+
         // keep linearVelocity up to date
         body.getLinearVelocity(linearVelocity);
+
+        // track whether or not yaw should wrap around
+        wrapYaw = node.getLocalRotation().getRoll() != 0;
 
         groundTrace();
 
@@ -313,7 +326,6 @@ public class CharacterController extends InternalTickCallback {
         javax.vecmath.Vector3f to = toPosition.toJavaX();
         CollisionWorld.ClosestRayResultCallback closest = new CollisionWorld.ClosestRayResultCallback(from, to);
         PhysicsManager.getWorld().rayTest(from, to, closest);
-        System.out.println(closest.hasHit());
         if (closest.hasHit()) {
             if (closest.collisionObject instanceof RigidBody) {
                 RigidBody rb = (RigidBody) closest.collisionObject;
@@ -326,6 +338,10 @@ public class CharacterController extends InternalTickCallback {
                 rb.applyImpulse(force, relative);
 
                 rb.activate();
+
+                javax.vecmath.Vector3f vel = new javax.vecmath.Vector3f();
+                rb.getLinearVelocity(vel);
+                System.out.println("Hit: " + closest.hasHit() + " @ " + TimeManager.getTick() + ", " + t.origin);
             }
         }
     }
@@ -407,18 +423,16 @@ public class CharacterController extends InternalTickCallback {
 
         public void applyInput() {
             cc.setControls(controls);
-            cc.node.setLocalRotation(nodeRotation);
             cc.cameraNode.setLocalRotation(cameraNodeRotation);
+            cc.node.setLocalRotation(nodeRotation);
         }
 
-        public void overwriteInput(byte controls, short aimX, short aimY) {
+        public void overwriteInput(byte controls, float pitch, float yaw) {
             if (player.getId() == 0) { return; }
             this.controls = controls;
-            /*
-                TODO: AIMX AIM Y
-                this.nodeRotation = nodeRotation;
-                this.cameraNodeRotation = cameraNodeRotation;
-            */
+            double wrapYawValue = cc.wrapYawFromControl(controls) ? Math.PI : 0;
+            cameraNodeRotation = Matrix3f.createFrom(pitch, 0, 0);
+            nodeRotation = Matrix3f.createFrom(wrapYawValue, yaw, wrapYawValue);
         }
 
         public byte getControls() { return this.controls; }

@@ -1,9 +1,9 @@
 package myGameEngine.Singletons;
 
 import a2.GameEntities.Player;
-import com.bulletphysics.collision.broadphase.BroadphaseInterface;
-import com.bulletphysics.collision.broadphase.DbvtBroadphase;
-import com.bulletphysics.collision.broadphase.Dispatcher;
+import com.bulletphysics.BulletGlobals;
+import com.bulletphysics.BulletStats;
+import com.bulletphysics.collision.broadphase.*;
 import com.bulletphysics.collision.dispatch.CollisionDispatcher;
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
@@ -14,14 +14,18 @@ import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
+import com.bulletphysics.linearmath.CProfileManager;
+import com.bulletphysics.linearmath.ScalarUtil;
+import com.bulletphysics.linearmath.Transform;
 import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.Helpers.PreInternalTickCallback;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.PhysicsWorld;
 
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 
-public class PhysicsManager extends InternalTickCallback implements Updatable {
+public class PhysicsManager extends InternalTickCallback implements Updatable, PreInternalTickCallback {
     private static final PhysicsManager instance = new PhysicsManager();
     public static int tickRate = 144;
 
@@ -60,16 +64,36 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
 
         instance.world.setGravity(new Vector3f(0f, -20f, 0f));
         instance.world.setPreInternalTickCallback(instance);
+        instance.world.setInternalTickCallback(instance, null);
 
         UpdateManager.add(instance);
     }
 
-    public static DynamicsWorld getWorld() {
+    public static PhysicsWorld getWorld() {
         return instance.world;
     }
 
+    public static void resetWorld() {
+        for (RigidBody rigidBody : instance.rigidBodies) {
+            instance.world.removeRigidBody(rigidBody);
+            rigidBody.clearForces();
+        }
+        float localTime = instance.world.getLocalTime();
+        UpdateManager.remove(instance);
+        initPhysics();
+        instance.world.setLocalTime(localTime);
+        for (RigidBody rigidBody : instance.rigidBodies) {
+            Transform t = new Transform();
+            rigidBody.getWorldTransform(t);
+            rigidBody.proceedToTransform(t);
+            instance.world.addRigidBody(rigidBody);
+        }
+    }
+
     public static void addRigidBody(RigidBody rigidBody) {
-        instance.rigidBodies.add(rigidBody);
+        if (!instance.rigidBodies.contains(rigidBody)) {
+            instance.rigidBodies.add(rigidBody);
+        }
         instance.world.addRigidBody(rigidBody);
     }
 
@@ -81,18 +105,17 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
     public static ArrayList<RigidBody> getRigidBodies() { return instance.rigidBodies; }
 
     @Override
-    public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
-        // increment tick
-        TimeManager.incrementTick();
-
-        HistoryManager.internalTick(timeStep);
-
+    public void internalTick(DynamicsWorld world, float timeStep) {
         checkCollisions();
+    }
+
+    @Override
+    public void preInternalTick(DynamicsWorld world, float timeStep) {
+        TimeManager.incrementTick();
+        HistoryManager.internalTick(timeStep);
         for(InternalTickCallback callback : (ArrayList<InternalTickCallback>)instance.callbacks.clone()) {
-            callback.internalTick(dynamicsWorld, timeStep);
+            callback.internalTick(world, timeStep);
         }
-
-
     }
 
     private void checkCollisions() {
@@ -133,14 +156,44 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
     @Override
     public void update(float delta) {
         /*if (REWRITE != null) {
-            HistoryManager.rewind(100);
+            HistoryManager.rewrite(100);
             REWRITE = null;
         }*/
-        PhysicsManager.getWorld().stepSimulation(delta / 1000f, 144, 1f / (float)PhysicsManager.tickRate);
+
+        //PhysicsManager.resetWorld();
+        stepSimulation(delta / 1000f);
+    }
+
+    public static void stepSimulation(float timeStep) {
+        //instance.world.stepSimulation(timeStep, 144, 1f / (float)PhysicsManager.tickRate);
+
+        int maxSubSteps = 144;
+        float fixedTimeStep = 1f / (float)PhysicsManager.tickRate;
+
+        int numSimulationSubSteps = 0;
+        instance.world.setLocalTime(instance.world.getLocalTime() + timeStep);
+        if (instance.world.getLocalTime() >= fixedTimeStep) {
+            numSimulationSubSteps = (int)(instance.world.getLocalTime() / fixedTimeStep);
+            instance.world.setLocalTime(instance.world.getLocalTime() - (float)numSimulationSubSteps * fixedTimeStep);
+        }
+
+        if (numSimulationSubSteps != 0) {
+            for(int i = 0; i < numSimulationSubSteps; ++i) {
+                PhysicsManager.resetWorld();
+                instance.world.applyGravity();
+                instance.world.internalSingleStepSimulation(fixedTimeStep);
+                instance.world.synchronizeMotionStates();
+                instance.world.clearForces();
+            }
+        }
+
+        instance.world.synchronizeMotionStates();
+        instance.world.clearForces();
     }
 
     @Override
     public boolean blockUpdates() {
         return false;
     }
+
 }

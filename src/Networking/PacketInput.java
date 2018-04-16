@@ -3,6 +3,7 @@ package Networking;
 import a2.Contollers.CharacterController;
 import a2.GameEntities.Player;
 import myGameEngine.NetworkHelpers.ClientInfo;
+import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.HistoryManager;
 import myGameEngine.Singletons.TimeManager;
 
@@ -10,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 public class PacketInput extends Packet {
-    private static int listTickCount = (144 / UDPServer.updateRate + 1) * 1; // allow for 6 dropped updates
+    private static int listTickCount = (144 / UDPServer.updateRate + 1) * 6; // allow for 4 dropped updates
 
     // write variables
     private Player player;
@@ -22,8 +23,8 @@ public class PacketInput extends Packet {
     private class PacketInputInfo {
         public short tick;
         public byte controls;
-        public short aimX;
-        public short aimY;
+        public float pitch;
+        public float yaw;
     }
 
     public PacketInput() { }
@@ -52,8 +53,12 @@ public class PacketInput extends Packet {
             if (controller == null) { System.out.println("COULDNT FIND CONTROLLER"); break; }
 
             buffer.put(controller.getControls());
-            buffer.putShort((short)0); // TODO: controller.getAimX()
-            buffer.putShort((short)0); // TODO: controller.getAimY()
+
+            float pitch = (float)player.getCameraNode().getLocalRotation().getPitch();
+            buffer.putShort(NetworkFloat.encode(pitch * 100f));
+
+            float yaw = (float)player.getNode().getLocalRotation().getYaw();
+            buffer.putShort(NetworkFloat.encode(yaw * 100f));
 
             //System.out.println("OVERWRITE: " + (short)(onTick - i) + ", " + controller.getControls());
         }
@@ -70,8 +75,8 @@ public class PacketInput extends Packet {
             PacketInputInfo info = new PacketInputInfo();
             info.tick = cTick;
             info.controls = buffer.get();
-            info.aimX = buffer.getShort();
-            info.aimY = buffer.getShort();
+            info.pitch = NetworkFloat.decode(buffer.getShort()) / 100f;
+            info.yaw = NetworkFloat.decode(buffer.getShort()) / 100f;
             infos.add(info);
             cTick--;
         }
@@ -92,7 +97,7 @@ public class PacketInput extends Packet {
                 CharacterController.HistoryCharacterController controller = state.controllers.getHistory(player);
                 if (controller == null) { System.out.println("SKIPPING: CONTROLLER"); continue; }
 
-                controller.overwriteInput(firstInfo.controls, firstInfo.aimX, firstInfo.aimY);
+                controller.overwriteInput(firstInfo.controls, firstInfo.pitch, firstInfo.yaw);
             }
         }
 
@@ -103,7 +108,7 @@ public class PacketInput extends Packet {
             CharacterController.HistoryCharacterController controller = state.controllers.getHistory(player);
 
             if (controller == null) { System.out.println("SKIPPING: CONTROLLER"); continue; }
-            controller.overwriteInput(info.controls, info.aimX, info.aimY);
+            controller.overwriteInput(info.controls, info.pitch, info.yaw);
 
             //System.out.println("OVERWRITE: " + info.tick + ", " + info.controls);
 
@@ -111,11 +116,11 @@ public class PacketInput extends Packet {
                 rewindTo = info.tick;
             }
         }
-        /*player.getController().setAimX(infos.get(0).aimX); TODO: AIMX AIMY
-        player.getController().setAimY(infos.get(0).aimY);*/
+
         System.out.println("Received input, rewinding " + (currentTick - rewindTo));
-        HistoryManager.rewind(rewindTo);
-        //player.getController().setControls(infos.get(0).controls);
+        HistoryManager.rewrite(rewindTo);
+
+        UDPServer.sendTo(cli, new PacketWorldState());
     }
 
     @Override

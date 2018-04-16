@@ -116,7 +116,7 @@ public class UDPServer extends GameConnectionServer<Byte> {
         long currentTime = java.lang.System.currentTimeMillis();
         if (currentTime >= instance.nextWorldState) {
             instance.nextWorldState = java.lang.System.currentTimeMillis() + 1000 / updateRate;
-            sendToAll(new PacketWorldState());
+            //sendToAll(new PacketWorldState());
         }
         Packet.resendUnackedPackets();
     }

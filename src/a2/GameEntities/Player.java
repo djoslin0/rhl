@@ -5,6 +5,7 @@ import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
 import a2.Contollers.CharacterController;
 import myGameEngine.Controllers.PlayerMotionStateController;
+import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.EntityManager;
@@ -15,6 +16,7 @@ import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
 
+import java.awt.*;
 import java.io.IOException;
 
 public class Player extends GameEntity {
@@ -60,6 +62,17 @@ public class Player extends GameEntity {
             Camera camera = EngineManager.getSceneManager().getCamera("MainCamera");
             cameraNode.attachObject(camera);
             camera.setMode('n');
+        }
+
+        if (playerId != 0) {
+            SceneNode flareNode = cameraNode.createChildSceneNode(name + "flareNode");
+            flareNode.moveForward(3);
+            try {
+                Billboard flare = new Billboard(flareNode, 0.2f, 0.2f, "flare2.png", Color.RED);
+                addResponsibility(flare);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         initPhysics();

@@ -16,7 +16,9 @@ public class UpdateManager {
 
     public static void pause(boolean paused) { instance.paused = paused; }
     public static void add(Updatable updatable) {
-        instance.updateList.add(updatable);
+        if (!instance.updateList.contains(updatable)) {
+            instance.updateList.add(updatable);
+        }
     }
     public static void remove(Updatable updatable) {
         instance.updateList.remove(updatable);

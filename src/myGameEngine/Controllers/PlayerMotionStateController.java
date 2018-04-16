@@ -23,5 +23,6 @@ public class PlayerMotionStateController extends DefaultMotionState {
     public void setWorldTransform(Transform transform) {
         super.setWorldTransform(transform);
         node.setLocalPosition(transform.origin.x, transform.origin.y, transform.origin.z);
+        node.update(true, true);
     }
 }

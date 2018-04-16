@@ -4,11 +4,13 @@ import Networking.PacketJoin;
 import Networking.UDPClient;
 import Networking.UDPServer;
 import a2.GameEntities.*;
+import a2.GameEntities.Box;
 import com.jogamp.opengl.util.gl2.GLUT;
 import myGameEngine.GameEntities.ShaderSkyBox;
 import myGameEngine.GameEntities.Terrain;
 import myGameEngine.GameEntities.WorldAxes;
 import myGameEngine.Helpers.HudText;
+import myGameEngine.PhysicsWorld;
 import myGameEngine.Singletons.*;
 import ray.input.GenericInputManager;
 import ray.networking.IGameConnection;
@@ -24,6 +26,7 @@ import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -165,11 +168,21 @@ public class MyGame extends VariableFrameRateGame {
         } else if (UDPServer.hasServer()) {
             UDPServer.update();
         }
+
         TimeManager.update(delta);
         im.update(delta);
         UpdateManager.update(delta);
         fpsText.text = "FPS: " + TimeManager.getFps();
 
+        /*short initialTick = TimeManager.getTick();
+        System.out.println("P: " + TimeManager.getTick());
+        HistoryManager.rewind((short)(initialTick - 10));
+        System.out.println("R: " + TimeManager.getTick());
+        HistoryManager.fastForward(initialTick, true);
+        System.out.println("F: " + TimeManager.getTick());*/
+
+        //HistoryManager.rewrite((short)(TimeManager.getTick() - 20));
+        //PhysicsManager.resetWorld();
 
     }
 }

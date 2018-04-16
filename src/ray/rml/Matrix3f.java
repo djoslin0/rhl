@@ -723,7 +723,17 @@ public final class Matrix3f implements Matrix3 {
     }
 
     /* MyChange: added function */
+    public static Matrix3 createFrom2(double pitch, double yaw, double roll) {
+        // math grabbed from http://nghiaho.com/?page_id=846
+        Matrix3 rx = Matrix3f.createRotationFrom(Radianf.createFrom((float)pitch), Vector3f.createUnitVectorX());
+        Matrix3 ry = Matrix3f.createRotationFrom(Radianf.createFrom((float)yaw), Vector3f.createUnitVectorY());
+        Matrix3 rz = Matrix3f.createRotationFrom(Radianf.createFrom((float)roll), Vector3f.createUnitVectorZ());
+        return rx.mult(ry).mult(rz);
+    }
+
+    /* MyChange: added function */
     public double getPitch() {
+        // math grabbed from http://nghiaho.com/?page_id=846
         float r21 = matrix[1][2];
         float r22 = matrix[2][2];
         return Math.atan2(r21, r22);
@@ -731,6 +741,7 @@ public final class Matrix3f implements Matrix3 {
 
     /* MyChange: added function */
     public double getYaw() {
+        // math grabbed from http://nghiaho.com/?page_id=846
         float r20 = matrix[0][2];
         float r21 = matrix[1][2];
         float r22 = matrix[2][2];
@@ -739,6 +750,7 @@ public final class Matrix3f implements Matrix3 {
 
     /* MyChange: added function */
     public double getRoll() {
+        // math grabbed from http://nghiaho.com/?page_id=846
         float r00 = matrix[0][0];
         float r10 = matrix[0][1];
         return Math.atan2(r10, r00);
