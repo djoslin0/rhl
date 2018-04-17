@@ -18,7 +18,7 @@ import java.net.InetAddress;
 
 public class UDPServer extends GameConnectionServer<Byte> {
     private static UDPServer instance;
-    public static int updateRate = 20;
+    public static int updateRate = 30;
 
     private long nextWorldState;
     private byte nextId = 1;
@@ -116,7 +116,7 @@ public class UDPServer extends GameConnectionServer<Byte> {
         long currentTime = java.lang.System.currentTimeMillis();
         if (currentTime >= instance.nextWorldState) {
             instance.nextWorldState = java.lang.System.currentTimeMillis() + 1000 / updateRate;
-            //sendToAll(new PacketWorldState());
+            sendToAll(new PacketWorldState());
         }
         Packet.resendUnackedPackets();
     }

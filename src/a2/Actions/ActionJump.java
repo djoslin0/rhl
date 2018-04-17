@@ -2,7 +2,6 @@ package a2.Actions;
 
 import a2.GameEntities.Player;
 import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.HistoryManager;
 import myGameEngine.Singletons.PhysicsManager;
 import net.java.games.input.Event;
 import ray.input.action.Action;
@@ -19,6 +18,5 @@ public class ActionJump implements Action {
         if (!EngineManager.isGameActive()) { return; }
         if (player.isDestroyed()) { return; }
         player.getController().jump();
-        PhysicsManager.setREWRITE(player);
     }
 }

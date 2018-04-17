@@ -10,10 +10,8 @@ import myGameEngine.GameEntities.ShaderSkyBox;
 import myGameEngine.GameEntities.Terrain;
 import myGameEngine.GameEntities.WorldAxes;
 import myGameEngine.Helpers.HudText;
-import myGameEngine.PhysicsWorld;
 import myGameEngine.Singletons.*;
 import ray.input.GenericInputManager;
-import ray.networking.IGameConnection;
 import ray.rage.Engine;
 import ray.rage.game.VariableFrameRateGame;
 import ray.rage.rendersystem.RenderSystem;
@@ -26,11 +24,9 @@ import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.sql.Time;
 
 public class MyGame extends VariableFrameRateGame {
 

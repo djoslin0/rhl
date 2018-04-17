@@ -88,7 +88,7 @@ public class CharacterController extends InternalTickCallback {
         wrapYaw = (controls & (1 << 6)) != 0;
     }
 
-    private boolean wrapYawFromControl(byte controls) {
+    public static boolean wrapYawFromControl(byte controls) {
         return (controls & (1 << 6)) != 0;
     }
 
@@ -381,62 +381,5 @@ public class CharacterController extends InternalTickCallback {
             backoff /= overbounce;
         }
         return in.sub(normal.mult(backoff));
-    }
-
-    public HistoryCharacterController remember() {
-        return new HistoryCharacterController(player);
-    }
-
-    public class HistoryCharacterController {
-        private Player player;
-        private CharacterController cc;
-        private boolean wasOnGround;
-        private byte controls;
-        private int jumpTicks;
-        private Vector3 lastMovement;
-        private int knockbackTimeout;
-        private int ignoreKnockTimeout;
-        private Matrix3 nodeRotation;
-        private Matrix3 cameraNodeRotation;
-
-        private HistoryCharacterController(Player player) {
-            this.player = player;
-            this.cc = player.getController();
-            wasOnGround = cc.wasOnGround;
-            controls = cc.getControls();
-            jumpTicks = cc.jumpTicks;
-            lastMovement = cc.lastMovement.add(0, 0, 0);
-            knockbackTimeout = cc.knockbackTimeout;
-            ignoreKnockTimeout = cc.ignoreKnockTimeout;
-            nodeRotation = cc.node.getLocalRotation();
-            cameraNodeRotation = cc.cameraNode.getLocalRotation();
-        }
-
-        public void apply() {
-            cc.wasOnGround = wasOnGround;
-            cc.jumpTicks = jumpTicks;
-            cc.lastMovement = lastMovement;
-            cc.knockbackTimeout = knockbackTimeout;
-            cc.ignoreKnockTimeout = ignoreKnockTimeout;
-            applyInput();
-        }
-
-        public void applyInput() {
-            cc.setControls(controls);
-            cc.cameraNode.setLocalRotation(cameraNodeRotation);
-            cc.node.setLocalRotation(nodeRotation);
-        }
-
-        public void overwriteInput(byte controls, float pitch, float yaw) {
-            if (player.getId() == 0) { return; }
-            this.controls = controls;
-            double wrapYawValue = cc.wrapYawFromControl(controls) ? Math.PI : 0;
-            cameraNodeRotation = Matrix3f.createFrom(pitch, 0, 0);
-            nodeRotation = Matrix3f.createFrom(wrapYawValue, yaw, wrapYawValue);
-        }
-
-        public byte getControls() { return this.controls; }
-
-        public Player getPlayer() { return player; }
     }
 }

@@ -6,7 +6,6 @@ import com.bulletphysics.linearmath.Transform;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.EntityManager;
-import myGameEngine.Singletons.HistoryManager;
 import myGameEngine.Singletons.TimeManager;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
@@ -96,20 +95,7 @@ public class PacketWorldState extends Packet {
 
     @Override
     public void receivedOnClient() {
-        // TODO: rewrite and stuff
-        if (tick - TimeManager.getTick() > 10 || tick - TimeManager.getTick() < 0) {
-            //TimeManager.setTick(tick);
-        }
-
-        if (tick + 1 - TimeManager.getTick() > 0) {
-            HistoryManager.fastForward((short)(tick + 1), false);
-        }
-
         System.out.println("------");
-
-        short savedTick = TimeManager.getTick();
-        HistoryManager.rewind(tick);
-        System.out.println("Rewound to: " + TimeManager.getTick());
 
         Puck puck = (Puck) EntityManager.get("puck").get(0);
 
@@ -125,9 +111,5 @@ public class PacketWorldState extends Packet {
         // velocities
         puck.getBody().setLinearVelocity(puckLinearVelocity);
         puck.getBody().setAngularVelocity(puckAngularVelocity);
-
-        HistoryManager.fastForward(savedTick, true);
-        System.out.println("Fastforward to: " + TimeManager.getTick());
-        System.out.println("world state: " + tick);
     }
 }
