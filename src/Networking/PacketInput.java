@@ -76,6 +76,10 @@ public class PacketInput extends Packet {
     public void receivedOnServer(ClientInfo cli) {
         Player player = UDPServer.getPlayer(cli);
 
+        // ignore past packets
+        if (TimeManager.difference(tick, player.lastReceivedTick) <= 0) { return; }
+        player.lastReceivedTick = tick;
+
         CharacterController controller = player.getController();
         controller.setControls(controls);
 

@@ -13,6 +13,7 @@ public class UDPClient extends GameConnectionClient {
     private static UDPClient instance;
     public static int updateRate = 30;
     private long nextInputTime;
+    private short lastReceivedTick;
 
     private ConcurrentHashMap<Byte, Player> players = new ConcurrentHashMap<>();
     private byte playerId;
@@ -40,6 +41,9 @@ public class UDPClient extends GameConnectionClient {
             e.printStackTrace();
         }
     }
+
+    public static void setLastReceivedTick(short tick) { instance.lastReceivedTick = tick; }
+    public static short getLastReceivedTick() { return instance.lastReceivedTick; }
 
     public static void setPlayerId(byte playerId) { instance.playerId = playerId; }
     public static byte getPlayerId() { return instance.playerId; }

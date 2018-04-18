@@ -64,7 +64,8 @@ public class PacketJoinSuccess extends Packet {
     @Override
     public void receivedOnClient() {
         if (UDPClient.getPlayer(id) != null) { return; }
-        TimeManager.setTick((short)(tick - 5));
+        UDPClient.setLastReceivedTick(tick);
+        TimeManager.setTick(tick);
         UDPClient.setPlayerId(id);
         UDPClient.addPlayer(new Player(id, true, side, position));
         System.out.println("joined as player " + id);

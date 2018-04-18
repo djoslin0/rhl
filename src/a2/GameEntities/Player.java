@@ -13,6 +13,7 @@ import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.EntityManager;
+import myGameEngine.Singletons.TimeManager;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Camera;
 import ray.rage.scene.Entity;
@@ -33,6 +34,7 @@ public class Player extends GameEntity implements Attackable {
     private byte playerId;
     private byte playerSide;
     private boolean local;
+    public short lastReceivedTick;
 
     public Player(byte playerId, boolean local, byte side, Vector3 location) {
         super(true);
@@ -84,6 +86,8 @@ public class Player extends GameEntity implements Attackable {
                 e.printStackTrace();
             }
         }
+
+        lastReceivedTick = TimeManager.getTick();
 
         initPhysics();
     }

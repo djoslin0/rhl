@@ -142,6 +142,12 @@ public class PacketWorldState extends Packet {
     public void receivedOnClient() {
         if (UDPClient.getPlayer() == null) { return; }
 
+        // ignore past packets
+        if (TimeManager.difference(tick, UDPClient.getLastReceivedTick()) <= 0) { return; }
+        UDPClient.setLastReceivedTick(tick);
+
+        TimeManager.setTick(tick);
+
         Puck puck = EntityManager.getPuck();
 
         // set position
