@@ -63,11 +63,10 @@ public class PacketJoinSuccess extends Packet {
 
     @Override
     public void receivedOnClient() {
+        if (UDPClient.getPlayer(id) != null) { return; }
         TimeManager.setTick((short)(tick - 5));
         UDPClient.setPlayerId(id);
-        if (UDPClient.getPlayer(id) == null) {
-            UDPClient.addPlayer(new Player(id, true, side, position));
-        }
-        System.out.println("joined.");
+        UDPClient.addPlayer(new Player(id, true, side, position));
+        System.out.println("joined as player " + id);
     }
 }

@@ -81,12 +81,10 @@ public abstract class Packet {
         // info
         for (byte b : info) { buffer.put(b); }
 
-        //System.out.println("writing packet: " + debugString(buffer));
         return buffer.array();
     }
 
     public static Packet read(ClientInfo cli, ByteBuffer buffer) {
-        //System.out.println("reading packet: " + debugString(buffer));
         // id
         byte id = buffer.get();
 
@@ -104,7 +102,6 @@ public abstract class Packet {
         if (length != 0) { buffer.get(packetInfo, 0, length); }
         packet.readInfo(ByteBuffer.wrap(packetInfo));
 
-        //System.out.println("  ID: " + (char)id + " LENGTH: " + length + " POS: " + buffer.position());
         return packet;
     }
 

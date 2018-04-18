@@ -2,24 +2,22 @@ package Networking;
 
 import a2.Contollers.CharacterController;
 import a2.GameEntities.Player;
-import com.bulletphysics.linearmath.Transform;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.TimeManager;
-import ray.rml.Matrix3;
-import ray.rml.Matrix3f;
+import ray.rml.Vector3;
+import ray.rml.Vector3f;
 
 import java.nio.ByteBuffer;
 
 public class PacketInput extends Packet {
     // read variables
     private short tick;
-    public byte controls;
-    public float pitch;
-    public float yaw;
-    private float x;
-    private float y;
-    private float z;
+    private byte controls;
+    private float pitch;
+    private float yaw;
+    public Vector3 position;
+    private Vector3 velocity;
 
     public PacketInput() { }
 
@@ -31,7 +29,7 @@ public class PacketInput extends Packet {
 
     @Override
     public ByteBuffer writeInfo() {
-        ByteBuffer buffer = ByteBuffer.allocate(13);
+        ByteBuffer buffer = ByteBuffer.allocate(19);
 
         short onTick = TimeManager.getTick();
         buffer.putShort(onTick);
@@ -39,17 +37,18 @@ public class PacketInput extends Packet {
         Player player = Networking.UDPClient.getPlayer();
         buffer.put(player.getController().getControls());
 
-        float pitch = (float)player.getCameraNode().getLocalRotation().getPitch();
-        buffer.putShort(NetworkFloat.encode(pitch * 100f));
+        buffer.putShort(NetworkFloat.encode(player.getPitch() * 100f));
+        buffer.putShort(NetworkFloat.encode(player.getYaw() * 100f));
 
-        float yaw = (float)player.getNode().getLocalRotation().getYaw();
-        buffer.putShort(NetworkFloat.encode(yaw * 100f));
+        Vector3 position = player.getPosition();
+        buffer.putShort(NetworkFloat.encode(position.x()));
+        buffer.putShort(NetworkFloat.encode(position.y()));
+        buffer.putShort(NetworkFloat.encode(position.z()));
 
-        Transform t = new Transform();
-        player.getBody().getWorldTransform(t);
-        buffer.putShort(NetworkFloat.encode(t.origin.x));
-        buffer.putShort(NetworkFloat.encode(t.origin.y));
-        buffer.putShort(NetworkFloat.encode(t.origin.z));
+        Vector3 velocity = player.getVelocity();
+        buffer.putShort(NetworkFloat.encode(velocity.x()));
+        buffer.putShort(NetworkFloat.encode(velocity.y()));
+        buffer.putShort(NetworkFloat.encode(velocity.z()));
 
         return buffer;
     }
@@ -60,31 +59,30 @@ public class PacketInput extends Packet {
         controls = buffer.get();
         pitch = NetworkFloat.decode(buffer.getShort()) / 100f;
         yaw = NetworkFloat.decode(buffer.getShort()) / 100f;
-        x = NetworkFloat.decode(buffer.getShort());
-        y = NetworkFloat.decode(buffer.getShort());
-        z = NetworkFloat.decode(buffer.getShort());
+
+        position = Vector3f.createFrom(
+                NetworkFloat.decode(buffer.getShort()),
+                NetworkFloat.decode(buffer.getShort()),
+                NetworkFloat.decode(buffer.getShort()));
+
+        velocity = Vector3f.createFrom(
+                NetworkFloat.decode(buffer.getShort()),
+                NetworkFloat.decode(buffer.getShort()),
+                NetworkFloat.decode(buffer.getShort()));
+
     }
 
     @Override
     public void receivedOnServer(ClientInfo cli) {
         Player player = UDPServer.getPlayer(cli);
+
         CharacterController controller = player.getController();
         controller.setControls(controls);
-        double wrapYawValue = CharacterController.wrapYawFromControl(controls) ? Math.PI : 0;
 
-        Matrix3 cameraNodeRotation = Matrix3f.createFrom(pitch, 0, 0);
-        player.getCameraNode().setLocalRotation(cameraNodeRotation);
-
-        Matrix3 nodeRotation = Matrix3f.createFrom(wrapYawValue, yaw, wrapYawValue);
-        player.getNode().setLocalRotation(nodeRotation);
-
-        Transform t = new Transform();
-        player.getBody().getWorldTransform(t);
-        t.origin.x = x;
-        t.origin.y = y;
-        t.origin.z = z;
-        player.getBody().proceedToTransform(t);
-        player.getBody().getMotionState().setWorldTransform(t);
+        player.setPitch(pitch);
+        player.setYaw(controls, yaw);
+        player.setPosition(position);
+        player.setVelocity(velocity);
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
 import a2.Contollers.CharacterController;
+import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.PlayerMotionStateController;
 import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
@@ -14,7 +15,10 @@ import ray.rage.scene.Camera;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
+import ray.rml.Matrix3;
+import ray.rml.Matrix3f;
 import ray.rml.Vector3;
+import ray.rml.Vector3f;
 
 import java.awt.*;
 import java.io.IOException;
@@ -29,6 +33,7 @@ public class Player extends GameEntity {
 
     public Player(byte playerId, boolean local, byte side, Vector3 location) {
         super(true);
+        System.out.println("CREATE PLAYER " + playerId);
         this.playerId = playerId;
         this.local = local;
         playerSide = side;
@@ -112,5 +117,47 @@ public class Player extends GameEntity {
     @Override
     public void update(float delta) {
         super.update(delta);
+    }
+
+    public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
+    public float getYaw() { return (float)node.getLocalRotation().getYaw(); }
+
+    public void setPitch(float pitch) {
+        Matrix3 cameraNodeRotation = Matrix3f.createFrom(pitch, 0, 0);
+        cameraNode.setLocalRotation(cameraNodeRotation);
+
+    }
+
+    public void setYaw(byte controls, float yaw) {
+        double wrapYawValue = CharacterController.wrapYawFromControl(controls) ? Math.PI : 0;
+        Matrix3 nodeRotation = Matrix3f.createFrom(wrapYawValue, yaw, wrapYawValue);
+        node.setLocalRotation(nodeRotation);
+    }
+
+    public void setPosition(Vector3 position) {
+        Transform t = new Transform();
+        body.getWorldTransform(t);
+        t.origin.x = position.x();
+        t.origin.y = position.y();
+        t.origin.z = position.z();
+        body.proceedToTransform(t);
+        body.getMotionState().setWorldTransform(t);
+    }
+
+    public Vector3 getPosition() {
+        Transform t = new Transform();
+        body.getWorldTransform(t);
+        return Vector3f.createFrom(t.origin);
+    }
+
+    public Vector3 getVelocity() {
+        javax.vecmath.Vector3f vel = new javax.vecmath.Vector3f();
+        body.getLinearVelocity(vel);
+        return Vector3f.createFrom(vel);
+    }
+
+    public void setVelocity(Vector3 velocity) {
+        javax.vecmath.Vector3f vel = velocity.toJavaX();
+        body.setLinearVelocity(vel);
     }
 }

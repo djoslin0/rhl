@@ -53,6 +53,7 @@ public class UDPClient extends GameConnectionClient {
 
     public void processPacket(Object o)
     {
+        if (o == null) { return; }
         ByteBuffer buffer = ByteBuffer.wrap((byte[])o);
         Packet packet = Packet.read(null, buffer);
         packet.receivedOnClient();
