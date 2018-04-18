@@ -67,13 +67,16 @@ public class Puck extends GameEntity implements Attackable {
     public boolean shouldRegisterCollision() { return true; }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        if(entity instanceof  Goal){
+        System.out.println("COLL");
+        if (entity instanceof  Goal) {
             System.out.println("registered");
             Vector3 newpos = node.getWorldPosition();
             body.translate(new javax.vecmath.Vector3f(-newpos.x(),-newpos.y()+25f,-newpos.z()));
             body.clearForces();
             return;
-        }if (!(entity instanceof Player)) { return; }
+        }
+
+        if (!(entity instanceof Player)) { return; }
         Player player = (Player) entity;
         Vector3 entityPosition = entity.getNode().getWorldPosition();
         Vector3 thisPosition = node.getWorldPosition();

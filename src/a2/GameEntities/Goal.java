@@ -25,22 +25,24 @@ public class Goal extends GameEntity {
 
     public Goal(int side) throws IOException {
         super(false);
-        //insantiate nodes
+        // instantiate nodes
         SceneManager sm = EngineManager.getSceneManager();
         node = sm.getRootSceneNode().createChildSceneNode("Goal" + side);
         node.scale(Vector3f.createFrom(2f,4f,2f));
-        //        //load model
+
+        // load model
         obj = sm.createEntity("Goalentity"+side, "goal.obj");
         obj.setPrimitive(Renderable.Primitive.TRIANGLES);
-        //attach object to goals
+
+        // attach object to goals
         node.attachObject(obj);
-        // wich side are you creating the goal on?
+
+        // which side are you creating the goal on?
         if(side ==0){
             node.setLocalPosition(50f,0f,0f);
         }else{
             node.setLocalPosition(-50f,0f,0f);
         }
-
 
         // set initial locations
         initPhysics();
@@ -57,5 +59,6 @@ public class Goal extends GameEntity {
         body.setDamping(0.05f, 0.05f);
 
     }
-    public boolean registerCollisions() { return true; }
+
+    public boolean shouldRegisterCollision() { return true; }
 }
