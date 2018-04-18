@@ -34,7 +34,7 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
     private ArrayList<RigidBody> registeredCollisions = new ArrayList<>();
     private ArrayList<RigidBody> rigidBodies = new ArrayList<>();
 
-    public static short COL_LOCAL_PLAYER = (short)(1 << 1);
+    public static short COL_LOCAL_PLAYER = (short)(1 << 2);
     public static short COLLIDE_ALL = -1;
     public static short COLLIDE_IGNORE_LOCAL_PLAYER = (short)(COLLIDE_ALL ^ COL_LOCAL_PLAYER);
 
