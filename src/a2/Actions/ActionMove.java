@@ -1,6 +1,5 @@
 package a2.Actions;
 
-import a2.GameEntities.Dolphin;
 import a2.GameEntities.Player;
 import myGameEngine.Singletons.EngineManager;
 import net.java.games.input.Event;
@@ -21,6 +20,6 @@ public class ActionMove implements Action {
     public void performAction(float time, Event event) {
         if (!EngineManager.isGameActive()) { return; }
         if (player.isDestroyed()) { return; }
-        player.getController().move(direction, Math.abs(event.getValue()));
+        player.getController().move(direction, Math.abs(event.getValue()) > 0.2f);
     }
 }

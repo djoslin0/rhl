@@ -1,144 +1,131 @@
 package Networking;
 
-import myGameEngine.NetworkHelpers.AlphabetHashTable;
 import myGameEngine.NetworkHelpers.ClientInfo;
+import myGameEngine.Singletons.EntityManager;
+import myGameEngine.Singletons.Settings;
+import ray.networking.IGameConnection;
 import ray.networking.server.GameConnectionServer;
 import ray.networking.server.IClientInfo;
 import a2.GameEntities.Player;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
+
+import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
 import java.net.InetAddress;
 
-public class UDPServer extends GameConnectionServer<Integer>{
-    private Integer id = 1;
-    private int redSide = 0;
-    private int blueSide = 0;
-    private ConcurrentHashMap<Integer,Player> clientEntities;
-    private ConcurrentHashMap<String,Integer> clientMap;
-    private static UDPServer server = null;
-    private AlphabetHashTable switchVals;
+public class UDPServer extends GameConnectionServer<Byte> {
+    private static UDPServer instance;
+    public static int updateRate = 30;
 
-    private UDPServer(int localPort, ProtocolType protocolType) throws IOException {
-        super(localPort, protocolType);
-        clientEntities = new ConcurrentHashMap<>();
-        clientMap = new ConcurrentHashMap<>();
-        switchVals = new AlphabetHashTable();
+    private long nextWorldState;
+    private byte nextId = 1;
+    private byte nextSide = 0;
+    private static ConcurrentHashMap<Byte, Player> players = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Player> clientPlayers = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, ClientInfo> clientInfos = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, ArrayList<Object>> unreadPackets = new ConcurrentHashMap<>();
 
-        System.out.println("server running on port:" + localPort);
+    private UDPServer(int localPort) throws IOException {
+        super(localPort, IGameConnection.ProtocolType.UDP);
+        System.out.println("server running on port: " + localPort);
     }
 
-    public static UDPServer createServer(int localPort,ProtocolType protocolType) throws IOException {
-        if(server == null) {
-            return new UDPServer(localPort,protocolType);
+    public static void createServer(int localPort) throws IOException {
+        instance = new UDPServer(localPort);
+    }
+
+    public static boolean hasServer() { return instance != null; }
+
+    public static Player createPlayer(ClientInfo cli) {
+        if (instance.clientPlayers.contains(cli.info())) {
+            return instance.clientPlayers.get(cli.info());
         } else {
-            return server;
+            Player player = new Player(instance.nextId, false, instance.nextSide, Settings.get().spawnPoint);
+            instance.clientPlayers.put(cli.info(), player);
+            instance.players.put(player.getId(), player);
+            try {
+                IClientInfo ci = instance.getServerSocket().createClientInfo(cli.getIp(), cli.getPort());
+                instance.addClient(ci, instance.nextId);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            instance.nextId++;
+            if (instance.nextId == 0 || instance.nextId == -1) { instance.nextId = 2; }
+            instance.nextSide = (byte) ((instance.nextSide + 1) % 2);
+            return player;
+        }
+    }
+
+    public static Player getPlayer(ClientInfo cli) { return instance.clientPlayers.get(cli.info()); }
+    public static Player getPlayer(byte id) { return instance.players.get(id); }
+    public static Collection<Player> getPlayers() { return clientPlayers.values(); }
+
+    public static void sendTo(ClientInfo cli, Packet packet) {
+        try {
+            Player player = clientPlayers.get(cli.info());
+            if (player == null) {
+                System.out.println("ERROR: could not identify player");
+                return;
+            }
+            instance.sendPacket(packet.write(cli), player.getId());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void sendToAll(Packet packet) {
+        try {
+            for (ClientInfo cli : clientInfos.values()) {
+                Player player = clientPlayers.get(cli.info());
+                if (player == null) { continue; }
+                instance.sendPacket(packet.write(cli), player.getId());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void processPacket(Object o, InetAddress senderIP, int sndPort) {
-        String message = (String) o;
-        String[] msgTokens = message.split(",");
-        IClientInfo ci = null;
-        ClientInfo cli = new ClientInfo(senderIP.toString(), String.valueOf(sndPort));
-        try {
-            ci = getServerSocket().createClientInfo(senderIP,sndPort);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ClientInfo cli = new ClientInfo(senderIP, sndPort);
+        clientInfos.put(cli.info(), cli);
+        addUnreadPacket(cli, o);
+    }
 
-        if(msgTokens.length > 0) {
-            switch (switchVals.get(msgTokens[0])) {
-                //join
-                case 26:
-                    System.out.println(sndPort);
-                    System.out.println("client join with credentials: " + senderIP + " " + sndPort);
-                    try {
-                        int side = ((blueSide > redSide) ? 0 : 1);
-                        int cId;
-                        if (clientMap.contains(ci)) {
-                            cId = clientMap.get(id);
-                        } else {
-                            cId = id;
-                            addClient(ci, cId);
-                            clientMap.put(cli.info(), cId);
-                            createClient(side, ci);
-                            id++;
-                            if(blueSide > redSide) {
-                                redSide++;
-                            } else {
-                                blueSide++;
-                            }
-                        }
-                        String packetInfo;
-                        Player player = clientEntities.get(cId);
-                        packetInfo = "Success";
-                        packetInfo += "," + cId;
-                        packetInfo += "," + String.valueOf(player.getNode().getLocalPosition().x());
-                        packetInfo += "," + String.valueOf(player.getNode().getLocalPosition().y());
-                        packetInfo += "," + String.valueOf(player.getNode().getLocalPosition().z());
-                        packetInfo += "," + side;
-                        sendPacket(packetInfo, cId);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    break;
-                    //sendclientgamestate
-                case 27:
-                    String packetInfo;
-                    packetInfo = "Players";
-                    packetInfo += "," + String.valueOf(clientEntities.values().size());
-                    for(Object c : clientEntities.values()) {
-                        packetInfo += "," + ((Player) c).getId();
-                        packetInfo += "," + ((Player) c).getNode().getLocalPosition().x();
-                        packetInfo += "," + ((Player) c).getNode().getLocalPosition().y();
-                        packetInfo += "," + ((Player) c).getNode().getLocalPosition().z();
-                        packetInfo += "," + ((Player) c).getSide();
-                    }
-                    System.out.println(packetInfo);
-                    try {
-                        cli = new ClientInfo(senderIP.toString(),String.valueOf(sndPort));
-                        sendPacket(packetInfo, clientMap.get(cli.info()));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    break;
-                   //player has moved
-                case 12:
-                    Vector3 oldlocation = clientEntities.get(clientMap.get(cli.info())).getNode().getLocalPosition();
-                    clientEntities.get(clientMap.get(cli.info())).getBody().translate( new javax.vecmath.Vector3f
-                            (Float.valueOf(msgTokens[1])-oldlocation.x(),Float.valueOf(msgTokens[2])- oldlocation.y(),Float.valueOf(msgTokens[3])-oldlocation.z()));
-                    break;
-                    //backward
+    private synchronized void addUnreadPacket(ClientInfo cli, Object o) {
+        ArrayList<Object> packets = unreadPackets.get(cli.info());
+        if (packets == null) {
+            packets = new ArrayList<>();
+            unreadPackets.put(cli.info(), packets);
+        }
+        packets.add(o);
+    }
+
+    private synchronized void processUnreadPackets() {
+        for (ClientInfo cli : clientInfos.values()) {
+            ArrayList<Object> packets = unreadPackets.get(cli.info());
+            for (Object o : packets) {
+                ByteBuffer buffer = ByteBuffer.wrap((byte[]) o);
+                Packet packet = Packet.read(cli, buffer);
+                if (packet.isReliable()) { packet.sendAck(cli); }
+                packet.receivedOnServer(cli);
             }
-
+            packets.clear();
         }
     }
 
-    private void createClient(int side, IClientInfo ci) throws IOException {
-        Player newPlayer =  new Player(id, null, spawn(side), side);
-        newPlayer.getNode().setLocalPosition(0f, 1.5f,0f);
-        clientEntities.put(id, newPlayer);
-    }
-
-    private Vector3 spawn(int side){
-        if(side == 0){
-            return Vector3f.createFrom(0f,0f,-50f);
-        } else {
-            return Vector3f.createFrom(0f, 0f, 50f);
+    public static void update() {
+        instance.processUnreadPackets();
+        long currentTime = java.lang.System.currentTimeMillis();
+        if (currentTime >= instance.nextWorldState) {
+            instance.nextWorldState = java.lang.System.currentTimeMillis() + 1000 / updateRate;
+            sendToAll(new PacketWorldState());
         }
-    }
-
-    public void updateClients() throws IOException {
-        String updatePacket;
-        updatePacket = String.valueOf(id);
-        for(Object o : clientEntities.entrySet()) {
-            updatePacket += "," + String.valueOf(((Player)o).getNode().getLocalPosition().x());
-            updatePacket += "," + String.valueOf(((Player)o).getNode().getLocalPosition().y());
-            updatePacket += "," + String.valueOf(((Player)o).getNode().getLocalPosition().z());
-        }
-        sendPacketToAll(updatePacket);
+        Packet.resendUnackedPackets();
     }
 }

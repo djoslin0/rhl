@@ -10,7 +10,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/javagaming/rage165/rage165/ray.jar!/" />
+          <root url="jar://$MODULE_DIR$/../javagaming/jbullet/jbullet.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -19,7 +19,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/javagaming/vecmath/vecmath.jar!/" />
+          <root url="jar://$MODULE_DIR$/../javagaming/jinput/jinput.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -28,50 +28,50 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/javagaming/jinput/jinput.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://C:/javagaming/jbullet/jbullet.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://C:/javagaming/jogl/jogamp-all-platforms/jar/gluegen-rt.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://C:/javagaming/jogl/jogamp-all-platforms/jar/jogl-all.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="file://C:/javagaming/jinput/lib" />
+          <root url="file://$MODULE_DIR$/../javagaming/jinput/lib" />
         </CLASSES>
         <JAVADOC />
         <NATIVE>
-          <root url="file://C:/javagaming/jinput/lib" />
+          <root url="file://$MODULE_DIR$/../javagaming/jinput/lib" />
         </NATIVE>
         <SOURCES />
-        <jarDirectory url="file://C:/javagaming/jinput/lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/../javagaming/jinput/lib" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../javagaming/rage165/ray.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../javagaming/vecmath/vecmath.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../javagaming/jogl/jogamp-all-platforms/jar/gluegen-rt.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../javagaming/jogl/jogamp-all-platforms/jar/jogl-all.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
       </library>
     </orderEntry>
   </component>

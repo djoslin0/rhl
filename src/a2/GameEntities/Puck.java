@@ -1,30 +1,25 @@
 package a2.GameEntities;
 
+import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
 import myGameEngine.Controllers.MotionStateController;
-import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
-import ray.rage.scene.Node;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
-import ray.rml.Matrix3f;
 import ray.rml.Radianf;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
-import java.awt.*;
 import java.io.IOException;
 
-public class Puck extends GameEntity {
+public class Puck extends GameEntity implements Attackable {
     private Entity obj;
     private RigidBody body;
     private SceneNode angularTestNode;
@@ -65,9 +60,11 @@ public class Puck extends GameEntity {
         body.setRestitution(0.6f);
         body.setFriction(0.2f);
         body.setDamping(0.05f, 0f);
+        body.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
     }
 
-    public boolean registerCollisions() { return true; }
+    @Override
+    public boolean shouldRegisterCollision() { return true; }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         if(entity instanceof  Goal){
@@ -104,11 +101,13 @@ public class Puck extends GameEntity {
         // calculate linear push vector
         Vector3 linearPush = Vector3f.createZeroVector();
         Vector3 diff = entityPosition.sub(thisPosition);
-        float dot = linearVelocity.normalize().dot(diff.normalize());
-        if (dot > 0.5f) { dot = 0.5f; }
-        dot = dot * 2f;
-        if (dot > 0) {
-            linearPush = linearVelocity.mult(linearPushScale * dot);
+        if (linearVelocity.lengthSquared() > 0) {
+            float dot = linearVelocity.normalize().dot(diff.normalize());
+            if (dot > 0.5f) { dot = 0.5f; }
+            dot = dot * 2f;
+            if (dot > 0) {
+                linearPush = linearVelocity.mult(linearPushScale * dot);
+            }
         }
 
         // push player
@@ -116,12 +115,23 @@ public class Puck extends GameEntity {
         player.getController().knockback(push);
     }
 
-    public String listedName() { return "puck"; }
-    public SceneNode getNode() { return node; }
+    public void attacked(Vector3 aim, Vector3 relative) {
+        javax.vecmath.Vector3f force = aim.mult(20000f).toJavaX();
+        body.applyImpulse(force, relative.toJavaX());
+        body.activate();
+    }
 
     @Override
-    public void update(float delta) {
+    public byte getId() {
+        return -1;
     }
+
+    public String listedName() { return "puck"; }
+    public SceneNode getNode() { return node; }
+    public RigidBody getBody() { return body; }
+
+    @Override
+    public void update(float delta) { }
 
 }
 

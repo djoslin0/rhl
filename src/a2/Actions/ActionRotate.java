@@ -1,6 +1,5 @@
 package a2.Actions;
 
-import a2.GameEntities.Dolphin;
 import a2.GameEntities.Player;
 import myGameEngine.Singletons.EngineManager;
 import net.java.games.input.Event;

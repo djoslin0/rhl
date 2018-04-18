@@ -1,12 +1,13 @@
-package myGameEngine.Controllers;
+package a2.Contollers;
 
+import Networking.PacketAttack;
 import Networking.UDPClient;
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
-import com.bulletphysics.collision.broadphase.Dispatcher;
+import a2.GameEntities.Attackable;
+import a2.GameEntities.Player;
+import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
-import com.bulletphysics.collision.narrowphase.ManifoldPoint;
-import com.bulletphysics.collision.narrowphase.PersistentManifold;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
@@ -15,44 +16,54 @@ import myGameEngine.GameEntities.Terrain;
 import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.PhysicsManager;
-import myGameEngine.Singletons.TimeManager;
 import ray.rage.scene.SceneNode;
-import ray.rml.Radianf;
-import ray.rml.Vector3;
-import ray.rml.Vector3f;
+import ray.rml.*;
 
 public class CharacterController extends InternalTickCallback {
+
+    // auto-set
+    private Player player;
     private SceneNode node;
     private SceneNode cameraNode;
     private RigidBody body;
-    private boolean attacking;
-    private boolean jumping;
-    private int jumpTicks;
-    private float forwardMove;
-    private float rightMove;
-    private Vector3 lastMovement = Vector3f.createZeroVector();
     private javax.vecmath.Vector3f linearVelocity = new javax.vecmath.Vector3f();
+    private javax.vecmath.Vector3f angularVelocity = new javax.vecmath.Vector3f();
     private javax.vecmath.Vector3f gravity = new javax.vecmath.Vector3f();
-
     private Terrain terrain;
     private boolean onGround;
-    private boolean wasOnGround;
     private Vector3 normal;
     private float groundY;
 
+    // track in history
+    private boolean wasOnGround;
+    private boolean moveLeft;
+    private boolean moveRight;
+    private boolean moveForward;
+    private boolean moveBackward;
+    private boolean crouching;
+    private boolean jumping;
+    private boolean attacking;
+    private boolean wrapYaw;
+    private int jumpTicks;
+    private Vector3 lastMovement = Vector3f.createZeroVector();
     private int knockbackTimeout = 0;
     private int ignoreKnockTimeout = 0;
+    // note: also track cameraNode orientation
 
+    // constants
     private final float groundAcceleration = 70;
+    private final float crouchAcceleration = 40;
     private final float airAcceleration = 20;
     private final float maxSpeed = 14;
+    private final float maxCrouchSpeed = 8;
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
 
-    public CharacterController(SceneNode node, SceneNode cameraNode, RigidBody body) {
-        this.node = node;
-        this.cameraNode = cameraNode;
-        this.body = body;
+    public CharacterController(Player player) {
+        this.player = player;
+        this.node = player.getNode();
+        this.cameraNode = player.getCameraNode();
+        this.body = player.getBody();
         PhysicsManager.addCallback(this);
 
         for (Object o : EntityManager.get("terrain")) {
@@ -61,21 +72,41 @@ public class CharacterController extends InternalTickCallback {
         }
     }
 
-    public void move(ActionMove.Direction direction, float value) {
+    public byte getControls() {
+        byte controls = 0;
+        controls |= (moveLeft ? 1 : 0) << 0;
+        controls |= (moveRight ? 1 : 0) << 1;
+        controls |= (moveForward ? 1 : 0) << 2;
+        controls |= (moveBackward ? 1 : 0) << 3;
+        controls |= (jumping ? 1 : 0) << 4;
+        controls |= (attacking ? 1 : 0) << 5;
+        controls |= (crouching ? 1 : 0) << 6;
+        controls |= (wrapYaw ? 1 : 0) << 7;
+        return controls;
+    }
+
+    public void setControls(byte controls) {
+        moveLeft = (controls & (1 << 0)) != 0;
+        moveRight = (controls & (1 << 1)) != 0;
+        moveForward = (controls & (1 << 2)) != 0;
+        moveBackward = (controls & (1 << 3)) != 0;
+        jumping = (controls & (1 << 4)) != 0;
+        attacking = (controls & (1 << 5)) != 0;
+        setCrouching((controls & (1 << 6)) != 0);
+        wrapYaw = (controls & (1 << 7)) != 0;
+    }
+
+    public static boolean wrapYawFromControl(byte controls) {
+        return (controls & (1 << 7)) != 0;
+    }
+
+    public void move(ActionMove.Direction direction, boolean value) {
         // remember movement directions, to be applied on physics tick
         switch (direction) {
-            case FORWARD:
-                forwardMove = value;
-                break;
-            case BACKWARD:
-                forwardMove = -value;
-                break;
-            case LEFT:
-                rightMove = value;
-                break;
-            case RIGHT:
-                rightMove = -value;
-                break;
+            case FORWARD: moveForward = value; break;
+            case BACKWARD: moveBackward = value; break;
+            case LEFT: moveLeft = value; break;
+            case RIGHT: moveRight = value; break;
         }
     }
 
@@ -108,8 +139,10 @@ public class CharacterController extends InternalTickCallback {
     public void knockback(Vector3 vec) {
         if (ignoreKnockTimeout > 0) { return; }
         ignoreKnockTimeout = 10;
-        knockbackTimeout = (int)(vec.length() / 10f);
+        knockbackTimeout = (vec != null) ? (int)(vec.length() / 10f) : 10;
         if (knockbackTimeout > 100) { knockbackTimeout = 100; }
+
+        if (vec == null) { return; }
         body.applyCentralImpulse(vec.toJavaX());
     }
 
@@ -120,8 +153,8 @@ public class CharacterController extends InternalTickCallback {
 
     private Vector3 getMovementDirection() {
         // convert forward/right requested movement into vector
-        Vector3 forward = node.getWorldForwardAxis().mult(forwardMove);
-        Vector3 right = node.getWorldRightAxis().mult(rightMove);
+        Vector3 forward = node.getWorldForwardAxis().mult((moveForward ? 1 : 0) - (moveBackward ? 1 : 0));
+        Vector3 right = node.getWorldRightAxis().mult((moveLeft ? 1 : 0) - (moveRight ? 1 : 0));
         Vector3 movement = forward.add(right);
         return movement.length() <= 1 ? movement : movement.normalize();
     }
@@ -174,8 +207,17 @@ public class CharacterController extends InternalTickCallback {
 
     @Override
     public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
+        // restrict angular velocity to 0
+        angularVelocity.set(0, 0, 0);
+        body.setAngularVelocity(angularVelocity);
+
         // keep linearVelocity up to date
         body.getLinearVelocity(linearVelocity);
+
+        // track whether or not yaw should wrap around
+        wrapYaw = node.getLocalRotation().getRoll() != 0;
+
+        cameraUpdate();
 
         groundTrace();
 
@@ -196,13 +238,27 @@ public class CharacterController extends InternalTickCallback {
 
         // keep linearVelocity up to date
         body.setLinearVelocity(linearVelocity);
-        body.activate();
 
         wasOnGround = onGround;
     }
 
+    private void cameraUpdate() {
+        float height = cameraNode.getLocalPosition().y();
+        if (crouching && height > 0) {
+            height -= 0.1f;
+            if (height < 0) { height = 0; }
+            cameraNode.setLocalPosition(0, height, 0);
+            cameraNode.update();
+        } else if (!crouching && height < 1.8f) {
+            height += 0.1f;
+            if (height > 1.8f) { height = 1.8f; }
+            cameraNode.setLocalPosition(0, height, 0);
+            cameraNode.update();
+        }
+    }
+
     private Vector3 groundMove() {
-        float acceleration = groundAcceleration;
+        float acceleration = crouching ? crouchAcceleration : groundAcceleration;
         Vector3 movement = getMovementDirection().mult(acceleration);
 
         // apply friction
@@ -229,9 +285,10 @@ public class CharacterController extends InternalTickCallback {
             float currentSpeed = linearVelocity.length();
 
             // cap movement speed so we do not constantly gain more momentum
-            if (currentSpeed > previousSpeed && currentSpeed > maxSpeed) {
+            float speedCap = crouching ? maxCrouchSpeed : maxSpeed;
+            if (currentSpeed > previousSpeed && currentSpeed > speedCap) {
                 linearVelocity.normalize();
-                linearVelocity.scale(Math.max(previousSpeed, maxSpeed));
+                linearVelocity.scale(Math.max(previousSpeed, speedCap));
             }
         }
 
@@ -284,29 +341,56 @@ public class CharacterController extends InternalTickCallback {
         return movement;
     }
 
+    private Attackable getAttackable(CollisionObject object) {
+        if (object == EntityManager.getPuck().getBody()) {
+            return EntityManager.getPuck();
+        }
+
+        // lookup player
+        for (Object o : EntityManager.get("player")) {
+            Player player = (Player)o;
+            if (object == player.getBody()) {
+                return player;
+            }
+        }
+
+        return null;
+    }
+
     private void checkAttack() {
         if (!attacking) { return; }
         attacking = false;
+
+        if (!player.isLocal()) { return; }
 
         Vector3 toPosition = cameraNode.getWorldPosition().add(cameraNode.getWorldForwardAxis().mult(5f));
         javax.vecmath.Vector3f from = cameraNode.getWorldPosition().toJavaX();
         javax.vecmath.Vector3f to = toPosition.toJavaX();
         CollisionWorld.ClosestRayResultCallback closest = new CollisionWorld.ClosestRayResultCallback(from, to);
+        closest.collisionFilterMask = PhysicsManager.COLLIDE_IGNORE_LOCAL_PLAYER;
+
         PhysicsManager.getWorld().rayTest(from, to, closest);
-        System.out.println(closest.hasHit());
-        if (closest.hasHit()) {
-            if (closest.collisionObject instanceof RigidBody) {
-                RigidBody rb = (RigidBody) closest.collisionObject;
-                javax.vecmath.Vector3f force = cameraNode.getWorldForwardAxis().mult(20000f).toJavaX();
 
-                Transform t = new Transform();
-                rb.getWorldTransform(t);
-                javax.vecmath.Vector3f relative = (javax.vecmath.Vector3f)closest.hitPointWorld.clone();
-                relative.sub(t.origin);
-                rb.applyImpulse(force, relative);
+        if (!closest.hasHit()) { return; }
+        if (!(closest.collisionObject instanceof RigidBody)) { return; }
 
-                rb.activate();
-            }
+        // figure out which id/attackable is being attacked
+        Attackable attackable = getAttackable(closest.collisionObject);
+        if (attackable == null) { return; }
+
+        Transform t = new Transform();
+        RigidBody rb = (RigidBody) closest.collisionObject;
+        rb.getWorldTransform(t);
+
+        Vector3 hitPoint = Vector3f.createFrom((javax.vecmath.Vector3f)closest.hitPointWorld.clone());
+        Vector3 origin = Vector3f.createFrom(t.origin);
+
+        Vector3 aim = cameraNode.getWorldForwardAxis();
+        Vector3 relative = hitPoint.sub(origin);
+        attackable.attacked(aim, relative);
+
+        if (UDPClient.hasClient()) {
+            UDPClient.send(new PacketAttack(attackable.getId(), aim, relative));
         }
     }
 
@@ -345,5 +429,11 @@ public class CharacterController extends InternalTickCallback {
             backoff /= overbounce;
         }
         return in.sub(normal.mult(backoff));
+    }
+
+    public void setCrouching(boolean crouching) {
+        if (crouching == this.crouching) { return; }
+        this.crouching = crouching;
+        this.body = player.createBody(crouching);
     }
 }

@@ -1,7 +1,6 @@
 package myGameEngine.GameEntities;
 
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
-import com.bulletphysics.collision.narrowphase.PersistentManifold;
 import com.bulletphysics.collision.shapes.CollisionShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
@@ -22,12 +21,12 @@ public class GameEntity implements Updatable {
     private boolean destroyed = false;
 
     // keep track of entities that need to be cleaned up / destroyed
-    private ArrayList<SceneNode> nodeResponsibility = new ArrayList<>();
-    private ArrayList<SceneObject> objectResponsibility = new ArrayList<>();
-    private ArrayList<Material> materialResponsibility = new ArrayList<>();
-    private ArrayList<GameEntity> gameEntityResponsibility = new ArrayList<>();
-    private ArrayList<Light> lightResponsibility = new ArrayList<>();
-    private ArrayList<RigidBody> bodyResponsibility = new ArrayList<>();
+    protected ArrayList<SceneNode> nodeResponsibility = new ArrayList<>();
+    protected ArrayList<SceneObject> objectResponsibility = new ArrayList<>();
+    protected ArrayList<Material> materialResponsibility = new ArrayList<>();
+    protected ArrayList<GameEntity> gameEntityResponsibility = new ArrayList<>();
+    protected ArrayList<Light> lightResponsibility = new ArrayList<>();
+    protected ArrayList<RigidBody> bodyResponsibility = new ArrayList<>();
 
     public GameEntity(boolean updatable) {
         if (updatable) {
@@ -39,7 +38,8 @@ public class GameEntity implements Updatable {
     }
 
     public String listedName() { return null; }
-    public boolean registerCollisions() { return false; }
+    public boolean shouldRegisterCollision() { return false; }
+
     public SceneNode getNode() { return node; }
 
     // keep track of entities that need to be cleaned up / destroyed
@@ -92,7 +92,7 @@ public class GameEntity implements Updatable {
         // bodies
         for (RigidBody body : bodyResponsibility) {
             PhysicsManager.unregisterCollision(body);
-            PhysicsManager.getWorld().removeRigidBody(body);
+            PhysicsManager.removeRigidBody(body);
             body.destroy();
         }
         bodyResponsibility.clear();
@@ -119,7 +119,7 @@ public class GameEntity implements Updatable {
         }
     }
 
-    protected RigidBody createBody(float mass, MotionState motionState, CollisionShape collisionShape) {
+    protected RigidBody createBody(float mass, MotionState motionState, CollisionShape collisionShape, short group, short mask) {
         javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0f, 0);
         if (mass > 0) {
             collisionShape.calculateLocalInertia(mass, localInertia);
@@ -129,14 +129,22 @@ public class GameEntity implements Updatable {
         RigidBody body = new RigidBody(rbInfo);
         body.setUserPointer(this);
 
-        PhysicsManager.getWorld().addRigidBody(body);
+        if (group == -1 && mask == -1) {
+            PhysicsManager.addRigidBody(body);
+        } else {
+            PhysicsManager.addRigidBody(body, group, mask);
+        }
         addResponsibility(body);
 
-        if (registerCollisions()) {
+        if (shouldRegisterCollision()) {
             PhysicsManager.registerCollision(body);
         }
 
         return body;
+    }
+
+    protected RigidBody createBody(float mass, MotionState motionState, CollisionShape collisionShape) {
+        return createBody(mass, motionState, collisionShape, (short)-1, (short)-1);
     }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) { }

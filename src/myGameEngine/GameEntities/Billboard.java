@@ -129,6 +129,7 @@ public class Billboard extends GameEntity implements Camera.Listener {
                 texState.setTexture(clear);
             }
         }
+        if (node == null || camera.getParentSceneNode() == null) { return; }
         node.lookAt(camera.getParentSceneNode().getWorldPosition(), camera.getParentSceneNode().getWorldUpAxis());
     }
 

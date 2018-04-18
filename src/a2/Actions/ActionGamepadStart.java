@@ -1,11 +1,9 @@
 package a2.Actions;
 
-import a2.GameEntities.Dolphin;
 import a2.GameEntities.Player;
 import a2.InputSetup;
 import myGameEngine.Helpers.HudText;
 import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.UpdateManager;
 import net.java.games.input.Controller;
 import net.java.games.input.Event;
 import ray.input.InputManager;

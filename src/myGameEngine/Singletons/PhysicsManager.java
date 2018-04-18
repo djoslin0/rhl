@@ -1,8 +1,7 @@
 package myGameEngine.Singletons;
 
-import com.bulletphysics.collision.broadphase.BroadphaseInterface;
-import com.bulletphysics.collision.broadphase.DbvtBroadphase;
-import com.bulletphysics.collision.broadphase.Dispatcher;
+import a2.GameEntities.Player;
+import com.bulletphysics.collision.broadphase.*;
 import com.bulletphysics.collision.dispatch.CollisionDispatcher;
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
@@ -13,18 +12,18 @@ import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
-import myGameEngine.Controllers.CharacterController;
 import myGameEngine.GameEntities.GameEntity;
-import ray.rml.Vector3;
+import myGameEngine.Helpers.Updatable;
 
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 
-public class PhysicsManager extends InternalTickCallback {
+public class PhysicsManager extends InternalTickCallback implements Updatable {
     private static final PhysicsManager instance = new PhysicsManager();
+    public static int tickRate = 144;
 
     // this is the most important class
-    private static DynamicsWorld world = null;
+    private static DiscreteDynamicsWorld world = null;
 
     // keep the collision shapes, for deletion/cleanup
     private static BroadphaseInterface broadphase;
@@ -33,6 +32,11 @@ public class PhysicsManager extends InternalTickCallback {
     private static DefaultCollisionConfiguration collisionConfiguration;
     private ArrayList<InternalTickCallback> callbacks = new ArrayList<>();
     private ArrayList<RigidBody> registeredCollisions = new ArrayList<>();
+    private ArrayList<RigidBody> rigidBodies = new ArrayList<>();
+
+    public static short COL_LOCAL_PLAYER = (short)(1 << 1);
+    public static short COLLIDE_ALL = -1;
+    public static short COLLIDE_IGNORE_LOCAL_PLAYER = (short)(COLLIDE_ALL ^ COL_LOCAL_PLAYER);
 
     public static void initPhysics() {
 
@@ -55,18 +59,42 @@ public class PhysicsManager extends InternalTickCallback {
 
         instance.world.setGravity(new Vector3f(0f, -20f, 0f));
         instance.world.setInternalTickCallback(instance, null);
+
+        UpdateManager.add(instance);
     }
 
-    public static DynamicsWorld getWorld() {
+    public static DiscreteDynamicsWorld getWorld() {
         return instance.world;
     }
 
-    @Override
-    public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
-        checkCollisions();
-        for(InternalTickCallback callback : instance.callbacks) {
-            callback.internalTick(dynamicsWorld, timeStep);
+    public static void addRigidBody(RigidBody rigidBody) {
+        if (!instance.rigidBodies.contains(rigidBody)) {
+            instance.rigidBodies.add(rigidBody);
         }
+        instance.world.addRigidBody(rigidBody);
+    }
+
+    public static void addRigidBody(RigidBody rigidBody, short group, short mask) {
+        if (!instance.rigidBodies.contains(rigidBody)) {
+            instance.rigidBodies.add(rigidBody);
+        }
+        instance.world.addRigidBody(rigidBody, group, mask);
+    }
+
+    public static void removeRigidBody(RigidBody rigidBody) {
+        instance.rigidBodies.remove(rigidBody);
+        instance.world.removeRigidBody(rigidBody);
+    }
+
+    public static ArrayList<RigidBody> getRigidBodies() { return instance.rigidBodies; }
+
+    @Override
+    public void internalTick(DynamicsWorld world, float timeStep) {
+        TimeManager.incrementTick();
+        for(InternalTickCallback callback : (ArrayList<InternalTickCallback>)instance.callbacks.clone()) {
+            callback.internalTick(world, timeStep);
+        }
+        checkCollisions();
     }
 
     private void checkCollisions() {
@@ -87,7 +115,6 @@ public class PhysicsManager extends InternalTickCallback {
                 }
             }
         }
-
     }
 
     public static void addCallback(InternalTickCallback callback) {
@@ -100,6 +127,20 @@ public class PhysicsManager extends InternalTickCallback {
 
     public static void unregisterCollision(RigidBody body) {
         instance.registeredCollisions.remove(body);
+    }
+
+    @Override
+    public void update(float delta) {
+        stepSimulation(delta / 1000f);
+    }
+
+    public static void stepSimulation(float timeStep) {
+        instance.world.stepSimulation(timeStep, 144, 1f / (float)PhysicsManager.tickRate);
+    }
+
+    @Override
+    public boolean blockUpdates() {
+        return false;
     }
 
 }

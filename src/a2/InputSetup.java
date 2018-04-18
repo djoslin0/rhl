@@ -1,19 +1,10 @@
 package a2;
 
 import a2.Actions.*;
-import a2.GameEntities.Dolphin;
 import a2.GameEntities.Player;
-import myGameEngine.Actions.ActionAxis;
-import myGameEngine.Actions.ActionAxisToggle;
-import myGameEngine.Actions.ActionOrbitAround;
 import myGameEngine.Helpers.HudText;
 import net.java.games.input.Controller;
 import ray.input.InputManager;
-import ray.rage.rendersystem.RenderWindow;
-
-import static myGameEngine.Controllers.OrbitCameraController.OrbitAxis.AZIMUTH;
-import static myGameEngine.Controllers.OrbitCameraController.OrbitAxis.ELEVATION;
-import static myGameEngine.Controllers.OrbitCameraController.OrbitAxis.RADIUS;
 import static net.java.games.input.Component.Identifier.*;
 import static ray.input.InputManager.INPUT_ACTION_TYPE;
 
@@ -30,6 +21,7 @@ public class InputSetup {
 
     ActionJump jumpAction;
     ActionAttack attackAction;
+    ActionCrouch crouchAction;
 
     private boolean actions;
     private boolean startedController;
@@ -47,6 +39,7 @@ public class InputSetup {
         moveRightAction = new ActionMove(player, ActionMove.Direction.RIGHT);
         jumpAction = new ActionJump(player);
         attackAction = new ActionAttack(player);
+        crouchAction = new ActionCrouch(player);
 
         // rotate actions
         yawAction = new ActionRotate(player, ActionRotate.Direction.X);
@@ -65,6 +58,7 @@ public class InputSetup {
                 im.associateAction(c, Key.A, instance.moveLeftAction, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);
                 im.associateAction(c, Key.D, instance.moveRightAction, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);
                 im.associateAction(c, Key.SPACE, instance.jumpAction, INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+                im.associateAction(c, Key.LCONTROL, instance.crouchAction, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);
             }
         }
     }

@@ -29,5 +29,7 @@ public class MotionStateController extends DefaultMotionState {
         Matrix4f mat4 = new Matrix4f();
         transform.getMatrix(mat4);
         node.setLocalRotation(BulletConvert.jxMatrix4fToMatrix3(mat4));
+
+        node.update(true, true);
     }
 }
