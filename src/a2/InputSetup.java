@@ -1,19 +1,10 @@
 package a2;
 
 import a2.Actions.*;
-import a2.GameEntities.Dolphin;
 import a2.GameEntities.Player;
-import myGameEngine.Actions.ActionAxis;
-import myGameEngine.Actions.ActionAxisToggle;
-import myGameEngine.Actions.ActionOrbitAround;
 import myGameEngine.Helpers.HudText;
 import net.java.games.input.Controller;
 import ray.input.InputManager;
-import ray.rage.rendersystem.RenderWindow;
-
-import static myGameEngine.Controllers.OrbitCameraController.OrbitAxis.AZIMUTH;
-import static myGameEngine.Controllers.OrbitCameraController.OrbitAxis.ELEVATION;
-import static myGameEngine.Controllers.OrbitCameraController.OrbitAxis.RADIUS;
 import static net.java.games.input.Component.Identifier.*;
 import static ray.input.InputManager.INPUT_ACTION_TYPE;
 

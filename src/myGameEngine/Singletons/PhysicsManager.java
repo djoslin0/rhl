@@ -13,7 +13,6 @@ import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
 import myGameEngine.GameEntities.GameEntity;
-import myGameEngine.Helpers.PreInternalTickCallback;
 import myGameEngine.Helpers.Updatable;
 
 import javax.vecmath.Vector3f;

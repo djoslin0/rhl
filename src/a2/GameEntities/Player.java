@@ -2,7 +2,6 @@ package a2.GameEntities;
 
 import Networking.UDPClient;
 import Networking.UDPServer;
-import a2.Attackable;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
@@ -12,7 +11,6 @@ import myGameEngine.Controllers.PlayerMotionStateController;
 import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.TimeManager;
 import ray.rage.rendersystem.Renderable;

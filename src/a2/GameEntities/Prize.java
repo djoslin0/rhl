@@ -2,15 +2,12 @@ package a2.GameEntities;
 
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
-import myGameEngine.Controllers.CollectController;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.TimeManager;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.asset.material.Material;
@@ -27,7 +24,6 @@ import java.util.Random;
 
 public class Prize extends GameEntity {
     private Entity obj;
-    private CollectController collectController;
 
     public Prize(Vector3 location) throws IOException {
         super(true);
@@ -64,10 +60,6 @@ public class Prize extends GameEntity {
         Billboard flare = new Billboard(node, 1.5f * scale, 1.5f * scale, "flare2.png", color3);
         addResponsibility(flare);
 
-        collectController = new CollectController();
-        collectController.addNode(node);
-        sm.addController(collectController);
-
         initPhysics();
     }
 
@@ -86,18 +78,9 @@ public class Prize extends GameEntity {
 
     public String listedName() { return "prize"; }
     public SceneNode getNode() { return node; }
-    public CollectController getCollectController() { return collectController; }
 
     @Override
-    public void update(float delta) {
-        if (getCollectController().isCollected()) {
-            Random rnd = new Random((long) TimeManager.getElapsed());
-            Vector3 pLocation = Vector3f.createFrom((rnd.nextFloat() - 0.5f) * 28f, 0f, (rnd.nextFloat() - 0.5f) * 28f);
-            node.setLocalPosition(pLocation);
-            getCollectController().respawn();
-            particleEffect();
-        }
-    }
+    public void update(float delta) { }
 
     public void particleEffect() {
         // create collection particle effect

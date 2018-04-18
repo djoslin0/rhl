@@ -1,6 +1,5 @@
 package a2.GameEntities;
 
-import a2.Attackable;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.ConvexHullShape;

@@ -17,4 +17,7 @@ public class ClientInfo {
     public String info(){
         return ip + ":" + port;
     }
+
+    @Override
+    public String toString() { return this.info(); }
 }

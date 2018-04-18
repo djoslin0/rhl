@@ -1,4 +1,4 @@
-package a2;
+package a2.GameEntities;
 
 import ray.rml.Vector3;
 

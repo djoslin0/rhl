@@ -4,12 +4,10 @@ import Networking.PacketAttack;
 import Networking.UDPClient;
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
-import a2.Attackable;
+import a2.GameEntities.Attackable;
 import a2.GameEntities.Player;
-import a2.GameEntities.Puck;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
-import com.bulletphysics.collision.shapes.CollisionShape;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
@@ -18,11 +16,8 @@ import myGameEngine.GameEntities.Terrain;
 import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.PhysicsManager;
-import myGameEngine.Singletons.TimeManager;
 import ray.rage.scene.SceneNode;
 import ray.rml.*;
-
-import java.util.ArrayList;
 
 public class CharacterController extends InternalTickCallback {
 
