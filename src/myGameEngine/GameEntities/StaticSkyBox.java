@@ -8,6 +8,7 @@ import ray.rage.rendersystem.Renderable;
 import ray.rage.rendersystem.shader.GpuShaderProgram;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
+import ray.rage.scene.Camera;
 import ray.rage.scene.ManualObject;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
@@ -16,9 +17,14 @@ import ray.rage.util.BufferUtil;
 import java.awt.*;
 import java.io.IOException;
 
-public class StaticSkyBox extends GameEntity {
-    public StaticSkyBox(SceneNode parentNode) throws IOException {
+public class StaticSkyBox extends GameEntity implements Camera.Listener{
+    private SceneNode skybox;
+    public StaticSkyBox(SceneNode parentNode,Camera camera) throws IOException {
         super(false);
+        // attach skybox to node tree
+        SceneManager sm = EngineManager.getSceneManager();
+        skybox = parentNode.createChildSceneNode("skyboxNode");
+        addResponsibility(skybox);
         // create sides
         float size = 500f;
         CreateSide(parentNode,"front",
@@ -104,6 +110,10 @@ public class StaticSkyBox extends GameEntity {
                         0, 1, 0,
                         0, 1, 0
                 });
+        //add this as a listener of camera
+        for(Camera cameraItr: sm.getCameras()){
+            cameraItr.addListener(this);
+        }
     }
 
     private void CreateSide(SceneNode parentNode, String side, float[] vertices, float[] normals) throws IOException {
@@ -140,13 +150,27 @@ public class StaticSkyBox extends GameEntity {
         TextureState texState = (TextureState) sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
         texState.setTexture(tex);
 
+
         // finish manual object setup
         obj.setMaterial(mat);
         obj.setDataSource(Renderable.DataSource.INDEX_BUFFER);
         obj.setRenderState(texState);
 
         // attach
-        parentNode.attachObject(obj);
+        skybox.attachObject(obj);
     }
 
+    @Override
+    public void onCameraPreRenderScene(Camera camera) {
+        if(camera != null){
+            skybox.setLocalPosition(camera.getParentNode().getWorldPosition());
+        }else{
+            System.out.println("null");
+        }
+    }
+
+    @Override
+    public void onCameraPostRenderScene(Camera camera) {
+
+    }
 }
