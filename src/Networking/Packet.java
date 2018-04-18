@@ -15,7 +15,8 @@ public abstract class Packet {
             new PacketJoin(),
             new PacketJoinSuccess(),
             new PacketWorldState(),
-            new PacketInput()
+            new PacketInput(),
+            new PacketAttack()
     });
 
     public static HashMap<String, HashMap<Byte, Packet>> unackedPackets = new HashMap<>();
@@ -36,6 +37,10 @@ public abstract class Packet {
     private static HashMap<Byte, Packet> createPacketIds(Packet[] array) {
         HashMap<Byte, Packet> packets = new HashMap<>();
         for (byte i = 0; i < array.length; i++) {
+            if (packets.containsKey(array[i].getId())) {
+                System.out.println("Error: Duplicate packet ID!");
+                System.exit(1);
+            }
             packets.put(array[i].getId(), array[i]);
         }
         return packets;

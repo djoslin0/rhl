@@ -1,8 +1,11 @@
 package a2.Contollers;
 
+import Networking.PacketAttack;
+import Networking.UDPClient;
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
 import a2.GameEntities.Player;
+import a2.GameEntities.Puck;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
@@ -317,26 +320,32 @@ public class CharacterController extends InternalTickCallback {
         if (!attacking) { return; }
         attacking = false;
 
+        if (!player.isLocal()) { return; }
+
         Vector3 toPosition = cameraNode.getWorldPosition().add(cameraNode.getWorldForwardAxis().mult(5f));
         javax.vecmath.Vector3f from = cameraNode.getWorldPosition().toJavaX();
         javax.vecmath.Vector3f to = toPosition.toJavaX();
         CollisionWorld.ClosestRayResultCallback closest = new CollisionWorld.ClosestRayResultCallback(from, to);
         PhysicsManager.getWorld().rayTest(from, to, closest);
-        if (closest.hasHit()) {
-            if (closest.collisionObject instanceof RigidBody) {
-                RigidBody rb = (RigidBody) closest.collisionObject;
-                javax.vecmath.Vector3f force = cameraNode.getWorldForwardAxis().mult(20000f).toJavaX();
 
-                Transform t = new Transform();
-                rb.getWorldTransform(t);
-                javax.vecmath.Vector3f relative = (javax.vecmath.Vector3f)closest.hitPointWorld.clone();
-                relative.sub(t.origin);
-                rb.applyImpulse(force, relative);
+        if (!closest.hasHit()) { return; }
+        if (!(closest.collisionObject instanceof RigidBody)) { return; }
 
-                rb.activate();
+        Puck puck = EntityManager.getPuck();
+        if (closest.collisionObject == puck.getBody()) {
+            Transform t = new Transform();
+            RigidBody rb = (RigidBody) closest.collisionObject;
+            rb.getWorldTransform(t);
 
-                javax.vecmath.Vector3f vel = new javax.vecmath.Vector3f();
-                rb.getLinearVelocity(vel);
+            Vector3 hitPoint = Vector3f.createFrom((javax.vecmath.Vector3f)closest.hitPointWorld.clone());
+            Vector3 origin = Vector3f.createFrom(t.origin);
+
+            Vector3 aim = cameraNode.getWorldForwardAxis();
+            Vector3 relative = hitPoint.sub(origin);
+            puck.attack(aim, relative);
+
+            if (UDPClient.hasClient()) {
+                UDPClient.send(new PacketAttack(aim, relative));
             }
         }
     }

@@ -10,7 +10,6 @@ import ray.rml.Matrix3;
 import ray.rml.Matrix3f;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 
 public class PacketInput extends Packet {
     // read variables

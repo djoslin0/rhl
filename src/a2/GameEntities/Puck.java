@@ -5,6 +5,7 @@ import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
+import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
@@ -115,6 +116,12 @@ public class Puck extends GameEntity {
         // push player
         Vector3 push = angularPush.add(linearPush);
         player.getController().knockback(push);
+    }
+
+    public void attack(Vector3 aim, Vector3 relative) {
+        javax.vecmath.Vector3f force = aim.mult(20000f).toJavaX();
+        body.applyImpulse(force, relative.toJavaX());
+        body.activate();
     }
 
     public String listedName() { return "puck"; }

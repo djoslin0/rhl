@@ -25,10 +25,12 @@ public class Player extends GameEntity {
     private CharacterController controller;
     private byte playerId;
     private byte playerSide;
+    private boolean local;
 
-    public Player(byte playerId, boolean isClient, byte side, Vector3 location) {
+    public Player(byte playerId, boolean local, byte side, Vector3 location) {
         super(true);
         this.playerId = playerId;
+        this.local = local;
         playerSide = side;
         SceneManager sm = EngineManager.getSceneManager();
         String name = "Player" + playerId;
@@ -58,7 +60,7 @@ public class Player extends GameEntity {
         cameraNode.setLocalPosition(0, 1.5f, 0);
         addResponsibility(cameraNode);
 
-        if (isClient) {
+        if (local) {
             Camera camera = EngineManager.getSceneManager().getCamera("MainCamera");
             cameraNode.attachObject(camera);
             camera.setMode('n');
@@ -82,6 +84,7 @@ public class Player extends GameEntity {
     public byte getSide(){
         return playerSide;
     }
+    public boolean isLocal() { return local; }
 
     private void initPhysics() {
         float mass = 70;
