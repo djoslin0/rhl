@@ -146,6 +146,8 @@ public class StaticSkyBox extends GameEntity implements Camera.Listener{
         Material mat = engine.getMaterialManager().createManualAsset("SkyBoxMat" + side);
         addResponsibility(mat);
         mat.setEmissive(Color.WHITE);
+        mat.setDiffuse(Color.WHITE);
+        mat.setAmbient(Color.WHITE);
         Texture tex = engine.getTextureManager().getAssetByPath(side + ".png");
         TextureState texState = (TextureState) sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
         texState.setTexture(tex);
