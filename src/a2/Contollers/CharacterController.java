@@ -209,10 +209,6 @@ public class CharacterController extends InternalTickCallback {
 
         groundTrace();
 
-        if (!onGround) {
-            System.out.println("NOT ON GROUND!");
-        }
-
         checkAttack();
 
         checkJump();
@@ -341,7 +337,6 @@ public class CharacterController extends InternalTickCallback {
 
                 javax.vecmath.Vector3f vel = new javax.vecmath.Vector3f();
                 rb.getLinearVelocity(vel);
-                System.out.println("Hit: " + closest.hasHit() + " @ " + TimeManager.getTick() + ", " + t.origin);
             }
         }
     }

@@ -42,7 +42,6 @@ public class MyGame extends VariableFrameRateGame {
     private HudText fpsText = new HudText(-80, -30, Color.white, GLUT.BITMAP_8_BY_13);
 
     public static void main(String[] args) throws IOException {
-        System.out.println(args.length);
         MyGame game = new MyGame(args);
         try {
             game.startup();
@@ -169,17 +168,6 @@ public class MyGame extends VariableFrameRateGame {
         im.update(delta);
         UpdateManager.update(delta);
         fpsText.text = "FPS: " + TimeManager.getFps();
-
-        /*short initialTick = TimeManager.getTick();
-        System.out.println("P: " + TimeManager.getTick());
-        HistoryManager.rewind((short)(initialTick - 10));
-        System.out.println("R: " + TimeManager.getTick());
-        HistoryManager.fastForward(initialTick, true);
-        System.out.println("F: " + TimeManager.getTick());*/
-
-        //HistoryManager.rewrite((short)(TimeManager.getTick() - 20));
-        //PhysicsManager.resetWorld();
-
     }
 }
 

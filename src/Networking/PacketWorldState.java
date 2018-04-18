@@ -37,7 +37,6 @@ public class PacketWorldState extends Packet {
         puck.getBody().getLinearVelocity(puckLinearVelocity);
         puck.getBody().getAngularVelocity(puckAngularVelocity);
 
-        System.out.println("WRITING WSTATE: " + TimeManager.getTick());
         // tick
         buffer.putShort(TimeManager.getTick());
 
@@ -95,8 +94,6 @@ public class PacketWorldState extends Packet {
 
     @Override
     public void receivedOnClient() {
-        System.out.println("------");
-
         Puck puck = (Puck) EntityManager.get("puck").get(0);
 
         // set position

@@ -2,6 +2,7 @@ package Networking;
 
 import a2.Contollers.CharacterController;
 import a2.GameEntities.Player;
+import com.bulletphysics.linearmath.Transform;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.TimeManager;
@@ -17,6 +18,9 @@ public class PacketInput extends Packet {
     public byte controls;
     public float pitch;
     public float yaw;
+    private float x;
+    private float y;
+    private float z;
 
     public PacketInput() { }
 
@@ -28,7 +32,7 @@ public class PacketInput extends Packet {
 
     @Override
     public ByteBuffer writeInfo() {
-        ByteBuffer buffer = ByteBuffer.allocate(7);
+        ByteBuffer buffer = ByteBuffer.allocate(13);
 
         short onTick = TimeManager.getTick();
         buffer.putShort(onTick);
@@ -42,6 +46,12 @@ public class PacketInput extends Packet {
         float yaw = (float)player.getNode().getLocalRotation().getYaw();
         buffer.putShort(NetworkFloat.encode(yaw * 100f));
 
+        Transform t = new Transform();
+        player.getBody().getWorldTransform(t);
+        buffer.putShort(NetworkFloat.encode(t.origin.x));
+        buffer.putShort(NetworkFloat.encode(t.origin.y));
+        buffer.putShort(NetworkFloat.encode(t.origin.z));
+
         return buffer;
     }
 
@@ -51,6 +61,9 @@ public class PacketInput extends Packet {
         controls = buffer.get();
         pitch = NetworkFloat.decode(buffer.getShort()) / 100f;
         yaw = NetworkFloat.decode(buffer.getShort()) / 100f;
+        x = NetworkFloat.decode(buffer.getShort());
+        y = NetworkFloat.decode(buffer.getShort());
+        z = NetworkFloat.decode(buffer.getShort());
     }
 
     @Override
@@ -65,6 +78,14 @@ public class PacketInput extends Packet {
 
         Matrix3 nodeRotation = Matrix3f.createFrom(wrapYawValue, yaw, wrapYawValue);
         player.getNode().setLocalRotation(nodeRotation);
+
+        Transform t = new Transform();
+        player.getBody().getWorldTransform(t);
+        t.origin.x = x;
+        t.origin.y = y;
+        t.origin.z = z;
+        player.getBody().proceedToTransform(t);
+        player.getBody().getMotionState().setWorldTransform(t);
     }
 
     @Override
