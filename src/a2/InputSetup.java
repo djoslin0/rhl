@@ -30,6 +30,7 @@ public class InputSetup {
 
     ActionJump jumpAction;
     ActionAttack attackAction;
+    ActionCrouch crouchAction;
 
     private boolean actions;
     private boolean startedController;
@@ -47,6 +48,7 @@ public class InputSetup {
         moveRightAction = new ActionMove(player, ActionMove.Direction.RIGHT);
         jumpAction = new ActionJump(player);
         attackAction = new ActionAttack(player);
+        crouchAction = new ActionCrouch(player);
 
         // rotate actions
         yawAction = new ActionRotate(player, ActionRotate.Direction.X);
@@ -65,6 +67,7 @@ public class InputSetup {
                 im.associateAction(c, Key.A, instance.moveLeftAction, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);
                 im.associateAction(c, Key.D, instance.moveRightAction, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);
                 im.associateAction(c, Key.SPACE, instance.jumpAction, INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+                im.associateAction(c, Key.LCONTROL, instance.crouchAction, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);
             }
         }
     }

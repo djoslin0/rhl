@@ -13,6 +13,7 @@ import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.EntityManager;
+import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.TimeManager;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Camera;
@@ -35,6 +36,9 @@ public class Player extends GameEntity implements Attackable {
     private byte playerSide;
     private boolean local;
     public short lastReceivedTick;
+
+    public static float height = 1.8f;
+    public static float crouchHeight = 0.75f;
 
     public Player(byte playerId, boolean local, byte side, Vector3 location) {
         super(true);
@@ -76,15 +80,13 @@ public class Player extends GameEntity implements Attackable {
             camera.setMode('n');
         }
 
-        if (playerId != 0) {
-            SceneNode flareNode = cameraNode.createChildSceneNode(name + "flareNode");
-            flareNode.moveForward(3);
-            try {
-                Billboard flare = new Billboard(flareNode, 0.2f, 0.2f, "flare2.png", Color.RED);
-                addResponsibility(flare);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        SceneNode flareNode = cameraNode.createChildSceneNode(name + "flareNode");
+        flareNode.moveForward(3);
+        try {
+            Billboard flare = new Billboard(flareNode, 0.2f, 0.2f, "flare2.png", Color.RED);
+            addResponsibility(flare);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         lastReceivedTick = TimeManager.getTick();
@@ -99,18 +101,37 @@ public class Player extends GameEntity implements Attackable {
     public boolean isLocal() { return local; }
 
     private void initPhysics() {
+        createBody(false);
+        controller = new CharacterController(this);
+    }
+
+    public RigidBody createBody(boolean crouching) {
+        javax.vecmath.Vector3f velocity = new javax.vecmath.Vector3f();
+
+        if (body != null) {
+            body.getLinearVelocity(velocity);
+            PhysicsManager.removeRigidBody(body);
+            bodyResponsibility.remove(body);
+        }
+
+        float height = crouching ? crouchHeight : this.height;
         float mass = 70;
         PlayerMotionStateController motionState = new PlayerMotionStateController(this.node);
-        CapsuleShape collisionShape = new CapsuleShape(0.75f, 1.8f);
+        CapsuleShape collisionShape = new CapsuleShape(0.75f, height);
 
-        body = createBody(mass, motionState, collisionShape);
+        if (local) {
+            body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_LOCAL_PLAYER, PhysicsManager.COLLIDE_ALL);
+        } else {
+            body = createBody(mass, motionState, collisionShape);
+        }
         body.setRestitution(0f);
         body.setFriction(0.1f);
         body.setAngularFactor(0);
         body.setDamping(0.05f, 0f);
         body.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        body.setLinearVelocity(velocity);
 
-        controller = new CharacterController(this);
+        return body;
     }
 
     @Override

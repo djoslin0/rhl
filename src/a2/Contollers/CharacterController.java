@@ -45,6 +45,7 @@ public class CharacterController extends InternalTickCallback {
     private boolean moveRight;
     private boolean moveForward;
     private boolean moveBackward;
+    private boolean crouching;
     private boolean jumping;
     private boolean attacking;
     private boolean wrapYaw;
@@ -56,8 +57,10 @@ public class CharacterController extends InternalTickCallback {
 
     // constants
     private final float groundAcceleration = 70;
+    private final float crouchAcceleration = 40;
     private final float airAcceleration = 20;
     private final float maxSpeed = 14;
+    private final float maxCrouchSpeed = 8;
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
 
@@ -82,7 +85,8 @@ public class CharacterController extends InternalTickCallback {
         controls |= (moveBackward ? 1 : 0) << 3;
         controls |= (jumping ? 1 : 0) << 4;
         controls |= (attacking ? 1 : 0) << 5;
-        controls |= (wrapYaw ? 1 : 0) << 6;
+        controls |= (crouching ? 1 : 0) << 6;
+        controls |= (wrapYaw ? 1 : 0) << 7;
         return controls;
     }
 
@@ -93,11 +97,12 @@ public class CharacterController extends InternalTickCallback {
         moveBackward = (controls & (1 << 3)) != 0;
         jumping = (controls & (1 << 4)) != 0;
         attacking = (controls & (1 << 5)) != 0;
-        wrapYaw = (controls & (1 << 6)) != 0;
+        setCrouching((controls & (1 << 6)) != 0);
+        wrapYaw = (controls & (1 << 7)) != 0;
     }
 
     public static boolean wrapYawFromControl(byte controls) {
-        return (controls & (1 << 6)) != 0;
+        return (controls & (1 << 7)) != 0;
     }
 
     public void move(ActionMove.Direction direction, boolean value) {
@@ -217,6 +222,8 @@ public class CharacterController extends InternalTickCallback {
         // track whether or not yaw should wrap around
         wrapYaw = node.getLocalRotation().getRoll() != 0;
 
+        cameraUpdate();
+
         groundTrace();
 
         checkAttack();
@@ -240,8 +247,23 @@ public class CharacterController extends InternalTickCallback {
         wasOnGround = onGround;
     }
 
+    private void cameraUpdate() {
+        float height = cameraNode.getLocalPosition().y();
+        if (crouching && height > 0) {
+            height -= 0.1f;
+            if (height < 0) { height = 0; }
+            cameraNode.setLocalPosition(0, height, 0);
+            cameraNode.update();
+        } else if (!crouching && height < 1.8f) {
+            height += 0.1f;
+            if (height > 1.8f) { height = 1.8f; }
+            cameraNode.setLocalPosition(0, height, 0);
+            cameraNode.update();
+        }
+    }
+
     private Vector3 groundMove() {
-        float acceleration = groundAcceleration;
+        float acceleration = crouching ? crouchAcceleration : groundAcceleration;
         Vector3 movement = getMovementDirection().mult(acceleration);
 
         // apply friction
@@ -268,9 +290,10 @@ public class CharacterController extends InternalTickCallback {
             float currentSpeed = linearVelocity.length();
 
             // cap movement speed so we do not constantly gain more momentum
-            if (currentSpeed > previousSpeed && currentSpeed > maxSpeed) {
+            float speedCap = crouching ? maxCrouchSpeed : maxSpeed;
+            if (currentSpeed > previousSpeed && currentSpeed > speedCap) {
                 linearVelocity.normalize();
-                linearVelocity.scale(Math.max(previousSpeed, maxSpeed));
+                linearVelocity.scale(Math.max(previousSpeed, speedCap));
             }
         }
 
@@ -349,6 +372,8 @@ public class CharacterController extends InternalTickCallback {
         javax.vecmath.Vector3f from = cameraNode.getWorldPosition().toJavaX();
         javax.vecmath.Vector3f to = toPosition.toJavaX();
         CollisionWorld.ClosestRayResultCallback closest = new CollisionWorld.ClosestRayResultCallback(from, to);
+        closest.collisionFilterMask = PhysicsManager.COLLIDE_IGNORE_LOCAL_PLAYER;
+
         PhysicsManager.getWorld().rayTest(from, to, closest);
 
         if (!closest.hasHit()) { return; }
@@ -409,5 +434,11 @@ public class CharacterController extends InternalTickCallback {
             backoff /= overbounce;
         }
         return in.sub(normal.mult(backoff));
+    }
+
+    public void setCrouching(boolean crouching) {
+        if (crouching == this.crouching) { return; }
+        this.crouching = crouching;
+        this.body = player.createBody(crouching);
     }
 }

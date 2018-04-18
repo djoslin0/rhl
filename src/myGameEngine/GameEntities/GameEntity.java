@@ -21,12 +21,12 @@ public class GameEntity implements Updatable {
     private boolean destroyed = false;
 
     // keep track of entities that need to be cleaned up / destroyed
-    private ArrayList<SceneNode> nodeResponsibility = new ArrayList<>();
-    private ArrayList<SceneObject> objectResponsibility = new ArrayList<>();
-    private ArrayList<Material> materialResponsibility = new ArrayList<>();
-    private ArrayList<GameEntity> gameEntityResponsibility = new ArrayList<>();
-    private ArrayList<Light> lightResponsibility = new ArrayList<>();
-    private ArrayList<RigidBody> bodyResponsibility = new ArrayList<>();
+    protected ArrayList<SceneNode> nodeResponsibility = new ArrayList<>();
+    protected ArrayList<SceneObject> objectResponsibility = new ArrayList<>();
+    protected ArrayList<Material> materialResponsibility = new ArrayList<>();
+    protected ArrayList<GameEntity> gameEntityResponsibility = new ArrayList<>();
+    protected ArrayList<Light> lightResponsibility = new ArrayList<>();
+    protected ArrayList<RigidBody> bodyResponsibility = new ArrayList<>();
 
     public GameEntity(boolean updatable) {
         if (updatable) {
@@ -119,7 +119,7 @@ public class GameEntity implements Updatable {
         }
     }
 
-    protected RigidBody createBody(float mass, MotionState motionState, CollisionShape collisionShape) {
+    protected RigidBody createBody(float mass, MotionState motionState, CollisionShape collisionShape, short group, short mask) {
         javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0f, 0);
         if (mass > 0) {
             collisionShape.calculateLocalInertia(mass, localInertia);
@@ -129,7 +129,11 @@ public class GameEntity implements Updatable {
         RigidBody body = new RigidBody(rbInfo);
         body.setUserPointer(this);
 
-        PhysicsManager.addRigidBody(body);
+        if (group == -1 && mask == -1) {
+            PhysicsManager.addRigidBody(body);
+        } else {
+            PhysicsManager.addRigidBody(body, group, mask);
+        }
         addResponsibility(body);
 
         if (shouldRegisterCollision()) {
@@ -137,6 +141,10 @@ public class GameEntity implements Updatable {
         }
 
         return body;
+    }
+
+    protected RigidBody createBody(float mass, MotionState motionState, CollisionShape collisionShape) {
+        return createBody(mass, motionState, collisionShape, (short)-1, (short)-1);
     }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) { }
