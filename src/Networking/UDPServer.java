@@ -55,6 +55,7 @@ public class UDPServer extends GameConnectionServer<Byte> {
                 e.printStackTrace();
             }
             instance.nextId++;
+            if (instance.nextId == 0 || instance.nextId == -1) { instance.nextId = 2; }
             instance.nextSide = (byte) ((instance.nextSide + 1) % 2);
             return player;
         }

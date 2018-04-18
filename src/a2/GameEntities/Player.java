@@ -1,5 +1,8 @@
 package a2.GameEntities;
 
+import Networking.UDPClient;
+import Networking.UDPServer;
+import a2.Attackable;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
@@ -23,7 +26,7 @@ import ray.rml.Vector3f;
 import java.awt.*;
 import java.io.IOException;
 
-public class Player extends GameEntity {
+public class Player extends GameEntity implements Attackable {
     private SceneNode cameraNode;
     private RigidBody body;
     private CharacterController controller;
@@ -160,4 +163,14 @@ public class Player extends GameEntity {
         javax.vecmath.Vector3f vel = velocity.toJavaX();
         body.setLinearVelocity(vel);
     }
+
+    public void attacked(Vector3 aim, Vector3 relative) {
+        if (local || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
+            javax.vecmath.Vector3f force = aim.mult(6000f).toJavaX();
+            body.applyImpulse(force, relative.toJavaX());
+            body.activate();
+        }
+        controller.knockback(null);
+    }
+
 }

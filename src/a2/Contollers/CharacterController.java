@@ -4,9 +4,12 @@ import Networking.PacketAttack;
 import Networking.UDPClient;
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
+import a2.Attackable;
 import a2.GameEntities.Player;
 import a2.GameEntities.Puck;
+import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
+import com.bulletphysics.collision.shapes.CollisionShape;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
@@ -18,6 +21,8 @@ import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.TimeManager;
 import ray.rage.scene.SceneNode;
 import ray.rml.*;
+
+import java.util.ArrayList;
 
 public class CharacterController extends InternalTickCallback {
 
@@ -134,8 +139,10 @@ public class CharacterController extends InternalTickCallback {
     public void knockback(Vector3 vec) {
         if (ignoreKnockTimeout > 0) { return; }
         ignoreKnockTimeout = 10;
-        knockbackTimeout = (int)(vec.length() / 10f);
+        knockbackTimeout = (vec != null) ? (int)(vec.length() / 10f) : 10;
         if (knockbackTimeout > 100) { knockbackTimeout = 100; }
+
+        if (vec == null) { return; }
         body.applyCentralImpulse(vec.toJavaX());
     }
 
@@ -316,6 +323,22 @@ public class CharacterController extends InternalTickCallback {
         return movement;
     }
 
+    private Attackable getAttackable(CollisionObject object) {
+        if (object == EntityManager.getPuck().getBody()) {
+            return EntityManager.getPuck();
+        }
+
+        // lookup player
+        for (Object o : EntityManager.get("player")) {
+            Player player = (Player)o;
+            if (object == player.getBody()) {
+                return player;
+            }
+        }
+
+        return null;
+    }
+
     private void checkAttack() {
         if (!attacking) { return; }
         attacking = false;
@@ -331,22 +354,23 @@ public class CharacterController extends InternalTickCallback {
         if (!closest.hasHit()) { return; }
         if (!(closest.collisionObject instanceof RigidBody)) { return; }
 
-        Puck puck = EntityManager.getPuck();
-        if (closest.collisionObject == puck.getBody()) {
-            Transform t = new Transform();
-            RigidBody rb = (RigidBody) closest.collisionObject;
-            rb.getWorldTransform(t);
+        // figure out which id/attackable is being attacked
+        Attackable attackable = getAttackable(closest.collisionObject);
+        if (attackable == null) { return; }
 
-            Vector3 hitPoint = Vector3f.createFrom((javax.vecmath.Vector3f)closest.hitPointWorld.clone());
-            Vector3 origin = Vector3f.createFrom(t.origin);
+        Transform t = new Transform();
+        RigidBody rb = (RigidBody) closest.collisionObject;
+        rb.getWorldTransform(t);
 
-            Vector3 aim = cameraNode.getWorldForwardAxis();
-            Vector3 relative = hitPoint.sub(origin);
-            puck.attack(aim, relative);
+        Vector3 hitPoint = Vector3f.createFrom((javax.vecmath.Vector3f)closest.hitPointWorld.clone());
+        Vector3 origin = Vector3f.createFrom(t.origin);
 
-            if (UDPClient.hasClient()) {
-                UDPClient.send(new PacketAttack(aim, relative));
-            }
+        Vector3 aim = cameraNode.getWorldForwardAxis();
+        Vector3 relative = hitPoint.sub(origin);
+        attackable.attacked(aim, relative);
+
+        if (UDPClient.hasClient()) {
+            UDPClient.send(new PacketAttack(attackable.getId(), aim, relative));
         }
     }
 

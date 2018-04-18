@@ -60,16 +60,16 @@ public class MyGame extends VariableFrameRateGame {
     }
 
     private void setupNetworking() throws IOException {
-        if(args.length > 0) {
-            if(args[0].equals("s")) {
+        if (args.length > 0) {
+            if (args[0].equals("s")) {
                 UDPServer.createServer(8800);
                 player = new Player((byte)0, true, (byte)0, Settings.get().spawnPoint.add(0, 0, -10));
                 return;
-            }else if(args[0].equals("c")) {
+            } else if (args[0].equals("c")) {
                 UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
                 UDPClient.send(new PacketJoin());
 
-                while(player == null) {
+                while (player == null) {
                     player = UDPClient.getPlayer(UDPClient.getPlayerId());
                     UDPClient.update();
                 }
@@ -79,6 +79,7 @@ public class MyGame extends VariableFrameRateGame {
 
         System.out.println("continuing without networking");
         player = new Player((byte)0, true, (byte)0, Settings.get().spawnPoint);
+        new Player((byte)1, false, (byte)0, Settings.get().spawnPoint.add(10, 0, 0));
     }
 
     @Override

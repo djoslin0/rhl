@@ -1,32 +1,26 @@
 package a2.GameEntities;
 
+import a2.Attackable;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
-import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.MotionStateController;
-import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
-import ray.rage.scene.Node;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
-import ray.rml.Matrix3f;
 import ray.rml.Radianf;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
-import java.awt.*;
 import java.io.IOException;
 
-public class Puck extends GameEntity {
+public class Puck extends GameEntity implements Attackable {
     private Entity obj;
     private RigidBody body;
     private SceneNode angularTestNode;
@@ -118,10 +112,15 @@ public class Puck extends GameEntity {
         player.getController().knockback(push);
     }
 
-    public void attack(Vector3 aim, Vector3 relative) {
+    public void attacked(Vector3 aim, Vector3 relative) {
         javax.vecmath.Vector3f force = aim.mult(20000f).toJavaX();
         body.applyImpulse(force, relative.toJavaX());
         body.activate();
+    }
+
+    @Override
+    public byte getId() {
+        return -1;
     }
 
     public String listedName() { return "puck"; }
@@ -129,8 +128,7 @@ public class Puck extends GameEntity {
     public RigidBody getBody() { return body; }
 
     @Override
-    public void update(float delta) {
-    }
+    public void update(float delta) { }
 
 }
 

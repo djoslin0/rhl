@@ -35,7 +35,7 @@ public class PacketWorldState extends Packet {
     public ByteBuffer writeInfo() {
         Collection<Player> players = UDPServer.getPlayers();
         ByteBuffer buffer = ByteBuffer.allocate(29 + 18 * players.size());
-        Puck puck = (Puck) EntityManager.get("puck").get(0);
+        Puck puck = EntityManager.getPuck();
         puckPosition = puck.getNode().getWorldPosition();
         puck.getBody().getOrientation(puckOrientation);
         puck.getBody().getLinearVelocity(puckLinearVelocity);
@@ -142,7 +142,7 @@ public class PacketWorldState extends Packet {
     public void receivedOnClient() {
         if (UDPClient.getPlayer() == null) { return; }
 
-        Puck puck = (Puck) EntityManager.get("puck").get(0);
+        Puck puck = EntityManager.getPuck();
 
         // set position
         Transform puckTransform = new Transform();
@@ -188,8 +188,6 @@ public class PacketWorldState extends Packet {
                 UDPClient.addPlayer(player);
                 System.out.println("NEW PLAYER: " + id);
             }
-
-            System.out.println("SET PLAYER: " + id);
 
             player.getController().setControls(controls);
             player.getController().setControls(controls);

@@ -1,5 +1,6 @@
 package Networking;
 
+import a2.GameEntities.Player;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.EntityManager;
@@ -10,12 +11,14 @@ import java.nio.ByteBuffer;
 
 public class PacketAttack extends Packet {
     // read/write variables
+    private byte id;
     private Vector3 aim;
     private Vector3 relative;
 
     public PacketAttack() {}
 
-    public PacketAttack(Vector3 aim, Vector3 relative) {
+    public PacketAttack(byte id, Vector3 aim, Vector3 relative) {
+        this.id = id;
         this.aim = aim;
         this.relative = relative;
     }
@@ -28,7 +31,8 @@ public class PacketAttack extends Packet {
 
     @Override
     public ByteBuffer writeInfo() {
-        ByteBuffer buffer = ByteBuffer.allocate(12);
+        ByteBuffer buffer = ByteBuffer.allocate(13);
+        buffer.put(id);
         buffer.putShort(NetworkFloat.encode(aim.x()));
         buffer.putShort(NetworkFloat.encode(aim.y()));
         buffer.putShort(NetworkFloat.encode(aim.z()));
@@ -40,11 +44,14 @@ public class PacketAttack extends Packet {
 
     @Override
     public void readInfo(ByteBuffer buffer) {
-        this.aim = Vector3f.createFrom(
+        id = buffer.get();
+
+        aim = Vector3f.createFrom(
                 NetworkFloat.decode(buffer.getShort()),
                 NetworkFloat.decode(buffer.getShort()),
                 NetworkFloat.decode(buffer.getShort()));
-        this.relative = Vector3f.createFrom(
+
+        relative = Vector3f.createFrom(
                 NetworkFloat.decode(buffer.getShort()),
                 NetworkFloat.decode(buffer.getShort()),
                 NetworkFloat.decode(buffer.getShort()));
@@ -52,11 +59,23 @@ public class PacketAttack extends Packet {
 
     @Override
     public void receivedOnServer(ClientInfo cli) {
-        EntityManager.getPuck().attack(aim, relative);
+        if (id == -1) {
+            EntityManager.getPuck().attacked(aim, relative);
+        } else {
+            Player player = UDPServer.getPlayer(id);
+            player.attacked(aim, relative);
+        }
+
+        // broadcast
+        PacketAttack attack = new PacketAttack(id, aim, relative);
+        UDPServer.sendToAll(attack);
     }
 
     @Override
     public void receivedOnClient() {
-        // should not happen
+        Player player = UDPClient.getPlayer(id);
+        if (player == null) { return; }
+
+        player.attacked(aim, relative);
     }
 }
