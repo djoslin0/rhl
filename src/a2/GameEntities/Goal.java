@@ -14,6 +14,7 @@ import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
+import ray.rml.Degreef;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
@@ -28,17 +29,18 @@ public class Goal extends GameEntity {
         //insantiate nodes
         SceneManager sm = EngineManager.getSceneManager();
         node = sm.getRootSceneNode().createChildSceneNode("Goal" + side);
-        node.scale(Vector3f.createFrom(2f,4f,2f));
+        node.scale(Vector3f.createFrom(2f,2f,2f));
         //        //load model
         obj = sm.createEntity("Goalentity"+side, "goal.obj");
+        node.rotate(Degreef.createFrom(90),Vector3f.createUnitVectorY());
         obj.setPrimitive(Renderable.Primitive.TRIANGLES);
         //attach object to goals
         node.attachObject(obj);
         // wich side are you creating the goal on?
         if(side ==0){
-            node.setLocalPosition(50f,0f,0f);
+            node.setLocalPosition(50f,3f,0f);
         }else{
-            node.setLocalPosition(-50f,0f,0f);
+            node.setLocalPosition(-50f,3f,0f);
         }
 
 
