@@ -14,4 +14,6 @@ with (JavaPackages) {
 
 	var terrainEmissive = new Color(.2, .2, .2);
 	var terrainSpecular = new Color(.5, .5, .5);
+
+	var goalDistance = 70.0;
 }

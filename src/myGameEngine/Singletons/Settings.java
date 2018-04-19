@@ -28,6 +28,8 @@ public class Settings {
     public Color terrainEmissive;
     public Color terrainSpecular;
 
+    public Double goalDistance;
+
     public static void initScript() {
         ScriptEngineManager factory = new ScriptEngineManager();
         instance.jsEngine = factory.getEngineByName("js");
@@ -51,6 +53,8 @@ public class Settings {
 
             instance.terrainEmissive = (Color)(instance.jsEngine.eval("terrainEmissive"));
             instance.terrainSpecular = (Color)(instance.jsEngine.eval("terrainSpecular"));
+
+            instance.goalDistance = (Double)(instance.jsEngine.eval("goalDistance"));
 
         } catch (FileNotFoundException e) {
             System.out.println(instance.scriptFile + " not found " + e);

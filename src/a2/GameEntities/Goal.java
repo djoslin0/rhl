@@ -10,6 +10,7 @@ import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.Settings;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
@@ -32,7 +33,7 @@ public class Goal extends GameEntity {
 
         // load model
         node.scale(Vector3f.createFrom(2f,2f,2f));
-        obj = sm.createEntity("Goalentity"+side, "goal.obj");
+        obj = sm.createEntity("GoalEntity" + side, "goal.obj");
         node.rotate(Degreef.createFrom(90),Vector3f.createUnitVectorY());
         obj.setPrimitive(Renderable.Primitive.TRIANGLES);
 
@@ -40,10 +41,11 @@ public class Goal extends GameEntity {
         node.attachObject(obj);
 
         // which side are you creating the goal on?
-        if(side ==0){
-            node.setLocalPosition(50f,3f,0f);
+        float goalDistance = Settings.get().goalDistance.floatValue();
+        if(side == 0){
+            node.setLocalPosition(goalDistance,3f,0f);
         }else{
-            node.setLocalPosition(-50f,3f,0f);
+            node.setLocalPosition(-goalDistance,3f,0f);
         }
 
         // set initial locations
