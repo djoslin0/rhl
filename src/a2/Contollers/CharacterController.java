@@ -54,8 +54,8 @@ public class CharacterController extends InternalTickCallback {
     private final float groundAcceleration = 70;
     private final float crouchAcceleration = 40;
     private final float airAcceleration = 20;
-    private final float maxSpeed = 14;
-    private final float maxCrouchSpeed = 8;
+    private final float maxSpeed = 20;
+    private final float maxCrouchSpeed = 10;
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
 
