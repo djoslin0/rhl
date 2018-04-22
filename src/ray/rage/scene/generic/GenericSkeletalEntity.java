@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import myGameEngine.Helpers.MathHelper;
 import ray.rage.asset.animation.Animation;
 import ray.rage.asset.material.Material;
 import ray.rage.asset.mesh.Mesh;
@@ -33,20 +35,131 @@ import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
 final class GenericSkeletalEntity extends AbstractGenericSceneObject implements SkeletalEntity {
+
+    private class AnimationState {  /* MyChange: added anim states */
+        private Animation animation = null;
+        private int frame = -1;
+        private int nextFrame = -1; /* MyChange: added for lerping */
+        private float lerpScale = 0f; /* MyChange: added for lerping */
+        private float lerpedFrame = -1.0F;
+        private float speed = 1.0F;
+        private EndType endtype = EndType.NONE;
+        private int endTypeTotal = -1;
+        private int endTypeCount = 0;
+        private boolean paused = false;
+        public boolean stopped = false;
+        public float animationLerp = 0;
+        public float animationLerpSpeed = 0.0025f;
+
+        public Vector3 getBoneScale(int i) {
+            return animation.getFrameBoneScl(frame, i).lerp(animation.getFrameBoneScl(nextFrame, i), this.lerpScale); /* MyChange: lerping */
+        }
+
+        public Quaternion getBoneRotation(int i) {
+            return MathHelper.slerp(animation.getFrameBoneRot(frame, i), animation.getFrameBoneRot(nextFrame, i), this.lerpScale); /* MyChange: lerping */
+        }
+
+        public Vector3 getBoneLocation(int i) {
+            return animation.getFrameBoneLoc(frame, i).lerp(animation.getFrameBoneLoc(nextFrame, i), this.lerpScale); /* MyChange: lerping */
+        }
+
+        public void update(float delta, boolean hasWaiting) {
+            animationLerp += animationLerpSpeed * delta * (hasWaiting ? 1.4f : 1f);
+            if (animationLerp < 0) { animationLerp = 0; }
+            if (animationLerp > 1) { animationLerp = 1; }
+            if (animation != null && !paused && speed != 0.0F) {
+                lerpedFrame += speed * delta;
+                lerpScale = lerpedFrame - (int)lerpedFrame;  /* MyChange: added for lerping */
+                if (lerpScale < 0) { lerpScale = 0; }
+                if (lerpScale > 1) { lerpScale = 1; }
+                frame = (int)(lerpedFrame); /* MyChange: changed round function */
+                if (frame >= animation.getFrameCount() || frame < 0) {
+                    handleAnimationEnd();
+                }
+                nextFrame = calculateNextFrame(); /* MyChange: added for lerping */
+            }
+        }
+
+        private int calculateNextFrame() { /* MyChange: added for lerping */
+            if (speed == 0) { return frame; }
+            int nextFrame = frame + (speed > 0 ? 1 : -1);
+            switch(endtype) {
+                case NONE:
+                case STOP:
+                    if (nextFrame >= animation.getFrameCount()) { nextFrame = frame; }
+                    break;
+                case PAUSE:
+                    if (nextFrame >= animation.getFrameCount()) { nextFrame = frame; }
+                    if (nextFrame < 0) { nextFrame = 0; }
+                    break;
+                case LOOP:
+                    if (nextFrame >= animation.getFrameCount()) { nextFrame -= animation.getFrameCount(); }
+                    if (nextFrame < 0) { nextFrame += animation.getFrameCount(); }
+                    break;
+                case PINGPONG:
+                    if (nextFrame >= animation.getFrameCount()) { nextFrame -= 2; }
+                    if (nextFrame < 0) { nextFrame += 2; }
+                    break;
+            }
+
+            return nextFrame;
+        }
+
+        private void handleAnimationEnd() {
+            ++endTypeCount;
+            if (endTypeTotal != 0 && endTypeCount > endTypeTotal) {
+                stopped = true;
+            } else {
+                switch(endtype) {
+                    case NONE:
+                    case STOP:
+                        stopped = true;
+                        break;
+                    case PAUSE:
+                        if (speed > 0.0D) {
+                            frame = animation.getFrameCount() - 1;
+                            lerpedFrame = (float)(animation.getFrameCount() - 1);
+                        } else if (speed < 0.0D) {
+                            frame = 0;
+                            lerpedFrame = 0.0F;
+                        }
+
+                        speed = 0.0F;
+                        break;
+                    case LOOP:
+                        if (speed > 0.0D) {
+                            lerpedFrame  -= (float)(animation.getFrameCount()); /* MyChange: adjusted loop */
+                            frame = (int)(lerpedFrame); /* MyChange: adjusted loop */
+                        } else if (speed < 0.0D) {
+                            lerpedFrame  += (float)(animation.getFrameCount()); /* MyChange: adjusted loop */
+                            frame = (int)(lerpedFrame); /* MyChange: adjusted loop */
+                        }
+                        break;
+                    case PINGPONG:
+                        if (speed > 0.0D) {
+                            frame = animation.getFrameCount() - 2;
+                            lerpedFrame = (float)(animation.getFrameCount() - 1);
+                            speed *= -1.0F;
+                        } else if (speed < 0.0D) {
+                            frame = 1;
+                            lerpedFrame = 1.0F;
+                            speed *= -1.0F;
+                        }
+                }
+
+            }
+        }
+    }
+
     private Mesh mesh;
     private Skeleton skeleton;
     private List<SubEntity> subEntityList;
     private HashMap<String, Animation> animationsList = new HashMap();
-    private Animation curAnimation = null;
-    private int curAnimFrame = -1;
-    private int nextAnimFrame = -1; /* MyChange: added for lerping */
-    private float lerpScale = 0f; /* MyChange: added for lerping */
-    private float curLerpedAnimFrame = -1.0F;
-    private float curAnimSpeed = 1.0F;
-    private EndType curAnimEndtype;
-    private int curAnimEndTypeTotal;
-    private int curAnimEndTypeCount;
-    private boolean curAnimPaused;
+
+    private AnimationState curAnimState; /* MyChange: added anim states */
+    private AnimationState nextAnimState; /* MyChange: added anim states */
+    private AnimationState waitingAnimState; /* MyChange: added anim states */
+
     private Matrix4[] curSkinMatrices;
     private Matrix3[] curSkinMatricesIT;
 
@@ -56,10 +169,9 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
 
     GenericSkeletalEntity(SceneManager manager, String name, Mesh m, Skeleton s) {
         super(manager, name);
-        this.curAnimEndtype = EndType.NONE;
-        this.curAnimEndTypeTotal = -1;
-        this.curAnimEndTypeCount = 0;
-        this.curAnimPaused = false;
+
+        curAnimState = null; /* MyChange: added anim states */
+
         if (m == null) {
             throw new NullPointerException("Null " + Mesh.class.getSimpleName());
         } else if (m.getSubMeshCount() == 0) {
@@ -136,23 +248,24 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
     }
 
     public Matrix4 getBoneCurLocalTransform(int i) {
-        if (this.curAnimation == null) {
+        if (curAnimState == null) { /* MyChange: added anim states */
             return Matrix4f.createIdentityMatrix();
         } else {
-            Vector3 scale = this.curAnimation.getFrameBoneScl(this.curAnimFrame, i)
-                    .lerp(this.curAnimation.getFrameBoneScl(this.nextAnimFrame, i), this.lerpScale); /* MyChange: added lerping */
+            Vector3 scale = curAnimState.getBoneScale(i);  /* MyChange: added anim states */
+            Quaternion rot = curAnimState.getBoneRotation(i);  /* MyChange: added anim states */
+            Vector3 loc = curAnimState.getBoneLocation(i);  /* MyChange: added anim states */
 
-            Quaternion rot = this.curAnimation.getFrameBoneRot(this.curAnimFrame, i)
-                    .lerp(this.curAnimation.getFrameBoneRot(this.nextAnimFrame, i), this.lerpScale); /* MyChange: added lerping */
-
-            Vector3 loc = this.curAnimation.getFrameBoneLoc(this.curAnimFrame, i)
-                    .lerp(this.curAnimation.getFrameBoneLoc(this.nextAnimFrame, i), this.lerpScale); /* MyChange: added lerping */
+            if (nextAnimState != null) {  /* MyChange: added anim states */
+                scale = scale.lerp(nextAnimState.getBoneScale(i), nextAnimState.animationLerp);
+                rot = MathHelper.slerp(rot, nextAnimState.getBoneRotation(i), nextAnimState.animationLerp);
+                loc = loc.lerp(nextAnimState.getBoneLocation(i), nextAnimState.animationLerp);
+            }
 
             /* MyChange: added overrides */
             if (boneScaleOverride.containsKey(i)) { scale = boneScaleOverride.get(i); }
             if (boneRotationOverride.containsKey(i)) { rot = boneRotationOverride.get(i); }
             if (boneLocationOverride.containsKey(i)) { loc = boneLocationOverride.get(i); }
-            
+
             Matrix4 mat = Matrix4f.createScalingFrom(scale);
             mat = Matrix4f.createRotationFrom(rot.angle(), this.getQuatAxis(rot)).mult(mat);
             mat = Matrix4f.createTranslationFrom(loc).mult(mat);
@@ -188,123 +301,56 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
     }
 
     private void updateAnimation(float delta) {  /* MyChange: added delta for framerate independence */
-        if (this.curAnimation != null && !this.curAnimPaused && this.curAnimSpeed != 0.0F) {
-            this.curLerpedAnimFrame += this.curAnimSpeed * delta;
-            this.lerpScale = this.curLerpedAnimFrame - (int)this.curLerpedAnimFrame;  /* MyChange: added for lerping */
-            this.curAnimFrame = (int)(this.curLerpedAnimFrame); /* MyChange: changed round function */
-            if (this.curAnimFrame >= this.curAnimation.getFrameCount() || this.curAnimFrame < 0) {
-                this.handleAnimationEnd();
+        if (curAnimState != null) { curAnimState.update(delta, waitingAnimState != null); }
+        if (nextAnimState != null) {
+            nextAnimState.update(delta, waitingAnimState != null);
+            if (curAnimState == null || nextAnimState.animationLerp >= 1) {
+                curAnimState = nextAnimState;
+                nextAnimState = waitingAnimState;
+                waitingAnimState = null;
             }
-            this.nextAnimFrame = calculateNextFrame(); /* MyChange: added for lerping */
-        }
-
-    }
-
-    private int calculateNextFrame() { /* MyChange: added for lerping */
-        if (curAnimSpeed == 0) { return curAnimFrame; }
-        int nextFrame = curAnimFrame + (curAnimSpeed > 0 ? 1 : -1);
-        switch(this.curAnimEndtype) {
-            case NONE:
-            case STOP:
-                if (nextFrame >= curAnimation.getFrameCount()) { nextFrame = curAnimFrame; }
-                break;
-            case PAUSE:
-                if (nextFrame >= curAnimation.getFrameCount()) { nextFrame = curAnimFrame; }
-                if (nextFrame < 0) { nextFrame = 0; }
-                break;
-            case LOOP:
-                if (nextFrame >= curAnimation.getFrameCount()) { nextFrame -= curAnimation.getFrameCount(); }
-                if (nextFrame < 0) { nextFrame += curAnimation.getFrameCount(); }
-                break;
-            case PINGPONG:
-                if (nextFrame >= curAnimation.getFrameCount()) { nextFrame -= 2; }
-                if (nextFrame < 0) { nextFrame += 2; }
-                break;
-        }
-
-        return nextFrame;
-    }
-
-    private void handleAnimationEnd() {
-        ++this.curAnimEndTypeCount;
-        if (this.curAnimEndTypeTotal != 0 && this.curAnimEndTypeCount > this.curAnimEndTypeTotal) {
-            this.stopAnimation();
-        } else {
-            switch(this.curAnimEndtype) {
-                case NONE:
-                case STOP:
-                    this.stopAnimation();
-                    break;
-                case PAUSE:
-                    if ((double)this.curAnimSpeed > 0.0D) {
-                        this.curAnimFrame = this.curAnimation.getFrameCount() - 1;
-                        this.curLerpedAnimFrame = (float)(this.curAnimation.getFrameCount() - 1);
-                    } else if ((double)this.curAnimSpeed < 0.0D) {
-                        this.curAnimFrame = 0;
-                        this.curLerpedAnimFrame = 0.0F;
-                    }
-
-                    this.curAnimSpeed = 0.0F;
-                    break;
-                case LOOP:
-                    if ((double)this.curAnimSpeed > 0.0D) {
-                        this.curLerpedAnimFrame  -= (float)(curAnimation.getFrameCount()); /* MyChange: adjusted loop */
-                        this.curAnimFrame = (int)(this.curLerpedAnimFrame); /* MyChange: adjusted loop */
-                    } else if ((double)this.curAnimSpeed < 0.0D) {
-                        this.curLerpedAnimFrame  += (float)(curAnimation.getFrameCount()); /* MyChange: adjusted loop */
-                        this.curAnimFrame = (int)(this.curLerpedAnimFrame); /* MyChange: adjusted loop */
-                    }
-                    break;
-                case PINGPONG:
-                    if ((double)this.curAnimSpeed > 0.0D) {
-                        this.curAnimFrame = this.curAnimation.getFrameCount() - 2;
-                        this.curLerpedAnimFrame = (float)(this.curAnimation.getFrameCount() - 1);
-                        this.curAnimSpeed *= -1.0F;
-                    } else if ((double)this.curAnimSpeed < 0.0D) {
-                        this.curAnimFrame = 1;
-                        this.curLerpedAnimFrame = 1.0F;
-                        this.curAnimSpeed *= -1.0F;
-                    }
-            }
-
         }
     }
 
     public void playAnimation(String animName, float animSpeed, EndType endType, int endTypeCount) {
         Animation anim = (Animation)this.animationsList.get(animName);
-        if (anim != null) {
-            this.curAnimation = anim;
-            this.curLerpedAnimFrame = 0.0F;
-            this.curAnimFrame = 0;
-            this.nextAnimFrame = 0;
-            this.curAnimEndTypeTotal = endTypeCount;
-            this.curAnimEndTypeCount = 0;
-            this.curLerpedAnimFrame = 0.0F;
-            this.curAnimSpeed = animSpeed;
-            this.curAnimEndtype = endType;
-            if (this.curAnimSpeed < 0.0F) {
-                this.curAnimFrame = anim.getFrameCount() - 1;
-                this.curLerpedAnimFrame = (float)(anim.getFrameCount() - 1);
+        if (anim != null) { /* MyChange: added anim states */
+            AnimationState state = new AnimationState();
+            state.animation = anim;
+            state.lerpedFrame = 0;
+            state.frame = 0;
+            state.nextFrame = 1;
+            state.endTypeTotal = endTypeCount;
+            state.endTypeCount = 0;
+            state.lerpedFrame = 0.0F;
+            state.speed = animSpeed;
+            state.endtype = endType;
+            if (state.speed < 0.0F) {
+                state.frame = anim.getFrameCount() - 1;
+                state.nextFrame = anim.getFrameCount() - 2;
+                state.lerpedFrame = (float)(anim.getFrameCount() - 1);
             }
+            state.paused = false;
+            state.stopped = false;
 
-            this.curAnimPaused = false;
+            if (curAnimState == null) {
+                curAnimState = state;
+            } else if (nextAnimState == null) {
+                nextAnimState = state;
+            } else {
+                waitingAnimState = state;
+            }
         }
     }
 
     public void pauseAnimation() {
-        this.curAnimPaused = true;
+        if (curAnimState != null) { curAnimState.paused = true; }
+        if (nextAnimState != null) { nextAnimState.paused = true; }
     }
 
     public void stopAnimation() {
-        this.curAnimation = null;
-        this.curAnimEndtype = EndType.NONE;
-        this.curAnimFrame = -1;
-        this.nextAnimFrame = -1;
-        this.curLerpedAnimFrame = -1.0F;
-        this.curAnimPaused = false;
-        this.curAnimSpeed = 1.0F;
-        this.curAnimEndTypeCount = 0;
-        this.curAnimEndTypeTotal = 0;
+        curAnimState = null;
+        nextAnimState = null;
     }
 
     private int getBoneIndex(String boneName) { /* MyChange: added bone index lookup */
