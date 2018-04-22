@@ -13,11 +13,11 @@ import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.TimeManager;
+import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.Renderable;
-import ray.rage.scene.Camera;
-import ray.rage.scene.Entity;
-import ray.rage.scene.SceneManager;
-import ray.rage.scene.SceneNode;
+import ray.rage.rendersystem.states.RenderState;
+import ray.rage.rendersystem.states.TextureState;
+import ray.rage.scene.*;
 import ray.rml.Matrix3;
 import ray.rml.Matrix3f;
 import ray.rml.Vector3;
@@ -35,8 +35,14 @@ public class Player extends GameEntity implements Attackable {
     private boolean local;
     public short lastReceivedTick;
 
-    public static float height = 1.8f;
+
+    private SkeletalEntity robo;
+
+    public static float height = 1.6f;
     public static float crouchHeight = 0.75f;
+    public static float cameraHeight = 1.2f;
+    public static float cameraCrouchHeight = -0.45f;
+
 
     public Player(byte playerId, boolean local, byte side, Vector3 location) {
         super(true);
@@ -47,25 +53,10 @@ public class Player extends GameEntity implements Attackable {
         SceneManager sm = EngineManager.getSceneManager();
         String name = "Player" + playerId;
 
-        // load model
-        Entity entity = null;
-        try {
-            entity = sm.createEntity(name, "cube.obj");
-            entity.setPrimitive(Renderable.Primitive.TRIANGLES);
-            addResponsibility(entity);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         // create entity's base node, and move to desired location
         node = sm.getRootSceneNode().createChildSceneNode(name + "Node");
         node.setLocalPosition(location);
         addResponsibility(node);
-
-        SceneNode objNode = node.createChildSceneNode(name + "ObjNode");
-        objNode.attachObject(entity);
-        objNode.setLocalScale(0.75f, 1.8f, 0.75f);
-        addResponsibility(objNode);
 
         // create entity's camera node
         cameraNode = node.createChildSceneNode(name + "CameraNode");
@@ -85,6 +76,26 @@ public class Player extends GameEntity implements Attackable {
             addResponsibility(flare);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        if (!local) {
+            try {
+                robo = sm.createSkeletalEntity("robo" + name, "robo.rkm", "robo.rks");
+                robo.loadAnimation("idle", "idle.rka");
+                robo.loadAnimation("run", "run.rka");
+
+                Texture texture = sm.getTextureManager().getAssetByPath("robo_uv.png");
+                TextureState textureState = (TextureState)sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
+                textureState.setTexture(texture);
+                robo.setRenderState(textureState);
+
+                SceneNode roboNode = node.createChildSceneNode(name + "RoboNode");
+                roboNode.setLocalPosition(0, -height, 0);
+                addResponsibility(roboNode);
+                roboNode.attachObject(robo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         lastReceivedTick = TimeManager.getTick();
@@ -143,6 +154,7 @@ public class Player extends GameEntity implements Attackable {
     @Override
     public void update(float delta) {
         super.update(delta);
+        if (!local) { robo.update(delta); }
     }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
@@ -196,4 +208,8 @@ public class Player extends GameEntity implements Attackable {
         controller.knockback(null);
     }
 
+    public void animate(String animName, float animSpeed) {
+        if (robo == null) { return; }
+        robo.playAnimation(animName, animSpeed, SkeletalEntity.EndType.LOOP, 0);
+    }
 }

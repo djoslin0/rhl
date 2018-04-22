@@ -17,6 +17,7 @@ import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.PhysicsManager;
 import ray.rage.scene.SceneNode;
+import ray.rage.scene.SkeletalEntity;
 import ray.rml.*;
 
 public class CharacterController extends InternalTickCallback {
@@ -33,6 +34,7 @@ public class CharacterController extends InternalTickCallback {
     private boolean onGround;
     private Vector3 normal;
     private float groundY;
+    private String animation = "";
 
     // track in history
     private boolean wasOnGround;
@@ -239,19 +241,21 @@ public class CharacterController extends InternalTickCallback {
         // keep linearVelocity up to date
         body.setLinearVelocity(linearVelocity);
 
+        checkAnimation();
+
         wasOnGround = onGround;
     }
 
     private void cameraUpdate() {
         float height = cameraNode.getLocalPosition().y();
-        if (crouching && height > 0) {
+        if (crouching && height > Player.cameraCrouchHeight) {
             height -= 0.1f;
-            if (height < 0) { height = 0; }
+            if (height < Player.cameraCrouchHeight) { height = Player.cameraCrouchHeight; }
             cameraNode.setLocalPosition(0, height, 0);
             cameraNode.update();
-        } else if (!crouching && height < 1.8f) {
+        } else if (!crouching && height < Player.cameraHeight) {
             height += 0.1f;
-            if (height > 1.8f) { height = 1.8f; }
+            if (height > Player.cameraHeight) { height = Player.cameraHeight; }
             cameraNode.setLocalPosition(0, height, 0);
             cameraNode.update();
         }
@@ -415,6 +419,19 @@ public class CharacterController extends InternalTickCallback {
         onGround = false;
         normal = Vector3f.createUnitVectorY();
         jumpTicks = 8;
+    }
+
+    private void checkAnimation() {
+        if (moveForward && !moveBackward) {
+            if (animation != "runforward") { player.animate("run", 0.085f); }
+            animation = "runforward";
+        } else if (!moveForward && moveBackward) {
+            if (animation != "runback") { player.animate("run", -0.085f); }
+            animation = "runback";
+        } else {
+            if (animation != "idle") { player.animate("idle", 0.04f); }
+            animation = "idle";
+        }
     }
 
     private Vector3 clipVelocity(Vector3 in, Vector3 normal) {

@@ -1,4 +1,7 @@
 .idea/
 out/
 *.log
+
 *.iml
+
+*.blend1
