@@ -426,20 +426,25 @@ public class CharacterController extends InternalTickCallback {
     }
 
     private void checkAnimation() {
+        if (!onGround) {
+            if (animation != "jump") { player.animate("jump", 0.04f, SkeletalEntity.EndType.NONE); }
+            animation = "jump";
+            return;
+        }
         if (moveForward && !moveBackward) {
-            if (animation != "runforward") { player.animate("run", 0.085f); }
+            if (animation != "runforward") { player.animate("run", 0.085f, SkeletalEntity.EndType.LOOP); }
             animation = "runforward";
         } else if (moveBackward && !moveForward) {
-            if (animation != "runback") { player.animate("run", -0.085f); }
+            if (animation != "runback") { player.animate("run", -0.085f, SkeletalEntity.EndType.LOOP); }
             animation = "runback";
         } else if (moveRight && !moveLeft) {
-            if (animation != "sidestep_right") { player.animate("sidestep", 0.12f); }
+            if (animation != "sidestep_right") { player.animate("sidestep", 0.12f, SkeletalEntity.EndType.LOOP); }
             animation = "sidestep_right";
         } else if (moveLeft && !moveRight) {
-            if (animation != "sidestep_left") { player.animate("sidestep", -0.12f); }
+            if (animation != "sidestep_left") { player.animate("sidestep", -0.12f, SkeletalEntity.EndType.LOOP); }
             animation = "sidestep_left";
         } else {
-            if (animation != "idle") { player.animate("idle", 0.04f); }
+            if (animation != "idle") { player.animate("idle", 0.04f, SkeletalEntity.EndType.LOOP); }
             animation = "idle";
         }
     }

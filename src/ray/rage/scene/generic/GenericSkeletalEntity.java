@@ -49,7 +49,7 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
         private boolean paused = false;
         public boolean stopped = false;
         public float animationLerp = 0;
-        public float animationLerpSpeed = 0.0025f;
+        public float animationLerpSpeed = 0.0065f;
 
         public Vector3 getBoneScale(int i) {
             return animation.getFrameBoneScl(frame, i).lerp(animation.getFrameBoneScl(nextFrame, i), this.lerpScale); /* MyChange: lerping */
@@ -64,7 +64,7 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
         }
 
         public void update(float delta, boolean hasWaiting) {
-            animationLerp += animationLerpSpeed * delta * (hasWaiting ? 1.4f : 1f);
+            animationLerp += animationLerpSpeed * delta * (hasWaiting ? 1.2f : 1f);
             if (animationLerp < 0) { animationLerp = 0; }
             if (animationLerp > 1) { animationLerp = 1; }
             if (animation != null && !paused && speed != 0.0F) {
@@ -86,8 +86,6 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
             switch(endtype) {
                 case NONE:
                 case STOP:
-                    if (nextFrame >= animation.getFrameCount()) { nextFrame = frame; }
-                    break;
                 case PAUSE:
                     if (nextFrame >= animation.getFrameCount()) { nextFrame = frame; }
                     if (nextFrame < 0) { nextFrame = 0; }
@@ -113,6 +111,13 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
                 switch(endtype) {
                     case NONE:
                     case STOP:
+                        if (speed > 0.0D) {
+                            frame = animation.getFrameCount() - 1;
+                            lerpedFrame = (float)(animation.getFrameCount() - 1);
+                        } else if (speed < 0.0D) {
+                            frame = 0;
+                            lerpedFrame = 0.0F;
+                        }
                         stopped = true;
                         break;
                     case PAUSE:

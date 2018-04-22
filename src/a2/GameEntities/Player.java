@@ -81,6 +81,7 @@ public class Player extends GameEntity implements Attackable {
                 robo.loadAnimation("idle", "idle.rka");
                 robo.loadAnimation("run", "run.rka");
                 robo.loadAnimation("sidestep", "sidestep.rka");
+                robo.loadAnimation("jump", "jump.rka");
 
                 Texture texture = sm.getTextureManager().getAssetByPath("robo_uv.png");
                 TextureState textureState = (TextureState)sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
@@ -209,8 +210,8 @@ public class Player extends GameEntity implements Attackable {
         controller.knockback(null);
     }
 
-    public void animate(String animName, float animSpeed) {
+    public void animate(String animName, float animSpeed, SkeletalEntity.EndType endType) {
         if (robo == null) { return; }
-        robo.playAnimation(animName, animSpeed, SkeletalEntity.EndType.LOOP, 0);
+        robo.playAnimation(animName, animSpeed, endType, 0);
     }
 }
