@@ -50,6 +50,10 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
     private Matrix4[] curSkinMatrices;
     private Matrix3[] curSkinMatricesIT;
 
+    private HashMap<Integer, Vector3> boneScaleOverride = new HashMap();
+    private HashMap<Integer, Quaternion> boneRotationOverride = new HashMap();
+    private HashMap<Integer, Vector3> boneLocationOverride = new HashMap();
+
     GenericSkeletalEntity(SceneManager manager, String name, Mesh m, Skeleton s) {
         super(manager, name);
         this.curAnimEndtype = EndType.NONE;
@@ -144,6 +148,11 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
             Vector3 loc = this.curAnimation.getFrameBoneLoc(this.curAnimFrame, i)
                     .lerp(this.curAnimation.getFrameBoneLoc(this.nextAnimFrame, i), this.lerpScale); /* MyChange: added lerping */
 
+            /* MyChange: added overrides */
+            if (boneScaleOverride.containsKey(i)) { scale = boneScaleOverride.get(i); }
+            if (boneRotationOverride.containsKey(i)) { rot = boneRotationOverride.get(i); }
+            if (boneLocationOverride.containsKey(i)) { loc = boneLocationOverride.get(i); }
+            
             Matrix4 mat = Matrix4f.createScalingFrom(scale);
             mat = Matrix4f.createRotationFrom(rot.angle(), this.getQuatAxis(rot)).mult(mat);
             mat = Matrix4f.createTranslationFrom(loc).mult(mat);
@@ -296,6 +305,58 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
         this.curAnimSpeed = 1.0F;
         this.curAnimEndTypeCount = 0;
         this.curAnimEndTypeTotal = 0;
+    }
+
+    private int getBoneIndex(String boneName) { /* MyChange: added bone index lookup */
+        String[] boneNames = skeleton.getBoneNames();
+        for (int i = 0; i < boneNames.length; i++) {
+            if (boneNames[i].compareTo(boneName) == 0) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public void addScaleOverride(String boneName, Vector3 scale) { /* MyChange: added override */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneScaleOverride.put(index, scale);
+    }
+
+    @Override
+    public void removeScaleOverride(String boneName) { /* MyChange: added override */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneScaleOverride.remove(index);
+    }
+
+    @Override
+    public void addRotationOverride(String boneName, Quaternion rotation) { /* MyChange: added override */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneRotationOverride.put(index, rotation);
+    }
+
+    @Override
+    public void removeRotationOverride(String boneName) { /* MyChange: added override */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneRotationOverride.remove(index);
+    }
+
+    @Override
+    public void addLocationOverride(String boneName, Vector3 location) { /* MyChange: added override */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneLocationOverride.put(index, location);
+    }
+
+    @Override
+    public void removeLocationOverride(String boneName) { /* MyChange: added override */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneLocationOverride.remove(index);
     }
 
     public void loadAnimation(String animName, String animationPath) throws IOException {

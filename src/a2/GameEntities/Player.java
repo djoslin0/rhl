@@ -154,7 +154,10 @@ public class Player extends GameEntity implements Attackable {
     @Override
     public void update(float delta) {
         super.update(delta);
-        if (!local) { robo.update(delta); }
+        if (!local) {
+            robo.addRotationOverride("head", cameraNode.getLocalRotation().toQuaternion());
+            robo.update(delta);
+        }
     }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
