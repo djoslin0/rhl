@@ -429,9 +429,15 @@ public class CharacterController extends InternalTickCallback {
         if (moveForward && !moveBackward) {
             if (animation != "runforward") { player.animate("run", 0.085f); }
             animation = "runforward";
-        } else if (!moveForward && moveBackward) {
+        } else if (moveBackward && !moveForward) {
             if (animation != "runback") { player.animate("run", -0.085f); }
             animation = "runback";
+        } else if (moveRight && !moveLeft) {
+            if (animation != "sidestep_right") { player.animate("sidestep", 0.12f); }
+            animation = "sidestep_right";
+        } else if (moveLeft && !moveRight) {
+            if (animation != "sidestep_left") { player.animate("sidestep", -0.12f); }
+            animation = "sidestep_left";
         } else {
             if (animation != "idle") { player.animate("idle", 0.04f); }
             animation = "idle";

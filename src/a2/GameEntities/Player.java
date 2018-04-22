@@ -18,10 +18,7 @@ import ray.rage.rendersystem.Renderable;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
 import ray.rage.scene.*;
-import ray.rml.Matrix3;
-import ray.rml.Matrix3f;
-import ray.rml.Vector3;
-import ray.rml.Vector3f;
+import ray.rml.*;
 
 import java.awt.*;
 import java.io.IOException;
@@ -83,6 +80,7 @@ public class Player extends GameEntity implements Attackable {
                 robo = sm.createSkeletalEntity("robo" + name, "robo.rkm", "robo.rks");
                 robo.loadAnimation("idle", "idle.rka");
                 robo.loadAnimation("run", "run.rka");
+                robo.loadAnimation("sidestep", "sidestep.rka");
 
                 Texture texture = sm.getTextureManager().getAssetByPath("robo_uv.png");
                 TextureState textureState = (TextureState)sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
