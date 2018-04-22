@@ -38,6 +38,7 @@ public class CharacterController extends InternalTickCallback {
 
     // track in history
     private boolean wasOnGround;
+    private boolean wasJumping;
     private boolean moveLeft;
     private boolean moveRight;
     private boolean moveForward;
@@ -60,6 +61,7 @@ public class CharacterController extends InternalTickCallback {
     private final float maxCrouchSpeed = 10;
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
+    private final int jumpTickTimeout = 6;
 
     public CharacterController(Player player) {
         this.player = player;
@@ -80,7 +82,7 @@ public class CharacterController extends InternalTickCallback {
         controls |= (moveRight ? 1 : 0) << 1;
         controls |= (moveForward ? 1 : 0) << 2;
         controls |= (moveBackward ? 1 : 0) << 3;
-        controls |= (jumping ? 1 : 0) << 4;
+        controls |= (jumpTicks > 0 ? 1 : 0) << 4;
         controls |= (attacking ? 1 : 0) << 5;
         controls |= (crouching ? 1 : 0) << 6;
         controls |= (wrapYaw ? 1 : 0) << 7;
@@ -403,6 +405,8 @@ public class CharacterController extends InternalTickCallback {
     }
 
     private void checkJump() {
+        wasJumping = jumping;
+
         if (jumpTicks > 0) {
             // prevent onGround status for a few ticks after starting jump
             jumpTicks--;
@@ -419,33 +423,49 @@ public class CharacterController extends InternalTickCallback {
         if (!onGround) { return; }
 
         // jump off the ground
-        linearVelocity.add(normal.mult(12).toJavaX());
-        onGround = false;
-        normal = Vector3f.createUnitVectorY();
-        jumpTicks = 8;
+        if (player.isLocal()) {
+            linearVelocity.add(normal.mult(12).toJavaX());
+            onGround = false;
+            normal = Vector3f.createUnitVectorY();
+            jumpTicks = jumpTickTimeout;
+        }
     }
 
     private void checkAnimation() {
-        if (!onGround) {
-            if (animation != "jump") { player.animate("jump", 0.04f, SkeletalEntity.EndType.NONE); }
+        if (wasJumping) {
+            if (animation != "jump") { player.animate("jump", 0.04f, SkeletalEntity.EndType.NONE, false); }
             animation = "jump";
             return;
         }
+
+        if (!onGround) {
+            if (animation != "falling") { player.animate("falling", 0.025f, SkeletalEntity.EndType.LOOP, true); }
+            animation = "falling";
+            return;
+        }
+
+        if (onGround && !wasOnGround) {
+            if (animation != "landing") { player.animate("land", 0.025f, SkeletalEntity.EndType.NONE, false); }
+            animation = "landing";
+            return;
+        }
+
         if (moveForward && !moveBackward) {
-            if (animation != "runforward") { player.animate("run", 0.085f, SkeletalEntity.EndType.LOOP); }
+            if (animation != "runforward") { player.animate("run", 0.095f, SkeletalEntity.EndType.LOOP, true); }
             animation = "runforward";
         } else if (moveBackward && !moveForward) {
-            if (animation != "runback") { player.animate("run", -0.085f, SkeletalEntity.EndType.LOOP); }
+            if (animation != "runback") { player.animate("run", -0.095f, SkeletalEntity.EndType.LOOP, true); }
             animation = "runback";
         } else if (moveRight && !moveLeft) {
-            if (animation != "sidestep_right") { player.animate("sidestep", 0.12f, SkeletalEntity.EndType.LOOP); }
+            if (animation != "sidestep_right") { player.animate("sidestep", 0.12f, SkeletalEntity.EndType.LOOP, true); }
             animation = "sidestep_right";
         } else if (moveLeft && !moveRight) {
-            if (animation != "sidestep_left") { player.animate("sidestep", -0.12f, SkeletalEntity.EndType.LOOP); }
+            if (animation != "sidestep_left") { player.animate("sidestep", -0.12f, SkeletalEntity.EndType.LOOP, true); }
             animation = "sidestep_left";
         } else {
-            if (animation != "idle") { player.animate("idle", 0.04f, SkeletalEntity.EndType.LOOP); }
+            if (animation != "idle") { player.animate("idle", 0.04f, SkeletalEntity.EndType.LOOP, true); }
             animation = "idle";
+
         }
     }
 

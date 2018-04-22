@@ -50,6 +50,7 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
         public boolean stopped = false;
         public float animationLerp = 0;
         public float animationLerpSpeed = 0.0065f;
+        public boolean interruptable = true;
 
         public Vector3 getBoneScale(int i) {
             return animation.getFrameBoneScl(frame, i).lerp(animation.getFrameBoneScl(nextFrame, i), this.lerpScale); /* MyChange: lerping */
@@ -70,6 +71,7 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
             if (animation != null && !paused && speed != 0.0F) {
                 lerpedFrame += speed * delta;
                 lerpScale = lerpedFrame - (int)lerpedFrame;  /* MyChange: added for lerping */
+                if (speed < 0) { lerpScale = 1f - lerpScale; }
                 if (lerpScale < 0) { lerpScale = 0; }
                 if (lerpScale > 1) { lerpScale = 1; }
                 frame = (int)(lerpedFrame); /* MyChange: changed round function */
@@ -306,7 +308,12 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
     }
 
     private void updateAnimation(float delta) {  /* MyChange: added delta for framerate independence */
-        if (curAnimState != null) { curAnimState.update(delta, waitingAnimState != null); }
+        if (curAnimState != null) {
+            curAnimState.update(delta, waitingAnimState != null);
+            if (!curAnimState.interruptable && !curAnimState.stopped) {
+                return;
+            }
+        }
         if (nextAnimState != null) {
             nextAnimState.update(delta, waitingAnimState != null);
             if (curAnimState == null || nextAnimState.animationLerp >= 1) {
@@ -317,7 +324,7 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
         }
     }
 
-    public void playAnimation(String animName, float animSpeed, EndType endType, int endTypeCount) {
+    public void playAnimation(String animName, float animSpeed, EndType endType, int endTypeCount, boolean interruptable) { /* MyChange: added interruptable */
         Animation anim = (Animation)this.animationsList.get(animName);
         if (anim != null) { /* MyChange: added anim states */
             AnimationState state = new AnimationState();
@@ -337,6 +344,7 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
             }
             state.paused = false;
             state.stopped = false;
+            state.interruptable = interruptable;
 
             if (curAnimState == null) {
                 curAnimState = state;

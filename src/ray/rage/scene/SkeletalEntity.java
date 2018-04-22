@@ -15,7 +15,7 @@ public interface SkeletalEntity extends Entity {
 
     void loadAnimation(String animName, String animationPath) throws IOException;
 
-    void playAnimation(String animName, float animSpeed, EndType endType, int endTypeCount);
+    void playAnimation(String animName, float animSpeed, EndType endType, int endTypeCount, boolean interruptable); /* MyChange: added interruptable */
 
     void pauseAnimation();
 
