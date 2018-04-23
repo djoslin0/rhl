@@ -30,6 +30,12 @@ public class Settings {
 
     public Double goalDistance;
 
+    public Double debug1;
+    public Double debug2;
+    public Double debug3;
+    public Double debug4;
+    public Double debug5;
+
     public static void initScript() {
         ScriptEngineManager factory = new ScriptEngineManager();
         instance.jsEngine = factory.getEngineByName("js");
@@ -55,6 +61,12 @@ public class Settings {
             instance.terrainSpecular = (Color)(instance.jsEngine.eval("terrainSpecular"));
 
             instance.goalDistance = (Double)(instance.jsEngine.eval("goalDistance"));
+
+            instance.debug1 = (Double)(instance.jsEngine.eval("debug1"));
+            instance.debug2 = (Double)(instance.jsEngine.eval("debug2"));
+            instance.debug3 = (Double)(instance.jsEngine.eval("debug3"));
+            instance.debug4 = (Double)(instance.jsEngine.eval("debug4"));
+            instance.debug5 = (Double)(instance.jsEngine.eval("debug5"));
 
         } catch (FileNotFoundException e) {
             System.out.println(instance.scriptFile + " not found " + e);
