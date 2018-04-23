@@ -2,6 +2,7 @@ package a2.Contollers;
 
 import Networking.PacketAttack;
 import Networking.UDPClient;
+import Networking.UDPServer;
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
 import a2.GameEntities.Attackable;
@@ -16,6 +17,7 @@ import myGameEngine.GameEntities.Terrain;
 import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.PhysicsManager;
+import myGameEngine.Singletons.Settings;
 import ray.rage.scene.SceneNode;
 import ray.rage.scene.SkeletalEntity;
 import ray.rml.*;
@@ -35,6 +37,9 @@ public class CharacterController extends InternalTickCallback {
     private Vector3 normal;
     private float groundY;
     private String animation = "";
+    private int knockDirection = 0;
+    private float knockPitch = 0;
+    private boolean knockPitchReached = true;
 
     // track in history
     private boolean wasOnGround;
@@ -153,8 +158,16 @@ public class CharacterController extends InternalTickCallback {
         knockbackTimeout = (vec != null) ? (int)(vec.length() / 10f) : 10;
         if (knockbackTimeout > 100) { knockbackTimeout = 100; }
 
-        if (vec == null) { return; }
-        body.applyCentralImpulse(vec.toJavaX());
+        if (vec.length() >= 1000f) {
+            knockDirection = vec.dot(player.getCameraNode().getWorldForwardAxis()) > 0 ? -1 : 1;
+            knockPitchReached = false;
+        }
+
+        if (player.isLocal() || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
+            javax.vecmath.Vector3f finalVec = vec.toJavaX();
+            finalVec.y *= 0.8f;
+            body.applyCentralImpulse(finalVec);
+        }
     }
 
     private float twoDimensionalLength(javax.vecmath.Vector3f vec) {
@@ -173,16 +186,24 @@ public class CharacterController extends InternalTickCallback {
     private void groundTrace() {
         // make many raycasts around the player's position in order to determine if they are on the ground
         float stepSize = 0.1f; // defines how far from the origin to check
+        float downDist = 2.1f;
         normal = null;
         groundY = node.getWorldPosition().y();
         onGround = false;
+
+        if (linearVelocity.y > 4) {
+            // if we're moving upward we can not be on the ground
+            normal = Vector3f.createUnitVectorY();
+            onGround = false;
+            return;
+        }
 
         // trace 9 times
         for (int x = -1; x <= 1; x += 2) {
             for (int z = -1; z <= 1; z += 2) {
                 // setup trace
                 Vector3 from = node.getWorldPosition().add(x * stepSize, 0, z * stepSize);
-                Vector3 to = node.getWorldPosition().sub(0, 2, 0);
+                Vector3 to = node.getWorldPosition().sub(0, downDist, 0);
                 CollisionWorld.ClosestRayResultCallback trace = new CollisionWorld.ClosestRayResultCallback(from.toJavaX(), to.toJavaX());
                 PhysicsManager.getWorld().rayTest(from.toJavaX(), to.toJavaX(), trace);
 
@@ -202,7 +223,7 @@ public class CharacterController extends InternalTickCallback {
         // check terrain
         if (terrain != null) {
             float terrainHeight = terrain.getHeight(node.getWorldPosition());
-            if ((!onGround || terrainHeight > groundY) && node.getWorldPosition().y() - 2 < terrainHeight) {
+            if ((!onGround || terrainHeight > groundY) && node.getWorldPosition().y() - downDist < terrainHeight) {
                 onGround = true;
                 groundY = terrain.getHeight(node.getWorldPosition());
                 normal = terrain.getNormal(node.getWorldPosition(), node.getWorldForwardAxis(), node.getWorldRightAxis());
@@ -275,7 +296,7 @@ public class CharacterController extends InternalTickCallback {
         Vector3 movement = getMovementDirection().mult(acceleration);
 
         // apply friction
-        float friction = MathHelper.lerp(groundFriction, 1, knockbackTimeout / 100f);
+        float friction = MathHelper.lerp(groundFriction, 1, Math.pow(knockbackTimeout / 100f, 0.5f));
         if (friction > 1) { friction = 1; }
         linearVelocity.scale(friction);
 
@@ -308,6 +329,7 @@ public class CharacterController extends InternalTickCallback {
         // remove gravity
         gravity.y = 0;
         body.setGravity(gravity);
+        if (linearVelocity.y < 0) { linearVelocity.y = 0; }
 
         // hover character slightly above the ground
         // this is so we don't bounce off ramps and changing elevations
@@ -447,8 +469,64 @@ public class CharacterController extends InternalTickCallback {
         }
     }
 
-    private void checkAnimation() {
+    private void applyKnockPitch() {
+        // add knockback
+        SkeletalEntity robo = player.getRobo();
+        if (knockPitchReached) {
+            // we reached our peak and have begun decreasing
+            boolean knockPitchSign = (knockPitch >= 0);
+            knockPitch -= knockDirection * 0.02f;
+            if ((knockPitch >= 0) != knockPitchSign) {
+                // we crossed knockPitch = 0, stop applying pitch
+                knockDirection = 0;
+                robo.removeRotationAdditive("torso");
+                robo.removeRotationOverride("shoulder_L");
+                robo.removeRotationOverride("shoulder_R");
+                robo.removeRotationOverride("hip_R");
+                robo.removeRotationOverride("hip_L");
+                robo.removeLocationAdditive("torso");
+                return;
+            }
+        } else {
+            // we are approaching our peak
+            knockPitch += knockDirection * 0.05f;
+            if (Math.abs(knockPitch) >= 0.8f) {
+                // we have reached our peak, decrease afterward
+                knockPitchReached = true;
+            }
+        }
 
+        // rotations
+        Matrix3 pz = Matrix3f.createFrom(0, 0, knockPitch);
+        robo.addRotationAdditive("torso", pz.toQuaternion());
+
+        Matrix3 pny = Matrix3f.createFrom(0, -knockPitch, 0);
+        robo.addRotationOverride("shoulder_L", pny.toQuaternion());
+        robo.addRotationOverride("shoulder_R", pny.toQuaternion());
+        robo.addRotationOverride("hip_R", pny.toQuaternion());
+
+        Matrix3 py = Matrix3f.createFrom(0, knockPitch, 0);
+        robo.addRotationOverride("hip_L", py.toQuaternion());
+
+        Matrix3 px = Matrix3f.createFrom(knockPitch, 0, 0);
+
+        // torso location offset
+        if (knockPitch > 0) {
+            if (crouching) {
+                robo.addLocationAdditive("torso", Vector3f.createFrom(-1.0f, -0.4f, 0.0f).mult(knockPitch * 0.4f));
+            } else {
+                robo.addLocationAdditive("torso", Vector3f.createFrom(-0.3f, -0.6f, 0.0f).mult(knockPitch * 1.0f));
+            }
+        } else {
+            if (crouching) {
+                robo.addLocationAdditive("torso", Vector3f.createFrom(-0.6f, 0.2f, 0.0f).mult(knockPitch * 1.0f));
+            } else {
+                robo.addLocationAdditive("torso", Vector3f.createFrom(-0.6f, -0.1f, 0.0f).mult(knockPitch * 1.0f));
+            }
+        }
+    }
+
+    private void checkAnimation() {
         SkeletalEntity robo = player.getRobo();
         if (robo != null) {
             // align head to camera pitch
@@ -465,11 +543,15 @@ public class CharacterController extends InternalTickCallback {
                 pitch_upper += Math.sin(attackScale * Math.PI) * 2f;
                 pitch_lower -= Math.sin(attackScale * Math.PI) * 0.5f;
             }
-            Matrix3 m = Matrix3f.createFrom(0, 0, pitch_upper);
-            robo.addRotationOverride("arm_upper_R", m.toQuaternion());
+            Matrix3 armUpper = Matrix3f.createFrom(0, 0, pitch_upper);
+            robo.addRotationOverride("arm_upper_R", armUpper.toQuaternion());
 
-            Matrix3 m2 = Matrix3f.createFrom(pitch_lower, 0, 0);
-            robo.addRotationOverride("arm_lower_R", m2.toQuaternion());
+            Matrix3 armLower = Matrix3f.createFrom(pitch_lower, 0, 0);
+            robo.addRotationOverride("arm_lower_R", armLower.toQuaternion());
+
+            if (knockDirection != 0) {
+                applyKnockPitch();
+            }
         }
 
         if (wasJumping) {

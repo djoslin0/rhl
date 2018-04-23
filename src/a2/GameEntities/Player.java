@@ -205,12 +205,7 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public void attacked(Vector3 aim, Vector3 relative) {
-        if (local || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
-            javax.vecmath.Vector3f force = aim.mult(6000f).toJavaX();
-            body.applyImpulse(force, relative.toJavaX());
-            body.activate();
-        }
-        controller.knockback(null);
+        controller.knockback(aim.mult(2500f));
     }
 
     public void animate(String animName, float animSpeed, SkeletalEntity.EndType endType, boolean interruptable) {

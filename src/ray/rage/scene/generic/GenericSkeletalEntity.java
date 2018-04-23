@@ -172,7 +172,9 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
 
     private HashMap<Integer, Vector3> boneScaleOverride = new HashMap();
     private HashMap<Integer, Quaternion> boneRotationOverride = new HashMap();
+    private HashMap<Integer, Quaternion> boneRotationAdditive = new HashMap();
     private HashMap<Integer, Vector3> boneLocationOverride = new HashMap();
+    private HashMap<Integer, Vector3> boneLocationAdditive = new HashMap();
 
     GenericSkeletalEntity(SceneManager manager, String name, Mesh m, Skeleton s) {
         super(manager, name);
@@ -271,7 +273,9 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
             /* MyChange: added overrides */
             if (boneScaleOverride.containsKey(i)) { scale = boneScaleOverride.get(i); }
             if (boneRotationOverride.containsKey(i)) { rot = boneRotationOverride.get(i); }
+            if (boneRotationAdditive.containsKey(i)) { rot = rot.mult(boneRotationAdditive.get(i)); }
             if (boneLocationOverride.containsKey(i)) { loc = boneLocationOverride.get(i); }
+            if (boneLocationAdditive.containsKey(i)) { loc = loc.add(boneLocationAdditive.get(i)); }
 
             Matrix4 mat = Matrix4f.createScalingFrom(scale);
             mat = Matrix4f.createRotationFrom(rot.angle(), this.getQuatAxis(rot)).mult(mat);
@@ -405,6 +409,21 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
     }
 
     @Override
+    public void addRotationAdditive(String boneName, Quaternion rotation) { /* MyChange: added additive */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneRotationAdditive.put(index, rotation);
+
+    }
+
+    @Override
+    public void removeRotationAdditive(String boneName) { /* MyChange: added additive */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneRotationAdditive.remove(index);
+    }
+
+    @Override
     public void addLocationOverride(String boneName, Vector3 location) { /* MyChange: added override */
         int index = getBoneIndex(boneName);
         if (index == -1) { return; }
@@ -416,6 +435,20 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
         int index = getBoneIndex(boneName);
         if (index == -1) { return; }
         boneLocationOverride.remove(index);
+    }
+
+    @Override
+    public void addLocationAdditive(String boneName, Vector3 location) { /* MyChange: added additive */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneLocationAdditive.put(index, location);
+    }
+
+    @Override
+    public void removeLocationAdditive(String boneName) { /* MyChange: added additive */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return; }
+        boneLocationAdditive.remove(index);
     }
 
     public void loadAnimation(String animName, String animationPath) throws IOException {
