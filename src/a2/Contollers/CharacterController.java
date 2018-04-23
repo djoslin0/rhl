@@ -61,7 +61,7 @@ public class CharacterController extends InternalTickCallback {
     private final float maxCrouchSpeed = 10;
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
-    private final int jumpTickTimeout = 6;
+    private final int jumpTickTimeout = 8;
 
     public CharacterController(Player player) {
         this.player = player;
@@ -450,6 +450,26 @@ public class CharacterController extends InternalTickCallback {
             return;
         }
 
+        if (crouching) {
+            if (moveForward && !moveBackward) {
+                if (animation != "crouch_walk_forward") { player.animate("crouch_walk", 0.1f, SkeletalEntity.EndType.LOOP, true); }
+                animation = "crouch_walk_forward";
+            } else if (moveBackward && !moveForward) {
+                if (animation != "crouch_walk_backward") { player.animate("crouch_walk", -0.1f, SkeletalEntity.EndType.LOOP, true); }
+                animation = "crouch_walk_backward";
+            } else if (moveRight && !moveLeft) {
+                if (animation != "crouch_sidestep_right") { player.animate("crouch_sidestep", 0.12f, SkeletalEntity.EndType.LOOP, true); }
+                animation = "crouch_sidestep_right";
+            } else if (moveLeft && !moveRight) {
+                if (animation != "crouch_sidestep_left") { player.animate("crouch_sidestep", -0.12f, SkeletalEntity.EndType.LOOP, true); }
+                animation = "crouch_sidestep_left";
+            } else {
+                if (animation != "crouch_idle") { player.animate("crouch_idle", 0.04f, SkeletalEntity.EndType.LOOP, true); }
+                animation = "crouch_idle";
+            }
+            return;
+        }
+
         if (moveForward && !moveBackward) {
             if (animation != "runforward") { player.animate("run", 0.095f, SkeletalEntity.EndType.LOOP, true); }
             animation = "runforward";
@@ -465,7 +485,6 @@ public class CharacterController extends InternalTickCallback {
         } else {
             if (animation != "idle") { player.animate("idle", 0.04f, SkeletalEntity.EndType.LOOP, true); }
             animation = "idle";
-
         }
     }
 

@@ -84,6 +84,9 @@ public class Player extends GameEntity implements Attackable {
                 robo.loadAnimation("jump", "jump.rka");
                 robo.loadAnimation("falling", "falling.rka");
                 robo.loadAnimation("land", "land.rka");
+                robo.loadAnimation("crouch_idle", "crouch_idle.rka");
+                robo.loadAnimation("crouch_walk", "crouch_walk.rka");
+                robo.loadAnimation("crouch_sidestep", "crouch_sidestep.rka");
 
                 Texture texture = sm.getTextureManager().getAssetByPath("robo_uv.png");
                 TextureState textureState = (TextureState)sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
