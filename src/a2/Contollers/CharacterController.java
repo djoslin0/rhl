@@ -39,6 +39,7 @@ public class CharacterController extends InternalTickCallback {
     // track in history
     private boolean wasOnGround;
     private boolean wasJumping;
+    private boolean wasAttacking;
     private boolean moveLeft;
     private boolean moveRight;
     private boolean moveForward;
@@ -48,6 +49,7 @@ public class CharacterController extends InternalTickCallback {
     private boolean attacking;
     private boolean wrapYaw;
     private int jumpTicks;
+    private int attackTicks;
     private Vector3 lastMovement = Vector3f.createZeroVector();
     private int knockbackTimeout = 0;
     private int ignoreKnockTimeout = 0;
@@ -62,6 +64,7 @@ public class CharacterController extends InternalTickCallback {
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
     private final int jumpTickTimeout = 8;
+    private final int attackTickTimeout = 40;
 
     public CharacterController(Player player) {
         this.player = player;
@@ -83,7 +86,7 @@ public class CharacterController extends InternalTickCallback {
         controls |= (moveForward ? 1 : 0) << 2;
         controls |= (moveBackward ? 1 : 0) << 3;
         controls |= (jumpTicks > 0 ? 1 : 0) << 4;
-        controls |= (attacking ? 1 : 0) << 5;
+        controls |= (attackTicks > 0 ? 1 : 0) << 5;
         controls |= (crouching ? 1 : 0) << 6;
         controls |= (wrapYaw ? 1 : 0) << 7;
         return controls;
@@ -368,8 +371,18 @@ public class CharacterController extends InternalTickCallback {
     }
 
     private void checkAttack() {
+        wasAttacking = attacking;
+
+        if (attackTicks > 0) {
+            // prevent onGround status for a few ticks after starting attack
+            attackTicks--;
+            return;
+        }
+
         if (!attacking) { return; }
         attacking = false;
+
+        attackTicks = attackTickTimeout;
 
         if (!player.isLocal()) { return; }
 
@@ -386,7 +399,10 @@ public class CharacterController extends InternalTickCallback {
 
         // figure out which id/attackable is being attacked
         Attackable attackable = getAttackable(closest.collisionObject);
-        if (attackable == null) { return; }
+        if (attackable == null) {
+            //UDPClient.send(new PacketAttack((byte)-2, cameraNode.getWorldForwardAxis(), Vector3f.createZeroVector()));
+            return;
+        }
 
         Transform t = new Transform();
         RigidBody rb = (RigidBody) closest.collisionObject;
@@ -432,6 +448,30 @@ public class CharacterController extends InternalTickCallback {
     }
 
     private void checkAnimation() {
+
+        SkeletalEntity robo = player.getRobo();
+        if (robo != null) {
+            // align head to camera pitch
+            robo.addRotationOverride("head", cameraNode.getLocalRotation().toQuaternion());
+
+            // align arm to camera pitch
+            float pitch_upper = (float) (cameraNode.getLocalRotation().getPitch() / 2f - Math.PI / 3.5f);
+            float pitch_lower = (float) (cameraNode.getLocalRotation().getPitch() / 1.9f + Math.PI / -2.5f);
+
+            if (attackTicks > 0) {
+                float attackScale = (attackTicks / (float)attackTickTimeout);
+                attackScale *= attackScale;
+                attackScale = 1f - attackScale;
+                pitch_upper += Math.sin(attackScale * Math.PI) * 2f;
+                pitch_lower -= Math.sin(attackScale * Math.PI) * 0.5f;
+            }
+            Matrix3 m = Matrix3f.createFrom(0, 0, pitch_upper);
+            robo.addRotationOverride("arm_upper_R", m.toQuaternion());
+
+            Matrix3 m2 = Matrix3f.createFrom(pitch_lower, 0, 0);
+            robo.addRotationOverride("arm_lower_R", m2.toQuaternion());
+        }
+
         if (wasJumping) {
             if (animation != "jump") { player.animate("jump", 0.04f, SkeletalEntity.EndType.NONE, false); }
             animation = "jump";

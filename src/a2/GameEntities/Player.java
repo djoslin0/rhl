@@ -154,14 +154,12 @@ public class Player extends GameEntity implements Attackable {
     public SceneNode getCameraNode() { return cameraNode; }
     public RigidBody getBody() { return body; }
     public CharacterController getController() { return controller; }
+    public SkeletalEntity getRobo() { return robo; }
 
     @Override
     public void update(float delta) {
         super.update(delta);
-        if (!local) {
-            robo.addRotationOverride("head", cameraNode.getLocalRotation().toQuaternion());
-            robo.update(delta);
-        }
+        if (robo != null) { robo.update(delta); }
     }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
