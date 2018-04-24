@@ -12,8 +12,10 @@ import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
+import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.TimeManager;
 import ray.rage.asset.texture.Texture;
+import ray.rage.rendersystem.RenderWindow;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
@@ -29,20 +31,17 @@ public class Player extends GameEntity implements Attackable {
     private SceneNode headNode;
     private RigidBody body;
     private CharacterController controller;
+    private SkeletalEntity robo;
     private Glove glove;
     private byte playerId;
     private byte playerSide;
     private boolean local;
     public short lastReceivedTick;
 
-
-    private SkeletalEntity robo;
-
     public static float height = 1.6f;
     public static float crouchHeight = 0.75f;
     public static float cameraHeight = 1.2f;
     public static float cameraCrouchHeight = -0.45f;
-
 
     public Player(byte playerId, boolean local, byte side, Vector3 location) {
         super(true);
@@ -81,7 +80,15 @@ public class Player extends GameEntity implements Attackable {
         }
 
         // load character
-        if (!local) { loadCharacter(name); }
+        if (local) {
+            loadLocalCharacter(name);
+        } else {
+            loadRemoteCharacter(name);
+        }
+
+        // attach glove to hands
+        glove = new Glove(this, name, handNode);
+
 
         // store tick
         lastReceivedTick = TimeManager.getTick();
@@ -90,7 +97,13 @@ public class Player extends GameEntity implements Attackable {
         initPhysics();
     }
 
-    private void loadCharacter(String name) {
+    private void loadLocalCharacter(String name) {
+        // right hand
+        handNode = cameraNode.createChildSceneNode(name + "HandNode");
+        handNode.setLocalPosition(0.2f, -0.1f, 0f);
+    }
+
+    private void loadRemoteCharacter(String name) {
         try {
             SceneManager sm = EngineManager.getSceneManager();
 
@@ -123,9 +136,6 @@ public class Player extends GameEntity implements Attackable {
             // track right hand
             handNode = roboNode.createChildSceneNode(name + "HandNode");
             handNode.setLocalScale(100f, 100f, 100f);
-
-            // attach glove to hand
-            glove = new Glove(this, name, handNode);
 
             // hide normal glove
             robo.addScaleOverride("hand_R", Vector3f.createFrom(0.01f, 0.01f, 0.01f));
@@ -259,6 +269,13 @@ public class Player extends GameEntity implements Attackable {
     @Override
     public void update(float delta) {
         super.update(delta);
+
+        RenderWindow rw = EngineManager.getRenderWindow();
+        float aspectRatio = (float)rw.getWidth() / (float)rw.getHeight();
+        myGameEngine.Singletons.Settings.runScript();
+        System.out.println(aspectRatio);
+        Vector3 handOffset = Vector3f.createFrom(-0.7f, -0.6f, -0.8f).mult((float)aspectRatio * Settings.get().debug1.floatValue());
+        handNode.setLocalPosition(handOffset);
         if (robo != null) {
             // update animations
             robo.update(delta);

@@ -30,18 +30,22 @@ public class Glove extends GameEntity {
 
     private static float speed = 0.003f;
 
-    public Glove(Player player, String playerName, SceneNode handNode) throws IOException {
+    public Glove(Player player, String playerName, SceneNode handNode) {
         super(true);
 
         SceneManager sm = EngineManager.getSceneManager();
 
-        obj = sm.createEntity(playerName + "Glove", "glove.obj");
-        addResponsibility(obj);
-        obj.setPrimitive(Renderable.Primitive.TRIANGLES);
+        try {
+            obj = sm.createEntity(playerName + "Glove", "glove.obj");
+            addResponsibility(obj);
+            obj.setPrimitive(Renderable.Primitive.TRIANGLES);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
 
         node = sm.getRootSceneNode().createChildSceneNode(playerName + "GloveObjNode");
         addResponsibility(node);
-        node.setLocalScale(100f, 100f, 100f);
+        if (!player.isLocal()) { node.setLocalScale(100f, 100f, 100f); }
 
         this.player = player;
         this.handNode = handNode;

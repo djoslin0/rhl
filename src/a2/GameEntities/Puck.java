@@ -125,7 +125,7 @@ public class Puck extends GameEntity implements Attackable {
 
     @Override
     public byte getId() {
-        return -1;
+        return 0;
     }
 
     public String listedName() { return "puck"; }

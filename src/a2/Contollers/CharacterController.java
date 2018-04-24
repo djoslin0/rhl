@@ -421,12 +421,18 @@ public class CharacterController extends InternalTickCallback {
 
         PhysicsManager.getWorld().rayTest(from, to, closest);
 
-        if (!closest.hasHit()) { return; }
-        if (!(closest.collisionObject instanceof RigidBody)) { return; }
-
         // figure out which id/attackable is being attacked
         Attackable attackable = getAttackable(closest.collisionObject);
-        if (attackable == null) { return; }
+
+        if (!closest.hasHit()
+            || !(closest.collisionObject instanceof RigidBody)
+            || attackable == null) {
+            Vector3 rayEnd = closest.hasHit() ? Vector3f.createFrom(closest.hitPointWorld) : Vector3f.createFrom(closest.rayToWorld);
+            if (UDPClient.hasClient()) {
+                UDPClient.send(new PacketAttack(player.getId(), (byte) -1, cameraNode.getWorldForwardAxis(), rayEnd));
+            }
+            return;
+        }
 
         Transform t = new Transform();
         RigidBody rb = (RigidBody) closest.collisionObject;

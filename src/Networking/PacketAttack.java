@@ -65,8 +65,10 @@ public class PacketAttack extends Packet {
     @Override
     public void receivedOnServer(ClientInfo cli) {
         Player attacker = UDPServer.getPlayer(cli);
-        if (attackedId == -1) {
-            Puck puck = EntityManager.getPuck();
+        Puck puck = EntityManager.getPuck();
+        if (attackedId == (byte)-1) {
+            attacker.getGlove().attack(relative);
+        } else if (attackedId == puck.getId()) {
             attacker.getGlove().attack(puck.getNode().getWorldPosition().add(relative));
             puck.attacked(aim, relative);
         } else {
@@ -84,8 +86,10 @@ public class PacketAttack extends Packet {
     public void receivedOnClient() {
         if (attackerId == UDPClient.getPlayerId()) { return; }
         Player attacker = UDPClient.getPlayer(attackerId);
-        if (attackedId == -1) {
-            Puck puck = EntityManager.getPuck();
+        Puck puck = EntityManager.getPuck();
+        if (attackedId == (byte)-1) {
+            attacker.getGlove().attack(relative);
+        } else if (attackedId == puck.getId()) {
             attacker.getGlove().attack(puck.getNode().getWorldPosition().add(relative));
         } else {
             Player attacked = UDPClient.getPlayer(attackedId);
