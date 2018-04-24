@@ -68,8 +68,8 @@ public class CharacterController extends InternalTickCallback {
     private final float maxCrouchSpeed = 10;
     private final float groundFriction = 0.95f;
     private final float rotationSensititvity = 1;
-    private final int jumpTickTimeout = 8;
-    private final int attackTickTimeout = 40;
+    private final int jumpTickTimeout = 50;
+    private final int attackTickTimeout = 50;
 
     public CharacterController(Player player) {
         this.player = player;
@@ -426,10 +426,7 @@ public class CharacterController extends InternalTickCallback {
 
         // figure out which id/attackable is being attacked
         Attackable attackable = getAttackable(closest.collisionObject);
-        if (attackable == null) {
-            //UDPClient.send(new PacketAttack((byte)-2, cameraNode.getWorldForwardAxis(), Vector3f.createZeroVector()));
-            return;
-        }
+        if (attackable == null) { return; }
 
         Transform t = new Transform();
         RigidBody rb = (RigidBody) closest.collisionObject;
@@ -443,7 +440,7 @@ public class CharacterController extends InternalTickCallback {
         attackable.attacked(aim, relative);
 
         if (UDPClient.hasClient()) {
-            UDPClient.send(new PacketAttack(attackable.getId(), aim, relative));
+            UDPClient.send(new PacketAttack(player.getId(), attackable.getId(), aim, relative));
         }
     }
 

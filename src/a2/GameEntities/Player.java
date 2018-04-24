@@ -29,6 +29,7 @@ public class Player extends GameEntity implements Attackable {
     private SceneNode headNode;
     private RigidBody body;
     private CharacterController controller;
+    private Glove glove;
     private byte playerId;
     private byte playerSide;
     private boolean local;
@@ -121,6 +122,13 @@ public class Player extends GameEntity implements Attackable {
 
             // track right hand
             handNode = roboNode.createChildSceneNode(name + "HandNode");
+            handNode.setLocalScale(100f, 100f, 100f);
+
+            // attach glove to hand
+            glove = new Glove(this, name, handNode);
+
+            // hide normal glove
+            robo.addScaleOverride("hand_R", Vector3f.createFrom(0.01f, 0.01f, 0.01f));
 
             // track head for glowing eyes
             headNode = roboNode.createChildSceneNode(name + "HeadNode");
@@ -194,6 +202,7 @@ public class Player extends GameEntity implements Attackable {
     public byte getId() { return playerId; }
     public byte getSide(){ return playerSide; }
     public boolean isLocal() { return local; }
+    public Glove getGlove() { return glove; }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
 
@@ -255,7 +264,9 @@ public class Player extends GameEntity implements Attackable {
             robo.update(delta);
 
             // update tracked hand
-            handNode.setLocalPosition(robo.getBoneModelTransform("hand_R").column(3).toVector3());
+            Matrix4 handTransform = robo.getBoneModelTransform("hand_R");
+            handNode.setLocalPosition(handTransform.column(3).toVector3());
+            handNode.setLocalRotation(handTransform.toMatrix3());
 
             // update tracked head
             Matrix4 headTransform = robo.getBoneModelTransform("head");

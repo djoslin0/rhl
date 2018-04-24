@@ -1,6 +1,7 @@
 package Networking;
 
 import a2.GameEntities.Player;
+import a2.GameEntities.Puck;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.EntityManager;
@@ -11,14 +12,16 @@ import java.nio.ByteBuffer;
 
 public class PacketAttack extends Packet {
     // read/write variables
-    private byte id;
+    private byte attackerId;
+    private byte attackedId;
     private Vector3 aim;
     private Vector3 relative;
 
     public PacketAttack() {}
 
-    public PacketAttack(byte id, Vector3 aim, Vector3 relative) {
-        this.id = id;
+    public PacketAttack(byte attackerId, byte attackedId, Vector3 aim, Vector3 relative) {
+        this.attackerId = attackerId;
+        this.attackedId = attackedId;
         this.aim = aim;
         this.relative = relative;
     }
@@ -31,8 +34,9 @@ public class PacketAttack extends Packet {
 
     @Override
     public ByteBuffer writeInfo() {
-        ByteBuffer buffer = ByteBuffer.allocate(13);
-        buffer.put(id);
+        ByteBuffer buffer = ByteBuffer.allocate(14);
+        buffer.put(attackerId);
+        buffer.put(attackedId);
         buffer.putShort(NetworkFloat.encode(aim.x()));
         buffer.putShort(NetworkFloat.encode(aim.y()));
         buffer.putShort(NetworkFloat.encode(aim.z()));
@@ -44,7 +48,8 @@ public class PacketAttack extends Packet {
 
     @Override
     public void readInfo(ByteBuffer buffer) {
-        id = buffer.get();
+        attackerId = buffer.get();
+        attackedId = buffer.get();
 
         aim = Vector3f.createFrom(
                 NetworkFloat.decode(buffer.getShort()),
@@ -59,23 +64,33 @@ public class PacketAttack extends Packet {
 
     @Override
     public void receivedOnServer(ClientInfo cli) {
-        if (id == -1) {
-            EntityManager.getPuck().attacked(aim, relative);
+        Player attacker = UDPServer.getPlayer(cli);
+        if (attackedId == -1) {
+            Puck puck = EntityManager.getPuck();
+            attacker.getGlove().attack(puck.getNode().getWorldPosition().add(relative));
+            puck.attacked(aim, relative);
         } else {
-            Player player = UDPServer.getPlayer(id);
-            player.attacked(aim, relative);
+            Player attacked = UDPServer.getPlayer(attackedId);
+            attacker.getGlove().attack(attacked.getNode().getWorldPosition().add(relative));
+            attacked.attacked(aim, relative);
         }
 
         // broadcast
-        PacketAttack attack = new PacketAttack(id, aim, relative);
+        PacketAttack attack = new PacketAttack(attacker.getId(), attackedId, aim, relative);
         UDPServer.sendToAll(attack);
     }
 
     @Override
     public void receivedOnClient() {
-        Player player = UDPClient.getPlayer(id);
-        if (player == null) { return; }
-
-        player.attacked(aim, relative);
+        if (attackerId == UDPClient.getPlayerId()) { return; }
+        Player attacker = UDPClient.getPlayer(attackerId);
+        if (attackedId == -1) {
+            Puck puck = EntityManager.getPuck();
+            attacker.getGlove().attack(puck.getNode().getWorldPosition().add(relative));
+        } else {
+            Player attacked = UDPClient.getPlayer(attackedId);
+            attacker.getGlove().attack(attacked.getNode().getWorldPosition().add(relative));
+            attacked.attacked(aim, relative);
+        }
     }
 }
