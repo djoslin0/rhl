@@ -159,7 +159,7 @@ public class CharacterController extends InternalTickCallback {
         if (knockbackTimeout > 100) { knockbackTimeout = 100; }
 
         if (vec.length() >= 1000f) {
-            knockDirection = vec.dot(player.getCameraNode().getWorldForwardAxis()) > 0 ? -1 : 1;
+            knockDirection = vec.normalize().dot(player.getCameraNode().getWorldForwardAxis()) > 0 ? -1 : 1;
             knockPitchReached = false;
         }
 
@@ -191,19 +191,21 @@ public class CharacterController extends InternalTickCallback {
         groundY = node.getWorldPosition().y();
         onGround = false;
 
-        if (linearVelocity.y > 4) {
-            // if we're moving upward we can not be on the ground
+        if (linearVelocity.y > 4 && ignoreKnockTimeout > 0) {
+            // if we're knocked upward we can not be on the ground
             normal = Vector3f.createUnitVectorY();
             onGround = false;
             return;
         }
 
+        Vector3 worldPosition = node.getWorldPosition();
+
         // trace 9 times
         for (int x = -1; x <= 1; x += 2) {
             for (int z = -1; z <= 1; z += 2) {
                 // setup trace
-                Vector3 from = node.getWorldPosition().add(x * stepSize, 0, z * stepSize);
-                Vector3 to = node.getWorldPosition().sub(0, downDist, 0);
+                Vector3 from = worldPosition.add(x * stepSize, 0, z * stepSize);
+                Vector3 to = worldPosition.sub(0, downDist, 0);
                 CollisionWorld.ClosestRayResultCallback trace = new CollisionWorld.ClosestRayResultCallback(from.toJavaX(), to.toJavaX());
                 PhysicsManager.getWorld().rayTest(from.toJavaX(), to.toJavaX(), trace);
 
@@ -222,11 +224,11 @@ public class CharacterController extends InternalTickCallback {
 
         // check terrain
         if (terrain != null) {
-            float terrainHeight = terrain.getHeight(node.getWorldPosition());
+            float terrainHeight = terrain.getHeight(worldPosition);
             if ((!onGround || terrainHeight > groundY) && node.getWorldPosition().y() - downDist < terrainHeight) {
                 onGround = true;
-                groundY = terrain.getHeight(node.getWorldPosition());
-                normal = terrain.getNormal(node.getWorldPosition(), node.getWorldForwardAxis(), node.getWorldRightAxis());
+                groundY = terrain.getHeight(worldPosition);
+                normal = terrain.getNormal(worldPosition, node.getWorldForwardAxis(), node.getWorldRightAxis());
             }
         }
 
@@ -329,7 +331,10 @@ public class CharacterController extends InternalTickCallback {
         // remove gravity
         gravity.y = 0;
         body.setGravity(gravity);
-        if (linearVelocity.y < 0) { linearVelocity.y = 0; }
+
+        // zero velocity with respect to the ground normal
+        Vector3 lv = Vector3f.createFrom(linearVelocity);
+        linearVelocity = lv.sub(normal.mult(lv.dot(normal))).toJavaX();
 
         // hover character slightly above the ground
         // this is so we don't bounce off ramps and changing elevations
