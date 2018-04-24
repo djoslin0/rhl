@@ -5,6 +5,7 @@
 
 package ray.rage.scene;
 
+import ray.rml.Matrix4;
 import ray.rml.Quaternion;
 import ray.rml.Vector3;
 
@@ -35,6 +36,8 @@ public interface SkeletalEntity extends Entity {
 
     void addLocationAdditive(String boneName, Vector3 location); /* MyChange: added override */
     void removeLocationAdditive(String boneName); /* MyChange: added override */
+
+    Matrix4 getBoneModelTransform(String boneName); /* MyChange: added bone transform getter */
 
     public static enum EndType {
         NONE,

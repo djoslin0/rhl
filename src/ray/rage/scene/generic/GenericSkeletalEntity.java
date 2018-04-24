@@ -26,13 +26,7 @@ import ray.rage.scene.SkeletalEntity;
 import ray.rage.scene.SubEntity;
 import ray.rage.scene.SkeletalEntity.EndType;
 import ray.rage.scene.SubEntity.Visitor;
-import ray.rml.Matrix3;
-import ray.rml.Matrix3f;
-import ray.rml.Matrix4;
-import ray.rml.Matrix4f;
-import ray.rml.Quaternion;
-import ray.rml.Vector3;
-import ray.rml.Vector3f;
+import ray.rml.*;
 
 final class GenericSkeletalEntity extends AbstractGenericSceneObject implements SkeletalEntity {
 
@@ -282,6 +276,20 @@ final class GenericSkeletalEntity extends AbstractGenericSceneObject implements 
             mat = Matrix4f.createTranslationFrom(loc).mult(mat);
             return mat;
         }
+    }
+
+    public Matrix4 getBoneModelTransform(String boneName) { /* MyChange: added bone transform getter */
+        int index = getBoneIndex(boneName);
+        if (index == -1) { return null; }
+
+        Matrix4 mat = Matrix4f.createIdentityMatrix();
+
+        for(int curBone = index; curBone != -1; curBone = this.skeleton.getBoneParentIndex(curBone)) {
+            mat = this.getBoneCurLocalTransform(curBone).mult(mat);
+            mat = this.getBoneRestTransformRel2Parent(curBone).mult(mat);
+        }
+
+        return mat;
     }
 
     private Vector3 getQuatAxis(Quaternion q) {
