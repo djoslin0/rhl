@@ -7,14 +7,14 @@ import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.UpdateManager;
 import ray.rage.rendersystem.Viewport;
-import ray.rml.Radianf;
-import ray.rml.Vector3;
-import ray.rml.Vector3f;
+import ray.rml.*;
 
 public class LocalCharacterAnimationController implements Updatable, CharacterAnimationController {
     private Player player;
     private CharacterController controller;
     private Vector3 velocityOffset = Vector3f.createZeroVector();
+    private Vector3 lastForwardVector = Vector3f.createZeroVector();
+    private Vector3 rotationOffset = Vector3f.createZeroVector();
 
     private float bob;
     private static final float bobSpeed = 0.00075f;
@@ -69,7 +69,21 @@ public class LocalCharacterAnimationController implements Updatable, CharacterAn
         if (oy > -0.48f) { oy = -0.48f; }
         if (oz > 0.7f) { oz = 0.7f; }
 
+        // set location offset
         player.getHandNode().setLocalPosition(ox, oy, oz);
+
+        // grab difference in forward vectors to detect rotation
+        Vector3 forwardDiff = player.getCameraNode().getWorldForwardAxis().sub(lastForwardVector);
+        lastForwardVector = player.getCameraNode().getWorldForwardAxis();
+        float xzDiff = (forwardDiff.x() + forwardDiff.z()) / 2f;
+        // generate rotation vector based on difference in forward vectors
+        Vector3 rot = Vector3f.createFrom(forwardDiff.y() * 6f, xzDiff * 4f, xzDiff * 2.4f);
+        // smooth rotation vector
+        rotationOffset = rotationOffset.lerp(rot, 0.2f);
+
+        // set rotation
+        player.getHandNode().setLocalRotation(Matrix3f.createFrom(70f + rotationOffset.x(), rotationOffset.y(), rotationOffset.z()));
+
     }
 
     @Override

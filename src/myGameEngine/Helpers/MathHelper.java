@@ -16,11 +16,15 @@ public class MathHelper {
     }
 
     public static Quaternion slerp(Quaternion a, Quaternion b, float scalar) {
-        Quaternion q = a.slerp(b, scalar);
-        if (Float.isNaN(q.w()) || Float.isNaN(q.x()) || Float.isNaN(q.y()) || Float.isNaN(q.z())) {
+        try {
+            Quaternion q = a.slerp(b, scalar);
+            if (Float.isNaN(q.w()) || Float.isNaN(q.x()) || Float.isNaN(q.y()) || Float.isNaN(q.z())) {
+                return a.lerp(b, scalar);
+            } else {
+                return q;
+            }
+        } catch (Exception ex) {
             return a.lerp(b, scalar);
-        } else {
-            return q;
         }
     }
 }
