@@ -43,7 +43,7 @@ public class Player extends GameEntity implements Attackable {
     private boolean local;
     public short lastReceivedTick;
 
-    public static float height = 1.6f;
+    public static float height = 1.8f;
     public static float crouchHeight = 0.75f;
     public static float cameraHeight = 1.2f;
     public static float cameraCrouchHeight = -0.45f;
@@ -138,7 +138,7 @@ public class Player extends GameEntity implements Attackable {
 
             // setup character node
             SceneNode roboNode = node.createChildSceneNode(name + "RoboNode");
-            roboNode.setLocalPosition(0, -height, 0);
+            roboNode.setLocalPosition(0, -height, -0.3f);
             addResponsibility(roboNode);
             roboNode.attachObject(robo);
 
@@ -191,7 +191,7 @@ public class Player extends GameEntity implements Attackable {
         float mass = 70;
 
         PlayerMotionStateController motionState = new PlayerMotionStateController(this.node);
-        CapsuleShape collisionShape = new CapsuleShape(0.75f, height);
+        CapsuleShape collisionShape = new CapsuleShape(0.85f, height);
 
         if (local) {
             body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_LOCAL_PLAYER, PhysicsManager.COLLIDE_ALL);
