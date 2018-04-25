@@ -27,9 +27,6 @@ public class LocalCharacterAnimationController implements Updatable, CharacterAn
     }
 
     @Override
-    public void jump() {}
-
-    @Override
     public void knock(Vector3 vec) {}
 
     @Override

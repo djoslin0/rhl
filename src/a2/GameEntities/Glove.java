@@ -55,6 +55,9 @@ public class Glove extends GameEntity {
         handNode.attachObject(obj);
     }
 
+    public boolean hasTarget() { return target != null; }
+    public float getTime() { return time; }
+
     public void attack(boolean hit, Vector3 target) {
         boolean hadTarget = (this.target != null);
 

@@ -39,8 +39,8 @@ public class CharacterController extends InternalTickCallback {
 
     // track in history
     private boolean wasOnGround;
-    private boolean wasJumping;
     private boolean wasAttacking;
+    private boolean wasJumping;
     private boolean moveLeft;
     private boolean moveRight;
     private boolean moveForward;
@@ -53,6 +53,7 @@ public class CharacterController extends InternalTickCallback {
     private Vector3 lastMovement = Vector3f.createZeroVector();
     private int knockbackTimeout = 0;
     private int ignoreKnockTimeout = 0;
+    private boolean jumpQueued;
     // note: also track cameraNode orientation
 
     // constants
@@ -148,6 +149,12 @@ public class CharacterController extends InternalTickCallback {
     public void jump() {
         // player requested jump
         jumping = true;
+    }
+
+    public boolean clearJumpQueue() {
+        boolean wasJumpQueued = jumpQueued;
+        jumpQueued = false;
+        return wasJumpQueued;
     }
 
     public void knockback(Vector3 vec) {
@@ -266,6 +273,10 @@ public class CharacterController extends InternalTickCallback {
 
         // keep linearVelocity up to date
         body.setLinearVelocity(linearVelocity);
+
+        if (jumpQueued) {
+            System.out.println("WAS JUMP");
+        }
 
         wasOnGround = onGround;
     }
@@ -445,7 +456,19 @@ public class CharacterController extends InternalTickCallback {
     }
 
     private void checkJump() {
+        if (!player.isLocal() && !wasJumping && jumping) {
+            // queue up a jump animation event
+            jumpQueued = true;
+        }
+
+        // remember last jumping state
         wasJumping = jumping;
+
+        if (!player.isLocal()) {
+            // do not actually perform any jump stuff for remote players
+            jumpTicks = jumping ? 1 : 0;
+            return;
+        }
 
         if (jumpTicks > 0) {
             // prevent onGround status for a few ticks after starting jump
@@ -458,6 +481,7 @@ public class CharacterController extends InternalTickCallback {
         // make sure we are pressing jump
         if (!jumping) { return; }
         jumping = false;
+        wasJumping = true;
 
         // make sure we are on the ground
         if (!onGround) { return; }

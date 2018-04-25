@@ -30,11 +30,6 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
         SkeletalEntity robo = player.getRobo();
         robo.playAnimation(animName, animSpeed, endType, 0, interruptable);
     }
-    
-    public void jump() {
-        SkeletalEntity robo = player.getRobo();
-        animate("jump", "jump", 0.04f, SkeletalEntity.EndType.NONE, false);
-    }
 
     public void knock(Vector3 vec) {
         knockDirection = vec.normalize().dot(player.getCameraNode().getWorldForwardAxis()) > 0 ? -1 : 1;
@@ -110,8 +105,8 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
             float pitch_upper = (float) (cameraNode.getLocalRotation().getPitch() / 2f - Math.PI / 3.5f);
             float pitch_lower = (float) (cameraNode.getLocalRotation().getPitch() / 1.9f + Math.PI / -2.5f);
 
-            if (controller.getAttackTicks() > 0) {
-                float attackScale = (controller.getAttackTicks() / (float)CharacterController.attackTickTimeout);
+            if (player.getGlove().hasTarget()) {
+                float attackScale = 1f - player.getGlove().getTime();
                 attackScale *= attackScale;
                 attackScale = 1f - attackScale;
                 pitch_upper += Math.sin(attackScale * Math.PI) * 2f;
@@ -131,6 +126,12 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
 
     private void updateAnimations(float delta) {
         SkeletalEntity robo = player.getRobo();
+
+        if (controller.clearJumpQueue()) {
+            animate("jump", "jump", 0.04f, SkeletalEntity.EndType.NONE, false);
+            return;
+        }
+
         if (!controller.isOnGround()) {
             animate("falling", "falling", 0.025f, SkeletalEntity.EndType.LOOP, true);
             return;
