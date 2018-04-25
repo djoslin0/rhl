@@ -144,10 +144,6 @@ public class Player extends GameEntity implements Attackable {
 
             // track right hand
             handNode = roboNode.createChildSceneNode(name + "HandNode");
-            handNode.setLocalScale(100f, 100f, 100f);
-
-            // hide normal glove
-            robo.addScaleOverride("hand_R", Vector3f.createFrom(0.01f, 0.01f, 0.01f));
 
             // track head for glowing eyes
             headNode = roboNode.createChildSceneNode(name + "HeadNode");

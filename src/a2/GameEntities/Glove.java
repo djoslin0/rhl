@@ -14,6 +14,7 @@ import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
+import ray.rml.Degreef;
 import ray.rml.Radianf;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
@@ -24,6 +25,7 @@ public class Glove extends GameEntity {
     private Entity obj;
     private Player player;
     private Vector3 target;
+    private Vector3 offset;
     private float time;
     private SceneNode node;
     private SceneNode handNode;
@@ -45,7 +47,6 @@ public class Glove extends GameEntity {
 
         node = sm.getRootSceneNode().createChildSceneNode(playerName + "GloveObjNode");
         addResponsibility(node);
-        if (!player.isLocal()) { node.setLocalScale(100f, 100f, 100f); }
 
         this.player = player;
         this.handNode = handNode;
@@ -55,7 +56,8 @@ public class Glove extends GameEntity {
     public void attack(Vector3 target) {
         boolean hadTarget = (this.target != null);
 
-        this.target = target.add(player.getCameraNode().getWorldRightAxis().mult(-0.7f));
+        this.target = target;
+        this.offset = target.sub(player.getPosition());
         time = 0;
 
         if (!hadTarget) {
@@ -82,7 +84,14 @@ public class Glove extends GameEntity {
 
         double theta = (1f - Math.pow(1f - time, 2)) * Math.PI;
         float scalar = (float)Math.sin(theta);
-        node.setLocalPosition(MathHelper.lerp(handNode.getWorldPosition(), target, scalar));
+        //node.setLocalPosition(MathHelper.lerp(handNode.getWorldPosition(), target, scalar));
+        Vector3 smoothedTarget = player.getPosition().add(offset).lerp(target, 0.2f);
+        node.setLocalPosition(MathHelper.lerp(handNode.getWorldPosition(), smoothedTarget, scalar));
+        try {
+            node.lookAt(smoothedTarget);
+            node.pitch(Degreef.createFrom(90));
+            node.setLocalRotation(MathHelper.slerp(node.getWorldRotation().toQuaternion(), handNode.getWorldRotation().toQuaternion(), time).toMatrix3());
+        } catch (Exception ex) {}
     }
 
 }
