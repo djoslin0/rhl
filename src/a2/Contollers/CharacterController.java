@@ -48,7 +48,6 @@ public class CharacterController extends InternalTickCallback {
     private boolean crouching;
     private boolean jumping;
     private boolean attacking;
-    private boolean wrapYaw;
     private int jumpTicks;
     private int attackTicks;
     private Vector3 lastMovement = Vector3f.createZeroVector();
@@ -98,7 +97,6 @@ public class CharacterController extends InternalTickCallback {
         controls |= (jumpTicks > 0 ? 1 : 0) << 4;
         controls |= (attackTicks > 0 ? 1 : 0) << 5;
         controls |= (crouching ? 1 : 0) << 6;
-        controls |= (wrapYaw ? 1 : 0) << 7;
         return controls;
     }
 
@@ -110,11 +108,6 @@ public class CharacterController extends InternalTickCallback {
         jumping = (controls & (1 << 4)) != 0;
         attacking = (controls & (1 << 5)) != 0;
         setCrouching((controls & (1 << 6)) != 0);
-        wrapYaw = (controls & (1 << 7)) != 0;
-    }
-
-    public static boolean wrapYawFromControl(byte controls) {
-        return (controls & (1 << 7)) != 0;
     }
 
     public void move(ActionMove.Direction direction, boolean value) {
@@ -251,9 +244,6 @@ public class CharacterController extends InternalTickCallback {
 
         // keep linearVelocity up to date
         body.getLinearVelocity(linearVelocity);
-
-        // track whether or not yaw should wrap around
-        wrapYaw = node.getLocalRotation().getRoll() != 0;
 
         cameraUpdate();
 

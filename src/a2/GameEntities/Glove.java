@@ -72,8 +72,6 @@ public class Glove extends GameEntity {
         if (target == null) { return; }
         time += speed * delta;
 
-        System.out.println(time);
-
         if (time > 1) {
             target = null;
             node.setLocalPosition(0, 0, 0);
@@ -85,7 +83,6 @@ public class Glove extends GameEntity {
         double theta = (1f - Math.pow(1f - time, 2)) * Math.PI;
         float scalar = (float)Math.sin(theta);
         node.setLocalPosition(MathHelper.lerp(handNode.getWorldPosition(), target, scalar));
-        System.out.println(node.getLocalPosition());
     }
 
 }

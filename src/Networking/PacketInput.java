@@ -84,7 +84,7 @@ public class PacketInput extends Packet {
         controller.setControls(controls);
 
         player.setPitch(pitch);
-        player.setYaw(controls, yaw);
+        player.setYaw(yaw);
         player.setPosition(position);
         player.setVelocity(velocity);
     }

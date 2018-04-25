@@ -235,10 +235,28 @@ public class Player extends GameEntity implements Attackable {
 
     }
 
-    public float getYaw() { return (float)node.getLocalRotation().getYaw(); }
+    public float getYaw() {
+        double yaw = node.getLocalRotation().getYaw();
+        if (node.getWorldRotation().getRoll() != 0) {
+            if (yaw > 0) {
+                yaw = Math.PI - yaw;
+            } else {
+                yaw = -Math.PI - yaw;
+            }
+        }
+        return (float)yaw;
+    }
 
-    public void setYaw(byte controls, float yaw) {
-        double wrapYawValue = CharacterController.wrapYawFromControl(controls) ? Math.PI : 0;
+    public void setYaw(double yaw) {
+        double wrapYawValue = 0;
+        if (Math.abs(yaw) > Math.PI / 2f) {
+            if (yaw > 0) {
+                yaw = Math.PI - yaw;
+            } else {
+                yaw = -Math.PI - yaw;
+            }
+            wrapYawValue = Math.PI;
+        }
         Matrix3 nodeRotation = Matrix3f.createFrom(wrapYawValue, yaw, wrapYawValue);
         node.setLocalRotation(nodeRotation);
     }
@@ -277,7 +295,6 @@ public class Player extends GameEntity implements Attackable {
     @Override
     public void update(float delta) {
         super.update(delta);
-
         if (robo != null) {
             // update animations
             robo.update(delta);

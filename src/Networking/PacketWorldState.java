@@ -198,7 +198,7 @@ public class PacketWorldState extends Packet {
             player.getController().setControls(controls);
             player.getController().setControls(controls);
             player.setPitch(pitch);
-            player.setYaw(controls, yaw);
+            player.setYaw(yaw);
             player.setPosition(position);
             player.setVelocity(velocity);
         }

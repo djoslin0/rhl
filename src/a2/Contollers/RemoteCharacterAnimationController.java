@@ -170,7 +170,6 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
     }
 
     public void update(float delta) {
-        System.out.println(delta);
         updateBones(delta);
         updateAnimations(delta);
     }
