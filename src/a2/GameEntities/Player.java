@@ -2,6 +2,7 @@ package a2.GameEntities;
 
 import Networking.UDPClient;
 import Networking.UDPServer;
+import a2.Contollers.RemoteCharacterAnimationController;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
@@ -17,6 +18,7 @@ import myGameEngine.Singletons.TimeManager;
 import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.RenderWindow;
 import ray.rage.rendersystem.Renderable;
+import ray.rage.rendersystem.Viewport;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
 import ray.rage.scene.*;
@@ -37,6 +39,8 @@ public class Player extends GameEntity implements Attackable {
     private byte playerSide;
     private boolean local;
     public short lastReceivedTick;
+
+    private RemoteCharacterAnimationController remoteAnimationController;
 
     public static float height = 1.6f;
     public static float crouchHeight = 0.75f;
@@ -79,6 +83,12 @@ public class Player extends GameEntity implements Attackable {
             e.printStackTrace();
         }
 
+        // store tick
+        lastReceivedTick = TimeManager.getTick();
+
+        // initialize physics
+        initPhysics();
+
         // load character
         if (local) {
             loadLocalCharacter(name);
@@ -89,18 +99,13 @@ public class Player extends GameEntity implements Attackable {
         // attach glove to hands
         glove = new Glove(this, name, handNode);
 
-
-        // store tick
-        lastReceivedTick = TimeManager.getTick();
-
-        // initialize physics
-        initPhysics();
     }
 
     private void loadLocalCharacter(String name) {
         // right hand
         handNode = cameraNode.createChildSceneNode(name + "HandNode");
         handNode.setLocalPosition(0.2f, -0.1f, 0f);
+        handNode.pitch(Degreef.createFrom(70f));
     }
 
     private void loadRemoteCharacter(String name) {
@@ -161,6 +166,8 @@ public class Player extends GameEntity implements Attackable {
             Billboard rightEyeFlare = new Billboard(rightEyeNode, eyeSize, eyeSize, "flare1.png", Color.YELLOW);
             addResponsibility(rightEyeFlare);
 
+            // animation controller
+            remoteAnimationController = new RemoteCharacterAnimationController(this, controller);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -213,6 +220,7 @@ public class Player extends GameEntity implements Attackable {
     public byte getSide(){ return playerSide; }
     public boolean isLocal() { return local; }
     public Glove getGlove() { return glove; }
+    public RemoteCharacterAnimationController getRemoteAnimationController() { return remoteAnimationController; }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
 
@@ -270,12 +278,11 @@ public class Player extends GameEntity implements Attackable {
     public void update(float delta) {
         super.update(delta);
 
-        RenderWindow rw = EngineManager.getRenderWindow();
-        float aspectRatio = (float)rw.getWidth() / (float)rw.getHeight();
-        myGameEngine.Singletons.Settings.runScript();
-        System.out.println(aspectRatio);
-        Vector3 handOffset = Vector3f.createFrom(-0.7f, -0.6f, -0.8f).mult((float)aspectRatio * Settings.get().debug1.floatValue());
+        Viewport vp = EngineManager.getRenderWindow().getViewport(0);
+        float aspectRatio = (float)vp.getActualWidth() / (float)vp.getActualHeight();
+        Vector3 handOffset = Vector3f.createFrom(-0.35f * aspectRatio, -0.5f, 0.7f);
         handNode.setLocalPosition(handOffset);
+
         if (robo != null) {
             // update animations
             robo.update(delta);
@@ -291,5 +298,4 @@ public class Player extends GameEntity implements Attackable {
             headNode.setLocalRotation(headTransform.toMatrix3());
         }
     }
-
 }

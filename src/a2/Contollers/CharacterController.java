@@ -36,10 +36,6 @@ public class CharacterController extends InternalTickCallback {
     private boolean onGround;
     private Vector3 normal;
     private float groundY;
-    private String animation = "";
-    private int knockDirection = 0;
-    private float knockPitch = 0;
-    private boolean knockPitchReached = true;
 
     // track in history
     private boolean wasOnGround;
@@ -61,15 +57,15 @@ public class CharacterController extends InternalTickCallback {
     // note: also track cameraNode orientation
 
     // constants
-    private final float groundAcceleration = 70;
-    private final float crouchAcceleration = 40;
-    private final float airAcceleration = 20;
-    private final float maxSpeed = 20;
-    private final float maxCrouchSpeed = 10;
-    private final float groundFriction = 0.95f;
-    private final float rotationSensititvity = 1;
-    private final int jumpTickTimeout = 50;
-    private final int attackTickTimeout = 50;
+    public static final float groundAcceleration = 70;
+    public static final float crouchAcceleration = 40;
+    public static final float airAcceleration = 20;
+    public static final float maxSpeed = 20;
+    public static final float maxCrouchSpeed = 10;
+    public static final float groundFriction = 0.95f;
+    public static final float rotationSensititvity = 1;
+    public static final int jumpTickTimeout = 50;
+    public static final int attackTickTimeout = 50;
 
     public CharacterController(Player player) {
         this.player = player;
@@ -83,6 +79,15 @@ public class CharacterController extends InternalTickCallback {
             break;
         }
     }
+
+    public boolean isCrouching() { return crouching; }
+    public int getAttackTicks() { return attackTicks; }
+    public boolean isOnGround() { return onGround; }
+    public boolean wasOnGround() { return wasOnGround; }
+    public boolean isMovingForward() { return moveForward; }
+    public boolean isMovingBackward() { return moveBackward; }
+    public boolean isMovingRight() { return moveRight; }
+    public boolean isMovingLeft() { return moveLeft; }
 
     public byte getControls() {
         byte controls = 0;
@@ -159,8 +164,9 @@ public class CharacterController extends InternalTickCallback {
         if (knockbackTimeout > 100) { knockbackTimeout = 100; }
 
         if (vec.length() >= 1000f) {
-            knockDirection = vec.normalize().dot(player.getCameraNode().getWorldForwardAxis()) > 0 ? -1 : 1;
-            knockPitchReached = false;
+            if (player.getRemoteAnimationController() != null) {
+                player.getRemoteAnimationController().knock(vec);
+            }
         }
 
         if (player.isLocal() || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
@@ -272,8 +278,6 @@ public class CharacterController extends InternalTickCallback {
 
         // keep linearVelocity up to date
         body.setLinearVelocity(linearVelocity);
-
-        checkAnimation();
 
         wasOnGround = onGround;
     }
@@ -477,147 +481,6 @@ public class CharacterController extends InternalTickCallback {
         }
     }
 
-    private void applyKnockPitch() {
-        // add knockback
-        SkeletalEntity robo = player.getRobo();
-        if (knockPitchReached) {
-            // we reached our peak and have begun decreasing
-            boolean knockPitchSign = (knockPitch >= 0);
-            knockPitch -= knockDirection * 0.02f;
-            if ((knockPitch >= 0) != knockPitchSign) {
-                // we crossed knockPitch = 0, stop applying pitch
-                knockDirection = 0;
-                robo.removeRotationAdditive("torso");
-                robo.removeRotationOverride("shoulder_L");
-                robo.removeRotationOverride("shoulder_R");
-                robo.removeRotationOverride("hip_R");
-                robo.removeRotationOverride("hip_L");
-                robo.removeLocationAdditive("torso");
-                return;
-            }
-        } else {
-            // we are approaching our peak
-            knockPitch += knockDirection * 0.05f;
-            if (Math.abs(knockPitch) >= 0.8f) {
-                // we have reached our peak, decrease afterward
-                knockPitchReached = true;
-            }
-        }
-
-        // rotations
-        Matrix3 pz = Matrix3f.createFrom(0, 0, knockPitch);
-        robo.addRotationAdditive("torso", pz.toQuaternion());
-
-        Matrix3 pny = Matrix3f.createFrom(0, -knockPitch, 0);
-        robo.addRotationOverride("shoulder_L", pny.toQuaternion());
-        robo.addRotationOverride("shoulder_R", pny.toQuaternion());
-        robo.addRotationOverride("hip_R", pny.toQuaternion());
-
-        Matrix3 py = Matrix3f.createFrom(0, knockPitch, 0);
-        robo.addRotationOverride("hip_L", py.toQuaternion());
-
-        Matrix3 px = Matrix3f.createFrom(knockPitch, 0, 0);
-
-        // torso location offset
-        if (knockPitch > 0) {
-            if (crouching) {
-                robo.addLocationAdditive("torso", Vector3f.createFrom(-1.0f, -0.4f, 0.0f).mult(knockPitch * 0.4f));
-            } else {
-                robo.addLocationAdditive("torso", Vector3f.createFrom(-0.3f, -0.6f, 0.0f).mult(knockPitch * 1.0f));
-            }
-        } else {
-            if (crouching) {
-                robo.addLocationAdditive("torso", Vector3f.createFrom(-0.6f, 0.2f, 0.0f).mult(knockPitch * 1.0f));
-            } else {
-                robo.addLocationAdditive("torso", Vector3f.createFrom(-0.6f, -0.1f, 0.0f).mult(knockPitch * 1.0f));
-            }
-        }
-    }
-
-    private void checkAnimation() {
-        SkeletalEntity robo = player.getRobo();
-        if (robo != null) {
-            // align head to camera pitch
-            robo.addRotationOverride("head", cameraNode.getLocalRotation().toQuaternion());
-
-            // align arm to camera pitch
-            float pitch_upper = (float) (cameraNode.getLocalRotation().getPitch() / 2f - Math.PI / 3.5f);
-            float pitch_lower = (float) (cameraNode.getLocalRotation().getPitch() / 1.9f + Math.PI / -2.5f);
-
-            if (attackTicks > 0) {
-                float attackScale = (attackTicks / (float)attackTickTimeout);
-                attackScale *= attackScale;
-                attackScale = 1f - attackScale;
-                pitch_upper += Math.sin(attackScale * Math.PI) * 2f;
-                pitch_lower -= Math.sin(attackScale * Math.PI) * 0.5f;
-            }
-            Matrix3 armUpper = Matrix3f.createFrom(0, 0, pitch_upper);
-            robo.addRotationOverride("arm_upper_R", armUpper.toQuaternion());
-
-            Matrix3 armLower = Matrix3f.createFrom(pitch_lower, 0, 0);
-            robo.addRotationOverride("arm_lower_R", armLower.toQuaternion());
-
-            if (knockDirection != 0) {
-                applyKnockPitch();
-            }
-        }
-
-        if (wasJumping) {
-            if (animation != "jump") { player.animate("jump", 0.04f, SkeletalEntity.EndType.NONE, false); }
-            animation = "jump";
-            return;
-        }
-
-        if (!onGround) {
-            if (animation != "falling") { player.animate("falling", 0.025f, SkeletalEntity.EndType.LOOP, true); }
-            animation = "falling";
-            return;
-        }
-
-        if (onGround && !wasOnGround) {
-            if (animation != "landing") { player.animate("land", 0.025f, SkeletalEntity.EndType.NONE, false); }
-            animation = "landing";
-            return;
-        }
-
-        if (crouching) {
-            if (moveForward && !moveBackward) {
-                if (animation != "crouch_walk_forward") { player.animate("crouch_walk", 0.1f, SkeletalEntity.EndType.LOOP, true); }
-                animation = "crouch_walk_forward";
-            } else if (moveBackward && !moveForward) {
-                if (animation != "crouch_walk_backward") { player.animate("crouch_walk", -0.1f, SkeletalEntity.EndType.LOOP, true); }
-                animation = "crouch_walk_backward";
-            } else if (moveRight && !moveLeft) {
-                if (animation != "crouch_sidestep_right") { player.animate("crouch_sidestep", 0.12f, SkeletalEntity.EndType.LOOP, true); }
-                animation = "crouch_sidestep_right";
-            } else if (moveLeft && !moveRight) {
-                if (animation != "crouch_sidestep_left") { player.animate("crouch_sidestep", -0.12f, SkeletalEntity.EndType.LOOP, true); }
-                animation = "crouch_sidestep_left";
-            } else {
-                if (animation != "crouch_idle") { player.animate("crouch_idle", 0.04f, SkeletalEntity.EndType.LOOP, true); }
-                animation = "crouch_idle";
-            }
-            return;
-        }
-
-        if (moveForward && !moveBackward) {
-            if (animation != "runforward") { player.animate("run", 0.095f, SkeletalEntity.EndType.LOOP, true); }
-            animation = "runforward";
-        } else if (moveBackward && !moveForward) {
-            if (animation != "runback") { player.animate("run", -0.095f, SkeletalEntity.EndType.LOOP, true); }
-            animation = "runback";
-        } else if (moveRight && !moveLeft) {
-            if (animation != "sidestep_right") { player.animate("sidestep", 0.12f, SkeletalEntity.EndType.LOOP, true); }
-            animation = "sidestep_right";
-        } else if (moveLeft && !moveRight) {
-            if (animation != "sidestep_left") { player.animate("sidestep", -0.12f, SkeletalEntity.EndType.LOOP, true); }
-            animation = "sidestep_left";
-        } else {
-            if (animation != "idle") { player.animate("idle", 0.04f, SkeletalEntity.EndType.LOOP, true); }
-            animation = "idle";
-        }
-    }
-
     private Vector3 clipVelocity(Vector3 in, Vector3 normal) {
         // magic to convert a flat movement vector into one based on the ground plane
         // shamelessly stolen from Quake 3
@@ -637,4 +500,5 @@ public class CharacterController extends InternalTickCallback {
         this.crouching = crouching;
         this.body = player.createBody(crouching);
     }
+
 }
