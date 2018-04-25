@@ -9,6 +9,7 @@ import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
@@ -29,6 +30,7 @@ public class Glove extends GameEntity {
     private float time;
     private SceneNode node;
     private SceneNode handNode;
+    private boolean hit;
 
     private static float speed = 0.003f;
 
@@ -53,11 +55,20 @@ public class Glove extends GameEntity {
         handNode.attachObject(obj);
     }
 
-    public void attack(Vector3 target) {
+    public void attack(boolean hit, Vector3 target) {
         boolean hadTarget = (this.target != null);
 
-        this.target = target;
-        this.offset = target.sub(player.getPosition());
+        this.hit = hit;
+
+        if (hit) {
+            this.offset = target.sub(player.getPosition());
+            this.target = target.sub(offset.normalize().mult(4f));
+            this.offset = target.sub(player.getPosition());
+        } else {
+            this.target = target;
+            this.offset = target.sub(player.getPosition());
+        }
+
         time = 0;
 
         if (!hadTarget) {
@@ -82,7 +93,7 @@ public class Glove extends GameEntity {
             return;
         }
 
-        double theta = (1f - Math.pow(1f - time, 2)) * Math.PI;
+        double theta = (1f - Math.pow(1f - time, 4)) * Math.PI;
         float scalar = (float)Math.sin(theta);
         //node.setLocalPosition(MathHelper.lerp(handNode.getWorldPosition(), target, scalar));
         Vector3 smoothedTarget = player.getPosition().add(offset).lerp(target, 0.2f);
@@ -92,6 +103,9 @@ public class Glove extends GameEntity {
             node.pitch(Degreef.createFrom(90));
             node.setLocalRotation(MathHelper.slerp(node.getWorldRotation().toQuaternion(), handNode.getWorldRotation().toQuaternion(), time).toMatrix3());
         } catch (Exception ex) {}
+
+        float size = hit ? (float)(1f + 2f * Math.pow(scalar, 4)) : 1;
+        node.setLocalScale(size, size, size);
     }
 
 }
