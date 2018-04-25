@@ -1,6 +1,7 @@
 package a2.Contollers;
 
 import a2.GameEntities.Player;
+import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.Settings;
@@ -13,7 +14,7 @@ import ray.rml.Vector3f;
 public class LocalCharacterAnimationController implements Updatable, CharacterAnimationController {
     private Player player;
     private CharacterController controller;
-    private Vector3 offset;
+    private Vector3 velocityOffset = Vector3f.createZeroVector();
 
     private float bob;
     private static final float bobSpeed = 0.00075f;
@@ -33,11 +34,10 @@ public class LocalCharacterAnimationController implements Updatable, CharacterAn
 
     @Override
     public void update(float delta) {
-        //Settings.runScript();
         // get default position according to aspect ratio
         Viewport vp = EngineManager.getRenderWindow().getViewport(0);
         float aspectRatio = (float)vp.getActualWidth() / (float)vp.getActualHeight();
-        Vector3 offset = Vector3f.createFrom(-0.35f * aspectRatio, -0.5f, 0.7f);
+        Vector3 offset = Vector3f.createFrom(-0.34f * aspectRatio, -0.5f, 0.65f);
 
         if (controller.isOnGround()) {
             if (controller.isMovingForward()
@@ -47,12 +47,29 @@ public class LocalCharacterAnimationController implements Updatable, CharacterAn
                 bob += player.getVelocity().length() * bobSpeed * delta;
                 if (bob > Math.PI * 2) { bob -= Math.PI * 2; }
             }
-        } else {
-
         }
+
+        // add headbob offset
         offset = offset.add(0f, (float)Math.sin(bob) * bobOffset, 0);
-        //offset = offset.add(player.getVelocity().sub(player.getCameraNode().getWorldForwardAxis()).mult(Settings.get().debug1.floatValue()));
-        player.getHandNode().setLocalPosition(offset);
+
+        // grab velocity, rotate to camera local, multiply down
+        Vector3 velocityTempOffset = player.getVelocity().rotate(Radianf.createFrom(-player.getYaw()), Vector3f.createUnitVectorY()).mult(-0.004f);
+        if (velocityTempOffset.length() > 0.08f) {
+            // limit velocity offset
+            velocityTempOffset = velocityTempOffset.normalize().mult(0.08f);
+        }
+        // smooth velocity offset
+        velocityOffset = MathHelper.lerp(velocityOffset, velocityTempOffset, 0.4f);
+        offset = offset.add(velocityOffset);
+
+        // limit offset
+        float ox = offset.x();
+        float oy = offset.y();
+        float oz = offset.z();
+        if (oy > -0.48f) { oy = -0.48f; }
+        if (oz > 0.7f) { oz = 0.7f; }
+
+        player.getHandNode().setLocalPosition(ox, oy, oz);
     }
 
     @Override
