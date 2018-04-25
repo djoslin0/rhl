@@ -10,7 +10,7 @@ import ray.rml.Matrix3f;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
-public class RemoteCharacterAnimationController implements Updatable {
+public class RemoteCharacterAnimationController implements Updatable, CharacterAnimationController {
     private Player player;
     private CharacterController controller;
     private String lastAnimationTag;

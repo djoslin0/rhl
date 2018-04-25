@@ -164,9 +164,7 @@ public class CharacterController extends InternalTickCallback {
         if (knockbackTimeout > 100) { knockbackTimeout = 100; }
 
         if (vec.length() >= 1000f) {
-            if (player.getRemoteAnimationController() != null) {
-                player.getRemoteAnimationController().knock(vec);
-            }
+            player.getAnimationController().knock(vec);
         }
 
         if (player.isLocal() || (!UDPClient.hasClient() && !UDPServer.hasServer())) {

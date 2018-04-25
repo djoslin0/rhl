@@ -2,6 +2,8 @@ package a2.GameEntities;
 
 import Networking.UDPClient;
 import Networking.UDPServer;
+import a2.Contollers.CharacterAnimationController;
+import a2.Contollers.LocalCharacterAnimationController;
 import a2.Contollers.RemoteCharacterAnimationController;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
@@ -33,14 +35,13 @@ public class Player extends GameEntity implements Attackable {
     private SceneNode headNode;
     private RigidBody body;
     private CharacterController controller;
+    private CharacterAnimationController animationController;
     private SkeletalEntity robo;
     private Glove glove;
     private byte playerId;
     private byte playerSide;
     private boolean local;
     public short lastReceivedTick;
-
-    private RemoteCharacterAnimationController remoteAnimationController;
 
     public static float height = 1.6f;
     public static float crouchHeight = 0.75f;
@@ -106,6 +107,9 @@ public class Player extends GameEntity implements Attackable {
         handNode = cameraNode.createChildSceneNode(name + "HandNode");
         handNode.setLocalPosition(0.2f, -0.1f, 0f);
         handNode.pitch(Degreef.createFrom(70f));
+
+        // animation controller
+        animationController = new LocalCharacterAnimationController(this, controller);
     }
 
     private void loadRemoteCharacter(String name) {
@@ -167,7 +171,7 @@ public class Player extends GameEntity implements Attackable {
             addResponsibility(rightEyeFlare);
 
             // animation controller
-            remoteAnimationController = new RemoteCharacterAnimationController(this, controller);
+            animationController = new RemoteCharacterAnimationController(this, controller);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -220,7 +224,8 @@ public class Player extends GameEntity implements Attackable {
     public byte getSide(){ return playerSide; }
     public boolean isLocal() { return local; }
     public Glove getGlove() { return glove; }
-    public RemoteCharacterAnimationController getRemoteAnimationController() { return remoteAnimationController; }
+    public CharacterAnimationController getAnimationController() { return animationController; }
+    public SceneNode getHandNode() { return handNode; }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
 
@@ -269,19 +274,9 @@ public class Player extends GameEntity implements Attackable {
         controller.knockback(aim.mult(2500f));
     }
 
-    public void animate(String animName, float animSpeed, SkeletalEntity.EndType endType, boolean interruptable) {
-        if (robo == null) { return; }
-        robo.playAnimation(animName, animSpeed, endType, 0, interruptable);
-    }
-
     @Override
     public void update(float delta) {
         super.update(delta);
-
-        Viewport vp = EngineManager.getRenderWindow().getViewport(0);
-        float aspectRatio = (float)vp.getActualWidth() / (float)vp.getActualHeight();
-        Vector3 handOffset = Vector3f.createFrom(-0.35f * aspectRatio, -0.5f, 0.7f);
-        handNode.setLocalPosition(handOffset);
 
         if (robo != null) {
             // update animations
