@@ -42,6 +42,8 @@ public class MyGame extends VariableFrameRateGame {
     private HudText score2Text = new HudText(15, 15, Color.RED, GLUT.BITMAP_HELVETICA_18);
     private HudText fpsText = new HudText(-80, -30, Color.white, GLUT.BITMAP_8_BY_13);
 
+    public static boolean playMode = false;
+    
     public static void main(String[] args) throws IOException {
         MyGame game = new MyGame(args);
         try {
@@ -111,7 +113,9 @@ public class MyGame extends VariableFrameRateGame {
         new StaticSkyBox(sm.getRootSceneNode(),camera);
         new WorldAxes();
         new Ground();
-        new Terrain();
+        if (!playMode) {
+        	new Terrain();
+        }
 
         // set up lights
         sm.getAmbientLight().setIntensity(new Color(.1f, .1f, .1f));
@@ -129,17 +133,31 @@ public class MyGame extends VariableFrameRateGame {
 
         new Puck(Settings.get().puckSpawnPoint);
 
-        // setup initial prizes
-        for (int i = 0; i < 8; i++) {
-            Vector3 pLocation = Vector3f.createFrom(0f, i * 10f, 50f);
-            new Prize(pLocation);
-        }
-
-        // setup initial boxes
-        for (int i = 0; i < 32; i++) {
-            float scale = 3;
-            Vector3 pLocation = Vector3f.createFrom(0f, i / 2.7f - 4f, i);
-            new Box(pLocation, scale);
+        if (!playMode) {
+	        // setup initial prizes
+	        for (int i = 0; i < 8; i++) {
+	            Vector3 pLocation = Vector3f.createFrom(0f, i * 10f, 50f);
+	            new Prize(pLocation);
+	        }
+	
+	        // setup initial boxes
+	        for (int i = 0; i < 32; i++) {
+	            float scale = 3;
+	            Vector3 pLocation = Vector3f.createFrom(0f, i / 2.7f - 4f, i);
+	            new Box(pLocation, scale);
+	        }
+        } else {
+	        // setup walls
+        	float rinkWidth = 80;
+        	float rinkLength = 130;
+	        for (int i = 0; i < 8; i++) {
+	            float scale = 32;
+	            new Box(Vector3f.createFrom((i - 4) * scale, 0f, rinkWidth), scale);
+	            new Box(Vector3f.createFrom((i - 4) * scale, 0f, -rinkWidth), scale);
+	            new Box(Vector3f.createFrom(rinkLength, 0f, (i - 4) * scale), scale);
+	            new Box(Vector3f.createFrom(-rinkLength, 0f, (i - 4) * -scale), scale);
+	            
+	        }
         }
 
         GL4RenderSystem rs = (GL4RenderSystem) engine.getRenderSystem();

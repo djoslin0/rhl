@@ -2,6 +2,8 @@ package a2.GameEntities;
 
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
+
+import a2.MyGame;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
@@ -26,7 +28,7 @@ public class Box extends GameEntity {
         long unique = UniqueCounter.next();
         String name = "Box" + unique;
 
-        obj = sm.createEntity(name, "cubetilt.obj");
+        obj = sm.createEntity(name, MyGame.playMode ? "cube.obj" : "cubetilt.obj");
         addResponsibility(obj);
         obj.setPrimitive(Renderable.Primitive.TRIANGLES);
 
