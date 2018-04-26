@@ -6,6 +6,7 @@ import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EngineManager;
@@ -21,6 +22,7 @@ import ray.rml.Radianf;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
+import java.awt.*;
 import java.io.IOException;
 
 public class Glove extends GameEntity {
@@ -34,6 +36,7 @@ public class Glove extends GameEntity {
     private SceneNode handNode;
     private SceneNode springNode;
     private boolean hit;
+    private boolean createPow;
 
     private static float speed = 0.003f;
 
@@ -73,13 +76,19 @@ public class Glove extends GameEntity {
 
         this.hit = hit;
 
+        this.target = target;
+        this.offset = target.sub(player.getCameraNode().getWorldPosition());
+
         if (hit) {
-            this.offset = target.sub(player.getPosition());
-            this.target = target.sub(offset.normalize().mult(4f));
-            this.offset = target.sub(player.getPosition());
-        } else {
-            this.target = target;
-            this.offset = target.sub(player.getPosition());
+            createPow = true;
+            System.out.println(offset.length());
+            if (this.offset.length() > 2f) {
+                this.target = target.sub(player.getCameraNode().getWorldForwardAxis().mult(0.25f));
+                this.offset = target.sub(player.getCameraNode().getWorldPosition());
+            } else {
+                this.target = target.sub(player.getCameraNode().getWorldForwardAxis().mult(-0.25f));
+                this.offset = target.sub(player.getCameraNode().getWorldPosition());
+            }
         }
 
         time = 0;
@@ -109,8 +118,24 @@ public class Glove extends GameEntity {
         }
 
         double theta = (1f - Math.pow(1f - time, 4)) * Math.PI;
+
+
+        Vector3 smoothedTarget = target;
+
+        if (theta > Math.PI / 2f) {
+            smoothedTarget = player.getCameraNode().getWorldPosition().add(offset).lerp(target, 0.2f);
+            if (createPow) {
+                createPow = false;
+                try {
+                    new Particle(1.5f, 1.5f, target, Vector3f.createZeroVector(), "pow.png", Color.WHITE, 120f);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
         float scalar = (float)Math.sin(theta);
-        Vector3 smoothedTarget = player.getPosition().add(offset).lerp(target, 0.2f);
         node.setLocalPosition(MathHelper.lerp(handNode.getWorldPosition(), smoothedTarget, scalar));
         try {
             node.lookAt(smoothedTarget);

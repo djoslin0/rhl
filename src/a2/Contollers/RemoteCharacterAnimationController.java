@@ -33,7 +33,6 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
         if (vec.length() == 0) { vec = Vector3f.createFrom(1, 0, 0); }
         knockDirection = vec.normalize().rotate(Radianf.createFrom(-player.getYaw()), Vector3f.createUnitVectorY());
         if (relative.y() >= 0.5f) { knockDirection = knockDirection.mult(-1f); }
-        System.out.println(relative.y());
         knockReached = false;
     }
 
