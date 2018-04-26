@@ -55,9 +55,9 @@ public class Ground extends GameEntity {
         };
         float[] texcoords = new float[] {
                 0, 0, // BL
-                0, size * 2f, // BR
-                size * 2f, 0, // TL
-                size * 2f, size * 2f, // TR
+                0, 1, // BR
+                1, 0, // TL
+                1, 1, // TR
         };
         int[] indices = new int[] {
                 0, 1, 2,
@@ -71,11 +71,14 @@ public class Ground extends GameEntity {
         obj.setIndexBuffer(BufferUtil.directIntBuffer(indices));
 
         // create and load billboard texture & material
-        Material mat = engine.getMaterialManager().createManualAsset("ground-alpha" +  name);
-        mat.setEmissive(Color.GREEN);
+        Material mat = engine.getMaterialManager().createManualAsset("ground" +  name);
+        mat.setEmissive(Color.GRAY);
+        mat.setDiffuse(Color.WHITE);
+        mat.setSpecular(Color.WHITE);
+        mat.setShininess(10f);
         addResponsibility(mat);
         try {
-            Texture tex = engine.getTextureManager().getAssetByPath("grid.png");
+            Texture tex = engine.getTextureManager().getAssetByPath("snow.png");
             TextureState texState = (TextureState) sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
             texState.setTexture(tex);
             texState.setWrapMode(TextureState.WrapMode.REPEAT);
