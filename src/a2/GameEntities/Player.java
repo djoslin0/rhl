@@ -285,7 +285,7 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public void attacked(Vector3 aim, Vector3 relative) {
-        controller.knockback(aim.mult(2500f));
+        controller.knockback(aim.mult(2500f), relative);
     }
 
     @Override

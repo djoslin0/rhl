@@ -5,18 +5,15 @@ import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.UpdateManager;
 import ray.rage.scene.SceneNode;
 import ray.rage.scene.SkeletalEntity;
-import ray.rml.Matrix3;
-import ray.rml.Matrix3f;
-import ray.rml.Vector3;
-import ray.rml.Vector3f;
+import ray.rml.*;
 
 public class RemoteCharacterAnimationController implements Updatable, CharacterAnimationController {
     private Player player;
     private CharacterController controller;
     private String lastAnimationTag;
-    private int knockDirection = 0;
-    private float knockPitch = 0;
-    private boolean knockPitchReached = true;
+    private Vector3 knockDirection = null;
+    private float knockAmount = 0;
+    private boolean knockReached = true;
 
     public RemoteCharacterAnimationController(Player player, CharacterController controller) {
         this.player = player;
@@ -31,66 +28,76 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
         robo.playAnimation(animName, animSpeed, endType, 0, interruptable);
     }
 
-    public void knock(Vector3 vec) {
-        knockDirection = vec.normalize().dot(player.getCameraNode().getWorldForwardAxis()) > 0 ? -1 : 1;
-        knockPitchReached = false;
+    public void knock(Vector3 vec, Vector3 relative) {
+        vec = Vector3f.createFrom(vec.x(), 0, vec.z());
+        if (vec.length() == 0) { vec = Vector3f.createFrom(1, 0, 0); }
+        knockDirection = vec.normalize().rotate(Radianf.createFrom(-player.getYaw()), Vector3f.createUnitVectorY());
+        if (relative.y() >= 0.5f) { knockDirection = knockDirection.mult(-1f); }
+        System.out.println(relative.y());
+        knockReached = false;
     }
 
     private void updateKnockPitch(float delta) {
         // add knockback
         SkeletalEntity robo = player.getRobo();
-        if (knockPitchReached) {
+        robo.removeRotationAdditive("torso");
+        robo.removeRotationOverride("shoulder_L");
+        robo.removeRotationOverride("shoulder_R");
+        robo.removeRotationOverride("hip_R");
+        robo.removeRotationOverride("hip_L");
+        robo.removeLocationAdditive("torso");
+
+        float speedForward = 0.015f;
+        float speedBackward = 0.002f;
+
+        if (knockReached) {
             // we reached our peak and have begun decreasing
-            boolean knockPitchSign = (knockPitch >= 0);
-            knockPitch -= knockDirection * 0.0028f * delta;
-            if ((knockPitch >= 0) != knockPitchSign) {
-                // we crossed knockPitch = 0, stop applying pitch
-                knockDirection = 0;
-                robo.removeRotationAdditive("torso");
-                robo.removeRotationOverride("shoulder_L");
-                robo.removeRotationOverride("shoulder_R");
-                robo.removeRotationOverride("hip_R");
-                robo.removeRotationOverride("hip_L");
-                robo.removeLocationAdditive("torso");
+            boolean knockAmountSign = (knockAmount >= 0);
+            knockAmount -= speedBackward * delta;
+            if ((knockAmount >= 0) != knockAmountSign) {
+                // we crossed knockAmount = 0
+                knockDirection = null;
                 return;
             }
         } else {
             // we are approaching our peak
-            knockPitch += knockDirection * 0.007f * delta;
-            if (Math.abs(knockPitch) >= 0.8f) {
+            knockAmount += speedForward * delta;
+            if (Math.abs(knockAmount) >= 1f) {
                 // we have reached our peak, decrease afterward
-                knockPitchReached = true;
+                knockReached = true;
             }
         }
 
+        // get foot floor location
+        Vector3 originalFloor = getFloorOffset();
+
+        float roll = 0.5f * knockAmount * knockDirection.x();
+        float pitch = knockAmount * knockDirection.z();
+
         // rotations
-        Matrix3 pz = Matrix3f.createFrom(0, 0, knockPitch);
+        Matrix3 pz = Matrix3f.createFrom2(roll, roll, pitch);
         robo.addRotationAdditive("torso", pz.toQuaternion());
 
-        Matrix3 pny = Matrix3f.createFrom(0, -knockPitch, 0);
+        Matrix3 pny = Matrix3f.createFrom(roll, -pitch, roll);
         robo.addRotationOverride("shoulder_L", pny.toQuaternion());
         robo.addRotationOverride("shoulder_R", pny.toQuaternion());
         robo.addRotationOverride("hip_R", pny.toQuaternion());
 
-        Matrix3 py = Matrix3f.createFrom(0, knockPitch, 0);
+        Matrix3 py = Matrix3f.createFrom(-roll, pitch, -roll);
         robo.addRotationOverride("hip_L", py.toQuaternion());
 
-        Matrix3 px = Matrix3f.createFrom(knockPitch, 0, 0);
+        // apply new offset
+        Vector3 newFloor = getFloorOffset();
+        robo.addLocationAdditive("torso", originalFloor.sub(newFloor));
 
-        // torso location offset
-        if (knockPitch > 0) {
-            if (controller.isCrouching()) {
-                robo.addLocationAdditive("torso", Vector3f.createFrom(-1.0f, -0.4f, 0.0f).mult(knockPitch * 0.4f));
-            } else {
-                robo.addLocationAdditive("torso", Vector3f.createFrom(-0.3f, -0.6f, 0.0f).mult(knockPitch * 1.0f));
-            }
-        } else {
-            if (controller.isCrouching()) {
-                robo.addLocationAdditive("torso", Vector3f.createFrom(-0.6f, 0.2f, 0.0f).mult(knockPitch * 1.0f));
-            } else {
-                robo.addLocationAdditive("torso", Vector3f.createFrom(-0.6f, -0.1f, 0.0f).mult(knockPitch * 1.0f));
-            }
-        }
+    }
+
+    private Vector3 getFloorOffset() {
+        SkeletalEntity robo = player.getRobo();
+        Vector3 torsoLocation = robo.getBoneModelTransform("torso").column(3).toVector3();
+        Vector3 footLocationL = robo.getBoneModelTransform("foot_L").column(3).toVector3();
+        Vector3 footLocationR = robo.getBoneModelTransform("foot_R").column(3).toVector3();
+        return footLocationL.add(footLocationR).div(2f).sub(torsoLocation);
     }
 
     private void updateBones(float delta) {
@@ -118,7 +125,7 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
             Matrix3 armLower = Matrix3f.createFrom(pitch_lower, 0, 0);
             robo.addRotationOverride("arm_lower_R", armLower.toQuaternion());
 
-            if (knockDirection != 0) {
+            if (knockDirection != null) {
                 updateKnockPitch(delta);
             }
         }

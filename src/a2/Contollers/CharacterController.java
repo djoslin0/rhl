@@ -81,7 +81,6 @@ public class CharacterController extends InternalTickCallback {
     }
 
     public boolean isCrouching() { return crouching; }
-    public int getAttackTicks() { return attackTicks; }
     public boolean isOnGround() { return onGround; }
     public boolean wasOnGround() { return wasOnGround; }
     public boolean isMovingForward() { return moveForward; }
@@ -157,14 +156,14 @@ public class CharacterController extends InternalTickCallback {
         return wasJumpQueued;
     }
 
-    public void knockback(Vector3 vec) {
+    public void knockback(Vector3 vec, Vector3 relative) {
         if (ignoreKnockTimeout > 0) { return; }
         ignoreKnockTimeout = 10;
         knockbackTimeout = (vec != null) ? (int)(vec.length() / 10f) : 10;
         if (knockbackTimeout > 100) { knockbackTimeout = 100; }
 
         if (vec.length() >= 1000f) {
-            player.getAnimationController().knock(vec);
+            player.getAnimationController().knock(vec, relative);
         }
 
         if (player.isLocal() || (!UDPClient.hasClient() && !UDPServer.hasServer())) {

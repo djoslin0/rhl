@@ -114,7 +114,8 @@ public class Puck extends GameEntity implements Attackable {
 
         // push player
         Vector3 push = angularPush.add(linearPush);
-        player.getController().knockback(push);
+        Vector3 collisionPoint = Vector3f.createFrom(contactPoint.positionWorldOnA).add(Vector3f.createFrom(contactPoint.positionWorldOnB)).div(2f);
+        player.getController().knockback(push, collisionPoint.sub(player.getPosition()));
     }
 
     public void attacked(Vector3 aim, Vector3 relative) {

@@ -27,7 +27,7 @@ public class LocalCharacterAnimationController implements Updatable, CharacterAn
     }
 
     @Override
-    public void knock(Vector3 vec) {}
+    public void knock(Vector3 vec, Vector3 relative) {}
 
     @Override
     public void update(float delta) {
