@@ -48,7 +48,7 @@ public class Box extends GameEntity {
         collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
 
         RigidBody body = createBody(mass, motionState, collisionShape);
-        body.setRestitution(0.1f);
+        body.setRestitution(0.15f);
         body.setFriction(0.9f);
         body.setDamping(0.05f, 0.05f);
     }

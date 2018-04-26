@@ -8,6 +8,7 @@ import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
@@ -69,9 +70,17 @@ public class Puck extends GameEntity implements Attackable {
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         if (entity instanceof  Goal) {
             System.out.println("registered");
-            Vector3 newpos = node.getWorldPosition();
-            body.translate(new javax.vecmath.Vector3f(-newpos.x(),-newpos.y()+25f,-newpos.z()));
-            body.clearForces();
+            //Vector3 newpos = node.getWorldPosition();
+            //body.translate(new javax.vecmath.Vector3f(-newpos.x(),-newpos.y()+25f,-newpos.z()));
+            //body.clearForces();
+            javax.vecmath.Vector3f jvel = new javax.vecmath.Vector3f();
+            body.getLinearVelocity(jvel);
+            float length = jvel.length();
+            for (Object o : myGameEngine.Singletons.EntityManager.get("player")) {
+                Vector3 dir = node.getWorldPosition().sub(((a2.GameEntities.Player)o).getNode().getWorldPosition()).normalize().mult(-length);
+                body.setLinearVelocity(dir.toJavaX());
+                break;
+            }
             return;
         }
 
@@ -119,7 +128,20 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     public void attacked(Vector3 aim, Vector3 relative) {
-        javax.vecmath.Vector3f force = aim.mult(20000f).toJavaX();
+        javax.vecmath.Vector3f jvel = new javax.vecmath.Vector3f();
+        body.getLinearVelocity(jvel);
+        Vector3 velocity = Vector3f.createFrom(jvel);
+        myGameEngine.Singletons.Settings.runScript();
+        float dot = velocity.dot(aim.normalize()) * Settings.get().debug1.floatValue();
+        float rally = 0;
+        if (dot < 0) {
+            rally = -dot;
+            System.out.println(rally);
+            if (rally > Settings.get().debug2.floatValue()) {
+                rally = Settings.get().debug2.floatValue();
+            }
+        }
+        javax.vecmath.Vector3f force = aim.mult(22000f + rally * 1000f).toJavaX();
         body.applyImpulse(force, relative.toJavaX());
         body.activate();
     }

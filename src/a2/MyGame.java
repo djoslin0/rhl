@@ -42,7 +42,7 @@ public class MyGame extends VariableFrameRateGame {
     private HudText score2Text = new HudText(15, 15, Color.RED, GLUT.BITMAP_HELVETICA_18);
     private HudText fpsText = new HudText(-80, -30, Color.white, GLUT.BITMAP_8_BY_13);
 
-    public static boolean playMode = false;
+    public static boolean playMode = true;
     
     public static void main(String[] args) throws IOException {
         MyGame game = new MyGame(args);
