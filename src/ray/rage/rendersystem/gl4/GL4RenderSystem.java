@@ -24,6 +24,7 @@ import java.awt.Canvas;
 import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.nio.FloatBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -201,13 +202,14 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         // TODO: turn all remaining enable/disable/etc. calls to render states
         // at some point to allow changes after this initialization(?)
 
-        gl.glEnable(GL4.GL_CULL_FACE);
+        //gl.glEnable(GL4.GL_CULL_FACE);
         gl.glEnable(GL4.GL_DEPTH_TEST);
-        gl.glDepthFunc(GL4.GL_LEQUAL);
-        gl.glEnable(GL4.GL_SCISSOR_TEST);
-        gl.glEnable(GL4.GL_PROGRAM_POINT_SIZE);
-        gl.glEnable(GL4.GL_TEXTURE_CUBE_MAP_SEAMLESS);
-        gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); /* MyChange: ADDED LINE */
+        //gl.glDepthFunc(GL4.GL_LEQUAL);
+        //gl.glEnable(GL4.GL_SCISSOR_TEST);
+        //gl.glEnable(GL4.GL_PROGRAM_POINT_SIZE);
+        //gl.glEnable(GL4.GL_TEXTURE_CUBE_MAP_SEAMLESS);
+        gl.glEnable(GL.GL_BLEND);
+        gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA); /* MyChange: ADDED LINE */
 
         int[] vaos = new int[1];
         gl.glGenVertexArrays(vaos.length, vaos, 0);
@@ -256,24 +258,21 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         GL4 gl = (GL4) glad.getGL();
 
         // render opaque, gather transparencies (alphas)
-        gl.glDisable(GL.GL_BLEND);
         PriorityQueue<SortableRenderable> alphas = new PriorityQueue<>();
-        Vector3 cameraPosition = viewMatrix.column(3).toVector3();
         for (Renderable r : renderQueue) {
             if (r.getMaterial() != null && r.getMaterial().getName().contains("alpha")) {
-                alphas.add(new SortableRenderable(r, cameraPosition));
+                alphas.add(new SortableRenderable(r));
                 continue;
             }
             doRender(gl, r);
         }
 
         // render transparencies (alphas)
+        //gl.glDepthMask(false);
         while (alphas.size() > 0) {
-            gl.glDepthMask(false);
-            gl.glEnable(GL.GL_BLEND);
             doRender(gl, alphas.poll().renderable);
         }
-        gl.glDepthMask(true);
+        //gl.glDepthMask(true);
 
         // draw hud
         GL4bc gl4bc = (GL4bc)gl;
