@@ -131,17 +131,13 @@ public class Puck extends GameEntity implements Attackable {
         javax.vecmath.Vector3f jvel = new javax.vecmath.Vector3f();
         body.getLinearVelocity(jvel);
         Vector3 velocity = Vector3f.createFrom(jvel);
-        myGameEngine.Singletons.Settings.runScript();
-        float dot = velocity.dot(aim.normalize()) * Settings.get().debug1.floatValue();
+        float dot = velocity.dot(aim.normalize()) * 1.5f;
         float rally = 0;
         if (dot < 0) {
             rally = -dot;
-            System.out.println(rally);
-            if (rally > Settings.get().debug2.floatValue()) {
-                rally = Settings.get().debug2.floatValue();
-            }
+            if (rally > 50f) { rally = 50f; }
         }
-        javax.vecmath.Vector3f force = aim.mult(22000f + rally * 1000f).toJavaX();
+        javax.vecmath.Vector3f force = aim.mult(20000f + rally * 1000f).toJavaX();
         body.applyImpulse(force, relative.toJavaX());
         body.activate();
     }

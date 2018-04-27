@@ -81,7 +81,6 @@ public class Glove extends GameEntity {
 
         if (hit) {
             createPow = true;
-            System.out.println(offset.length());
             if (this.offset.length() > 2f) {
                 this.target = target.sub(player.getCameraNode().getWorldForwardAxis().mult(0.25f));
                 this.offset = target.sub(player.getCameraNode().getWorldPosition());

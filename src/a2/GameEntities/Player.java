@@ -285,7 +285,14 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public void attacked(Vector3 aim, Vector3 relative) {
-        controller.knockback(aim.mult(3500f), relative);
+        float dot = getVelocity().dot(aim.normalize()) * 1.5f;
+        float rally = 0;
+        if (dot < 0) {
+            rally = -dot;
+            if (rally > 25f) { rally = 25f; }
+        }
+
+        controller.knockback(aim.mult(3500f + 100f * rally), relative);
     }
 
     @Override
