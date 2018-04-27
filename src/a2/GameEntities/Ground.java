@@ -107,6 +107,6 @@ public class Ground extends GameEntity {
 
         CollisionShape collisionShape = new BoxShape(new javax.vecmath.Vector3f(100f, 2f, 100f));
 
-        createBody(mass, motionState, collisionShape);
+        createBody(mass, motionState, collisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
     }
 }

@@ -276,10 +276,6 @@ public class CharacterController extends InternalTickCallback {
         // keep linearVelocity up to date
         body.setLinearVelocity(linearVelocity);
 
-        if (jumpQueued) {
-            System.out.println("WAS JUMP");
-        }
-
         wasOnGround = onGround;
     }
 

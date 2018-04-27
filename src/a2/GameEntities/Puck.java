@@ -1,14 +1,18 @@
 package a2.GameEntities;
 
 import com.bulletphysics.collision.dispatch.CollisionObject;
+import com.bulletphysics.collision.dispatch.CollisionWorld;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.PhysicsManager;
+import myGameEngine.Singletons.TimeManager;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
@@ -21,6 +25,7 @@ import ray.rml.Vector3f;
 
 import javax.vecmath.Matrix3f;
 import javax.vecmath.Quat4f;
+import java.awt.*;
 import java.io.IOException;
 
 public class Puck extends GameEntity implements Attackable {
@@ -125,6 +130,28 @@ public class Puck extends GameEntity implements Attackable {
         Vector3 push = angularPush.add(linearPush);
         Vector3 collisionPoint = Vector3f.createFrom(contactPoint.positionWorldOnA).add(Vector3f.createFrom(contactPoint.positionWorldOnB)).div(2f);
         player.getController().knockback(push, collisionPoint.sub(player.getPosition()));
+
+        // create squeezekill start / stop
+        Vector3 diff2 = Vector3f.createFrom(contactPoint.positionWorldOnA).sub(Vector3f.createFrom(contactPoint.positionWorldOnB)).normalize().mult(2.5f);
+        if (!isA) { diff2 = diff2.mult(-1f); }
+        diff2 = Vector3f.createFrom(diff2.x(), diff2.y() * Player.height, diff2.z());
+        javax.vecmath.Vector3f start = isA ? Vector3f.createFrom(contactPoint.positionWorldOnB).toJavaX() : Vector3f.createFrom(contactPoint.positionWorldOnA).toJavaX();
+        javax.vecmath.Vector3f end = Vector3f.createFrom(start).add(diff2).toJavaX();
+
+        // raytrace squeezekill
+        CollisionWorld.ClosestRayResultCallback squeezeKill = new CollisionWorld.ClosestRayResultCallback(start, end);
+        squeezeKill.collisionFilterMask = PhysicsManager.COLLIDE_WORLD;
+        PhysicsManager.getWorld().rayTest(start, end, squeezeKill);
+
+        if (squeezeKill.hasHit()) {
+            // squeezekill
+            player.hurt(100);
+        } else if (TimeManager.difference(TimeManager.getTick(), player.getLastHurtTick()) > 1) {
+            // hurt player
+            float linearDot = linearPush.dot(player.getVelocity()) / 50000;
+            int hurtAmount = (int)(linearDot + angularVelocity.length());
+            if (hurtAmount > 0) { player.hurt(hurtAmount); }
+        }
     }
 
     public void attacked(Vector3 aim, Vector3 relative) {

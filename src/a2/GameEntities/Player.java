@@ -42,6 +42,8 @@ public class Player extends GameEntity implements Attackable {
     private byte playerSide;
     private boolean local;
     public short lastReceivedTick;
+    private short lastHurtTick;
+    private int health;
 
     public static float height = 1.8f;
     public static float crouchHeight = 0.75f;
@@ -100,6 +102,7 @@ public class Player extends GameEntity implements Attackable {
         // attach glove to hands
         glove = new Glove(this, name, handNode);
 
+        health = 100;
     }
 
     private void loadLocalCharacter(String name) {
@@ -222,6 +225,7 @@ public class Player extends GameEntity implements Attackable {
     public Glove getGlove() { return glove; }
     public CharacterAnimationController getAnimationController() { return animationController; }
     public SceneNode getHandNode() { return handNode; }
+    public short getLastHurtTick() { return lastHurtTick; }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
 
@@ -312,5 +316,20 @@ public class Player extends GameEntity implements Attackable {
             headNode.setLocalPosition(headTransform.column(3).toVector3());
             headNode.setLocalRotation(headTransform.toMatrix3());
         }
+    }
+
+    public void hurt(int value) {
+        if (UDPClient.hasClient()) { return; }
+        this.lastHurtTick = TimeManager.getTick();
+        health -= value;
+        if (health <= 0) {
+            health = 0;
+            die();
+        }
+    }
+
+    public void die() {
+        health = 100;
+        setPosition(Settings.get().spawnPoint);
     }
 }

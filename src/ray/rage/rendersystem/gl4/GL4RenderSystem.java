@@ -268,11 +268,9 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         }
 
         // render transparencies (alphas)
-        //gl.glDepthMask(false);
         while (alphas.size() > 0) {
             doRender(gl, alphas.poll().renderable);
         }
-        //gl.glDepthMask(true);
 
         // draw hud
         GL4bc gl4bc = (GL4bc)gl;
