@@ -44,12 +44,16 @@ public class Player extends GameEntity implements Attackable {
     public short lastReceivedTick;
     private int health;
     private float absorbHurt;
+    private Debris headDebris;
+    private float respawnTimeout;
+    private boolean dead;
 
     public static float height = 1.8f;
     public static float crouchHeight = 0.75f;
     public static float cameraHeight = 1.2f;
     public static float cameraCrouchHeight = -0.45f;
     public static float absorbHurtFalloff = 0.015f;
+    public static float respawnSeconds = 5f;
 
     public Player(byte playerId, boolean local, byte side, Vector3 location) {
         super(true);
@@ -310,6 +314,16 @@ public class Player extends GameEntity implements Attackable {
             System.out.println(absorbHurt);
         }
 
+        if (dead) {
+            cameraNode.lookAt(headDebris.getNode().getWorldPosition());
+            if (respawnTimeout > 0) {
+                respawnTimeout -= delta;
+                if (respawnTimeout <= 0) {
+                    respawn();
+                }
+            }
+        }
+
         if (robo != null) {
             // update animations
             robo.update(delta);
@@ -342,35 +356,45 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public void die() {
-        health = 100;
-        absorbHurt = 0;
+        if (dead) { return; }
+        respawnTimeout = respawnSeconds * 1000f;
+        dead = true;
+
+        health = 0;
         if (local) {
             MyGame.healthText.text = "Health: " + health;
         }
+        absorbHurt = 0;
 
-        createDebrisPart("head");
+        headDebris = createDebrisPart("head");
         createDebrisPart("torso");
         createDebrisPart("arm_upper_L");
         createDebrisPart("arm_upper_R");
         createDebrisPart("leg_upper_L");
         createDebrisPart("leg_upper_R");
+    }
 
+    public void respawn() {
+        dead = false;
+        respawnTimeout = 0;
+        health = 100;
+        absorbHurt = 0;
         setPosition(Settings.get().spawnPoint);
     }
 
-    private void createDebrisPart(String boneName) {
+    private Debris createDebrisPart(String boneName) {
         try {
             if (local) {
-                new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), boneName + ".obj");
+                return new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), boneName + ".obj");
             } else {
                 Matrix4 matrix = roboNode.getWorldTransform().mult(robo.getBoneModelTransform(boneName));
                 Vector3 location = matrix.column(3).toVector3();
                 Quaternion rotation = matrix.toQuaternion();
-                new Debris(location, rotation, getVelocity(), boneName + ".obj");
+                return new Debris(location, rotation, getVelocity(), boneName + ".obj");
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        return null;
     }
 }
