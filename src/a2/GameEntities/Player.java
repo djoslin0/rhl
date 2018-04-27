@@ -199,7 +199,7 @@ public class Player extends GameEntity implements Attackable {
         float height = crouching ? crouchHeight : this.height;
         float mass = 70;
 
-        PlayerMotionStateController motionState = new PlayerMotionStateController(this.node);
+        PlayerMotionStateController motionState = new PlayerMotionStateController(this, this.node);
         CapsuleShape collisionShape = new CapsuleShape(0.85f, height);
 
         if (local) {
@@ -231,10 +231,11 @@ public class Player extends GameEntity implements Attackable {
     public Glove getGlove() { return glove; }
     public CharacterAnimationController getAnimationController() { return animationController; }
     public SceneNode getHandNode() { return handNode; }
+    public boolean isDead() { return dead; }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
 
-    public void setPitch(float pitch) {
+    public void setPitch(double pitch) {
         Matrix3 cameraNodeRotation = Matrix3f.createFrom(pitch, 0, 0);
         cameraNode.setLocalRotation(cameraNodeRotation);
 
@@ -304,24 +305,37 @@ public class Player extends GameEntity implements Attackable {
         controller.knockback(aim.mult(3500f + 100f * rally), relative);
     }
 
+    public void lookAt(Vector3 target) {
+        try {
+            Matrix3 m = Matrix4f.createLookAtMatrix(cameraNode.getWorldPosition(), target, Vector3f.createUnitVectorY()).toMatrix3();
+            if (m.getRoll() > 0) {
+                setPitch(Math.PI + m.getPitch());
+                setYaw(Math.PI - m.getYaw());
+            } else {
+                setPitch(m.getPitch());
+                setYaw(m.getYaw());
+            }
+        } catch (ArithmeticException ex) { }
+    }
+
     @Override
     public void update(float delta) {
         super.update(delta);
 
-        if (absorbHurt > 0) {
-            absorbHurt -= absorbHurtFalloff * delta;
-            if (absorbHurt < 0) { absorbHurt = 0; }
-            System.out.println(absorbHurt);
-        }
-
         if (dead) {
-            cameraNode.lookAt(headDebris.getNode().getWorldPosition());
+            lookAt(headDebris.getNode().getWorldPosition());
             if (respawnTimeout > 0) {
                 respawnTimeout -= delta;
                 if (respawnTimeout <= 0) {
                     respawn();
                 }
             }
+            return;
+        }
+
+        if (absorbHurt > 0) {
+            absorbHurt -= absorbHurtFalloff * delta;
+            if (absorbHurt < 0) { absorbHurt = 0; }
         }
 
         if (robo != null) {
@@ -372,6 +386,8 @@ public class Player extends GameEntity implements Attackable {
         createDebrisPart("arm_upper_R");
         createDebrisPart("leg_upper_L");
         createDebrisPart("leg_upper_R");
+
+        PhysicsManager.removeRigidBody(body);
     }
 
     public void respawn() {
@@ -380,6 +396,8 @@ public class Player extends GameEntity implements Attackable {
         health = 100;
         absorbHurt = 0;
         setPosition(Settings.get().spawnPoint);
+
+        PhysicsManager.addRigidBody(body);
     }
 
     private Debris createDebrisPart(String boneName) {

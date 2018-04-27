@@ -106,6 +106,7 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
         int manifoldCount = dispatcher.getNumManifolds();
         for (int i = 0; i < manifoldCount; i++) {
             PersistentManifold manifold = dispatcher.getManifoldByIndexInternal(i);
+            if (manifold == null) { continue; }
             RigidBody object1 = (RigidBody)manifold.getBody0();
             RigidBody object2 = (RigidBody)manifold.getBody1();
             if (!registeredCollisions.contains(object1)) { continue; }
