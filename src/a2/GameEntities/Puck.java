@@ -4,20 +4,23 @@ import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
+import ray.rml.Quaternionf;
 import ray.rml.Radianf;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
+import javax.vecmath.Matrix3f;
+import javax.vecmath.Quat4f;
 import java.io.IOException;
 
 public class Puck extends GameEntity implements Attackable {
@@ -69,18 +72,15 @@ public class Puck extends GameEntity implements Attackable {
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         if (entity instanceof  Goal) {
-            System.out.println("registered");
-            //Vector3 newpos = node.getWorldPosition();
-            //body.translate(new javax.vecmath.Vector3f(-newpos.x(),-newpos.y()+25f,-newpos.z()));
-            //body.clearForces();
-            javax.vecmath.Vector3f jvel = new javax.vecmath.Vector3f();
-            body.getLinearVelocity(jvel);
-            float length = jvel.length();
-            for (Object o : myGameEngine.Singletons.EntityManager.get("player")) {
-                Vector3 dir = node.getWorldPosition().sub(((a2.GameEntities.Player)o).getNode().getWorldPosition()).normalize().mult(-length);
-                body.setLinearVelocity(dir.toJavaX());
-                break;
-            }
+            System.out.println("puck --> goal");
+            body.setLinearVelocity(new javax.vecmath.Vector3f());
+            body.setAngularVelocity(new javax.vecmath.Vector3f());
+            Transform t = new Transform();
+            t.origin.x = 0;
+            t.origin.y = 25f;
+            t.origin.z = 0;
+            body.setWorldTransform(t);
+            body.clearForces();
             return;
         }
 
