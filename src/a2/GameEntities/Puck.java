@@ -148,10 +148,10 @@ public class Puck extends GameEntity implements Attackable {
             squeezeKill.collisionFilterMask = PhysicsManager.COLLIDE_WORLD;
             PhysicsManager.getWorld().rayTest(start, end, squeezeKill);
 
-            if (squeezeKill.hasHit() && hurtAmount > 10) {
+            if (squeezeKill.hasHit() && hurtAmount > 4) {
                 // squeezekill
                 player.hurt(100);
-            } else if (TimeManager.difference(TimeManager.getTick(), player.getLastHurtTick()) > 1) {
+            } else {
                 // hurt player
                 player.hurt(hurtAmount);
             }

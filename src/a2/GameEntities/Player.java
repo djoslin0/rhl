@@ -42,13 +42,14 @@ public class Player extends GameEntity implements Attackable {
     private byte playerSide;
     private boolean local;
     public short lastReceivedTick;
-    private short lastHurtTick;
     private int health;
+    private float absorbHurt;
 
     public static float height = 1.8f;
     public static float crouchHeight = 0.75f;
     public static float cameraHeight = 1.2f;
     public static float cameraCrouchHeight = -0.45f;
+    public static float absorbHurtFalloff = 0.015f;
 
     public Player(byte playerId, boolean local, byte side, Vector3 location) {
         super(true);
@@ -103,6 +104,7 @@ public class Player extends GameEntity implements Attackable {
         glove = new Glove(this, name, handNode);
 
         health = 100;
+        absorbHurt = 0;
     }
 
     private void loadLocalCharacter(String name) {
@@ -225,7 +227,6 @@ public class Player extends GameEntity implements Attackable {
     public Glove getGlove() { return glove; }
     public CharacterAnimationController getAnimationController() { return animationController; }
     public SceneNode getHandNode() { return handNode; }
-    public short getLastHurtTick() { return lastHurtTick; }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
 
@@ -302,6 +303,13 @@ public class Player extends GameEntity implements Attackable {
     @Override
     public void update(float delta) {
         super.update(delta);
+
+        if (absorbHurt > 0) {
+            absorbHurt -= absorbHurtFalloff * delta;
+            if (absorbHurt < 0) { absorbHurt = 0; }
+            System.out.println(absorbHurt);
+        }
+
         if (robo != null) {
             // update animations
             robo.update(delta);
@@ -320,8 +328,10 @@ public class Player extends GameEntity implements Attackable {
 
     public void hurt(int value) {
         if (UDPClient.hasClient()) { return; }
-        this.lastHurtTick = TimeManager.getTick();
-        health -= value;
+        if (value < absorbHurt) { return; }
+        int applyHurt = (int)(value - absorbHurt);
+        absorbHurt = value;
+        health -= applyHurt;
         if (health <= 0) {
             health = 0;
             die();
@@ -333,26 +343,31 @@ public class Player extends GameEntity implements Attackable {
 
     public void die() {
         health = 100;
+        absorbHurt = 0;
         if (local) {
             MyGame.healthText.text = "Health: " + health;
-        } else {
-            createDebrisPart("head");
-            createDebrisPart("torso");
-            createDebrisPart("arm_upper_L");
-            createDebrisPart("arm_upper_R");
-            createDebrisPart("leg_upper_L");
-            createDebrisPart("leg_upper_R");
         }
+
+        createDebrisPart("head");
+        createDebrisPart("torso");
+        createDebrisPart("arm_upper_L");
+        createDebrisPart("arm_upper_R");
+        createDebrisPart("leg_upper_L");
+        createDebrisPart("leg_upper_R");
 
         setPosition(Settings.get().spawnPoint);
     }
 
     private void createDebrisPart(String boneName) {
         try {
-            Matrix4 matrix = roboNode.getWorldTransform().mult(robo.getBoneModelTransform(boneName));
-            Vector3 location = matrix.column(3).toVector3();
-            Quaternion rotation = matrix.toQuaternion();//.mult(matrix.toMatrix3()).toQuaternion();
-            new Debris(location, rotation, getVelocity(), boneName + ".obj");
+            if (local) {
+                new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), boneName + ".obj");
+            } else {
+                Matrix4 matrix = roboNode.getWorldTransform().mult(robo.getBoneModelTransform(boneName));
+                Vector3 location = matrix.column(3).toVector3();
+                Quaternion rotation = matrix.toQuaternion();
+                new Debris(location, rotation, getVelocity(), boneName + ".obj");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
