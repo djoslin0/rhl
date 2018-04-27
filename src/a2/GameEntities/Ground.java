@@ -2,8 +2,6 @@ package a2.GameEntities;
 
 import com.bulletphysics.collision.shapes.BoxShape;
 import com.bulletphysics.collision.shapes.CollisionShape;
-import com.bulletphysics.dynamics.RigidBody;
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
 import com.bulletphysics.linearmath.DefaultMotionState;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.GameEntities.GameEntity;
@@ -18,7 +16,6 @@ import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
 import ray.rage.scene.ManualObject;
 import ray.rage.scene.SceneManager;
-import ray.rage.scene.SceneNode;
 import ray.rage.util.BufferUtil;
 
 import java.awt.*;

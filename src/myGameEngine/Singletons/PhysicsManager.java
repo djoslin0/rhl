@@ -1,6 +1,5 @@
 package myGameEngine.Singletons;
 
-import a2.GameEntities.Player;
 import com.bulletphysics.collision.broadphase.*;
 import com.bulletphysics.collision.dispatch.CollisionDispatcher;
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration;
@@ -36,9 +35,12 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
 
     public static short COL_LOCAL_PLAYER = (short)(1 << 2);
     public static short COL_WORLD = (short)(1 << 3);
-    public static short COLLIDE_ALL = -1;
+    public static short COL_DEBRIS = (short)(1 << 4);
+    public static short COLLIDE_ALL = (short)(-1);
+    public static short COLLIDE_DEFAULT = (short)(COLLIDE_ALL ^ COL_DEBRIS);
     public static short COLLIDE_WORLD = COL_WORLD;
-    public static short COLLIDE_IGNORE_LOCAL_PLAYER = (short)(COLLIDE_ALL ^ COL_LOCAL_PLAYER);
+    public static short COLLIDE_DEBRIS = (short)(COL_WORLD | COL_DEBRIS);
+    public static short COLLIDE_IGNORE_LOCAL_PLAYER = (short)(COLLIDE_DEFAULT ^ COL_LOCAL_PLAYER);
 
     public static void initPhysics() {
 

@@ -1,0 +1,82 @@
+package a2.GameEntities;
+
+import com.bulletphysics.collision.dispatch.CollisionObject;
+import com.bulletphysics.collision.shapes.ConvexHullShape;
+import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.linearmath.Transform;
+import myGameEngine.Controllers.MotionStateController;
+import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.Helpers.BulletConvert;
+import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.PhysicsManager;
+import myGameEngine.Singletons.UniqueCounter;
+import ray.rage.rendersystem.Renderable;
+import ray.rage.scene.Entity;
+import ray.rage.scene.SceneManager;
+import ray.rage.scene.SceneNode;
+import ray.rml.Quaternion;
+import ray.rml.Vector3;
+
+import javax.vecmath.Quat4f;
+import java.io.IOException;
+
+public class Debris extends GameEntity {
+    private Entity obj;
+    private RigidBody body;
+
+    public Debris(Vector3 location, Quaternion rotation, Vector3 velocity, String modelName) throws IOException {
+        super(false);
+
+        SceneManager sm = EngineManager.getSceneManager();
+
+        long unique = UniqueCounter.next();
+        String name = "Debris" + modelName + unique;
+
+        obj = sm.createEntity(name, modelName);
+        addResponsibility(obj);
+        obj.setPrimitive(Renderable.Primitive.TRIANGLES);
+
+        node = sm.getRootSceneNode().createChildSceneNode(obj.getName() + "Node");
+        addResponsibility(node);
+        node.attachObject(obj);
+        node.setLocalPosition(location);
+
+        initPhysics(location, rotation, velocity);
+    }
+
+    private void initPhysics(Vector3 location, Quaternion rotation, Vector3 velocity) {
+        float mass = 100f;
+        MotionStateController motionState = new MotionStateController(this.node);
+        ConvexHullShape collisionShape = BulletConvert.entityToConvexHullShape(obj);
+        collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
+
+        body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_DEBRIS, PhysicsManager.COLLIDE_DEBRIS);
+        body.setRestitution(0.6f);
+        body.setFriction(0.2f);
+        body.setDamping(0.05f, 0f);
+        body.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+
+        Transform t = new Transform();
+        body.getWorldTransform(t);
+        t.origin.x = location.x();
+        t.origin.y = location.y();
+        t.origin.z = location.z();
+
+        Quat4f rot = new Quat4f();
+        rot.w = rotation.w();
+        rot.x = rotation.x();
+        rot.y = rotation.y();
+        rot.z = rotation.z();
+        t.setRotation(rot);
+
+        body.setWorldTransform(t);
+        body.setLinearVelocity(velocity.toJavaX());
+    }
+
+    public SceneNode getNode() { return node; }
+    public RigidBody getBody() { return body; }
+
+    @Override
+    public void update(float delta) { }
+}
+

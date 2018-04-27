@@ -38,11 +38,10 @@ public class MyGame extends VariableFrameRateGame {
     private Camera camera;
     private Player player;
 
-    private HudText score1Text = new HudText(15, -30, Color.BLUE, GLUT.BITMAP_HELVETICA_18);
-    private HudText score2Text = new HudText(15, 15, Color.RED, GLUT.BITMAP_HELVETICA_18);
     private HudText fpsText = new HudText(-80, -30, Color.white, GLUT.BITMAP_8_BY_13);
 
     public static boolean playMode = true;
+    public static HudText healthText = new HudText(15, -30, Color.BLUE, GLUT.BITMAP_HELVETICA_18);
     
     public static void main(String[] args) throws IOException {
         MyGame game = new MyGame(args);
@@ -161,11 +160,9 @@ public class MyGame extends VariableFrameRateGame {
         }
 
         GL4RenderSystem rs = (GL4RenderSystem) engine.getRenderSystem();
-        rs.addHud(score1Text);
-        rs.addHud(score2Text);
+        rs.addHud(healthText);
         rs.addHud(fpsText);
-        score2Text.text = "Here too!";
-        score1Text.text = "Text goes here.";
+        healthText.text = "Health: 100";
 
         setupNetworking();
         setupInputs();
@@ -175,7 +172,7 @@ public class MyGame extends VariableFrameRateGame {
         im = new GenericInputManager();
         InputSetup.setupKeyboard(im, player);
         InputSetup.setupMouse(im, player);
-        InputSetup.listenToControllers(im, player, score1Text);
+        InputSetup.listenToControllers(im, player, healthText);
     }
 
     @Override

@@ -1,10 +1,11 @@
 package a2.GameEntities;
 
 import Networking.UDPClient;
-import Networking.UDPServer;
+import a2.Actions.ActionRotate;
 import a2.Contollers.CharacterAnimationController;
 import a2.Contollers.LocalCharacterAnimationController;
 import a2.Contollers.RemoteCharacterAnimationController;
+import a2.MyGame;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
@@ -18,14 +19,12 @@ import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.TimeManager;
 import ray.rage.asset.texture.Texture;
-import ray.rage.rendersystem.RenderWindow;
-import ray.rage.rendersystem.Renderable;
-import ray.rage.rendersystem.Viewport;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
 import ray.rage.scene.*;
 import ray.rml.*;
 
+import javax.vecmath.Quat4f;
 import java.awt.*;
 import java.io.IOException;
 
@@ -33,6 +32,7 @@ public class Player extends GameEntity implements Attackable {
     private SceneNode cameraNode;
     private SceneNode handNode;
     private SceneNode headNode;
+    private SceneNode roboNode;
     private RigidBody body;
     private CharacterController controller;
     private CharacterAnimationController animationController;
@@ -140,7 +140,7 @@ public class Player extends GameEntity implements Attackable {
             robo.setRenderState(textureState);
 
             // setup character node
-            SceneNode roboNode = node.createChildSceneNode(name + "RoboNode");
+            roboNode = node.createChildSceneNode(name + "RoboNode");
             roboNode.setLocalPosition(0, -height, -0.3f);
             addResponsibility(roboNode);
             roboNode.attachObject(robo);
@@ -197,7 +197,7 @@ public class Player extends GameEntity implements Attackable {
         CapsuleShape collisionShape = new CapsuleShape(0.85f, height);
 
         if (local) {
-            body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_LOCAL_PLAYER, PhysicsManager.COLLIDE_ALL);
+            body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_LOCAL_PLAYER, PhysicsManager.COLLIDE_DEFAULT);
         } else {
             body = createBody(mass, motionState, collisionShape);
         }
@@ -326,10 +326,36 @@ public class Player extends GameEntity implements Attackable {
             health = 0;
             die();
         }
+        if (local) {
+            MyGame.healthText.text = "Health: " + health;
+        }
     }
 
     public void die() {
         health = 100;
+        if (local) {
+            MyGame.healthText.text = "Health: " + health;
+        } else {
+            createDebrisPart("head");
+            createDebrisPart("torso");
+            createDebrisPart("arm_upper_L");
+            createDebrisPart("arm_upper_R");
+            createDebrisPart("leg_upper_L");
+            createDebrisPart("leg_upper_R");
+        }
+
         setPosition(Settings.get().spawnPoint);
+    }
+
+    private void createDebrisPart(String boneName) {
+        try {
+            Matrix4 matrix = roboNode.getWorldTransform().mult(robo.getBoneModelTransform(boneName));
+            Vector3 location = matrix.column(3).toVector3();
+            Quaternion rotation = matrix.toQuaternion();//.mult(matrix.toMatrix3()).toQuaternion();
+            new Debris(location, rotation, getVelocity(), boneName + ".obj");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

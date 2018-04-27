@@ -131,26 +131,30 @@ public class Puck extends GameEntity implements Attackable {
         Vector3 collisionPoint = Vector3f.createFrom(contactPoint.positionWorldOnA).add(Vector3f.createFrom(contactPoint.positionWorldOnB)).div(2f);
         player.getController().knockback(push, collisionPoint.sub(player.getPosition()));
 
-        // create squeezekill start / stop
-        Vector3 diff2 = Vector3f.createFrom(contactPoint.positionWorldOnA).sub(Vector3f.createFrom(contactPoint.positionWorldOnB)).normalize().mult(2.5f);
-        if (!isA) { diff2 = diff2.mult(-1f); }
-        diff2 = Vector3f.createFrom(diff2.x(), diff2.y() * Player.height, diff2.z());
-        javax.vecmath.Vector3f start = isA ? Vector3f.createFrom(contactPoint.positionWorldOnB).toJavaX() : Vector3f.createFrom(contactPoint.positionWorldOnA).toJavaX();
-        javax.vecmath.Vector3f end = Vector3f.createFrom(start).add(diff2).toJavaX();
+        // calculate player hurt/squeeze
+        float linearDot = linearPush.dot(player.getVelocity()) / 45000;
+        int hurtAmount = (int)(linearDot + angularVelocity.length() * 1.5f);
+        if (hurtAmount > 0) {
+            // create squeezekill start / stop
+            Vector3 diff2 = Vector3f.createFrom(contactPoint.positionWorldOnA).sub(Vector3f.createFrom(contactPoint.positionWorldOnB)).normalize().mult(2.5f);
+            if (!isA) { diff2 = diff2.mult(-1f); }
+            float playerHeight = player.getController().isCrouching() ? Player.crouchHeight : Player.height;
+            diff2 = Vector3f.createFrom(diff2.x(), diff2.y() * playerHeight * 0.9f, diff2.z());
+            javax.vecmath.Vector3f start = isA ? Vector3f.createFrom(contactPoint.positionWorldOnB).toJavaX() : Vector3f.createFrom(contactPoint.positionWorldOnA).toJavaX();
+            javax.vecmath.Vector3f end = Vector3f.createFrom(start).add(diff2).toJavaX();
 
-        // raytrace squeezekill
-        CollisionWorld.ClosestRayResultCallback squeezeKill = new CollisionWorld.ClosestRayResultCallback(start, end);
-        squeezeKill.collisionFilterMask = PhysicsManager.COLLIDE_WORLD;
-        PhysicsManager.getWorld().rayTest(start, end, squeezeKill);
+            // raytrace squeezekill
+            CollisionWorld.ClosestRayResultCallback squeezeKill = new CollisionWorld.ClosestRayResultCallback(start, end);
+            squeezeKill.collisionFilterMask = PhysicsManager.COLLIDE_WORLD;
+            PhysicsManager.getWorld().rayTest(start, end, squeezeKill);
 
-        if (squeezeKill.hasHit()) {
-            // squeezekill
-            player.hurt(100);
-        } else if (TimeManager.difference(TimeManager.getTick(), player.getLastHurtTick()) > 1) {
-            // hurt player
-            float linearDot = linearPush.dot(player.getVelocity()) / 50000;
-            int hurtAmount = (int)(linearDot + angularVelocity.length());
-            if (hurtAmount > 0) { player.hurt(hurtAmount); }
+            if (squeezeKill.hasHit() && hurtAmount > 10) {
+                // squeezekill
+                player.hurt(100);
+            } else if (TimeManager.difference(TimeManager.getTick(), player.getLastHurtTick()) > 1) {
+                // hurt player
+                player.hurt(hurtAmount);
+            }
         }
     }
 
