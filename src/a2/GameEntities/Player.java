@@ -334,7 +334,7 @@ public class Player extends GameEntity implements Attackable {
     public void update(float delta) {
         super.update(delta);
 
-        if (dead && local) {
+        if (dead && (local || (!UDPServer.hasServer() && !UDPClient.hasClient()))) {
             lookAt(headDebris.getNode().getWorldPosition());
             if (respawnTimeout > 0) {
                 respawnTimeout -= delta;
@@ -435,14 +435,15 @@ public class Player extends GameEntity implements Attackable {
     }
 
     private Debris createDebrisPart(String boneName) {
+        float duration = 10000f;
         try {
             if (local) {
-                return new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), boneName + ".obj");
+                return new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), boneName + ".obj", duration);
             } else {
                 Matrix4 matrix = roboNode.getWorldTransform().mult(robo.getBoneModelTransform(boneName));
                 Vector3 location = matrix.column(3).toVector3();
                 Quaternion rotation = matrix.toQuaternion();
-                return new Debris(location, rotation, getVelocity(), boneName + ".obj");
+                return new Debris(location, rotation, getVelocity(), boneName + ".obj", duration);
             }
         } catch (IOException e) {
             e.printStackTrace();

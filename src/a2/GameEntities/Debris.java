@@ -7,6 +7,7 @@ import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
+import myGameEngine.Helpers.Duration;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
@@ -23,9 +24,13 @@ import java.io.IOException;
 public class Debris extends GameEntity {
     private Entity obj;
     private RigidBody body;
+    private ConvexHullShape collisionShape;
+    private Duration duration;
 
-    public Debris(Vector3 location, Quaternion rotation, Vector3 velocity, String modelName) throws IOException {
-        super(false);
+    public Debris(Vector3 location, Quaternion rotation, Vector3 velocity, String modelName, float maxDuration) throws IOException {
+        super(true);
+
+        this.duration = new Duration(maxDuration);
 
         SceneManager sm = EngineManager.getSceneManager();
 
@@ -47,7 +52,7 @@ public class Debris extends GameEntity {
     private void initPhysics(Vector3 location, Quaternion rotation, Vector3 velocity) {
         float mass = 100f;
         MotionStateController motionState = new MotionStateController(this.node);
-        ConvexHullShape collisionShape = BulletConvert.entityToConvexHullShape(obj);
+        collisionShape = BulletConvert.entityToConvexHullShape(obj);
         collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
 
         body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_DEBRIS, PhysicsManager.COLLIDE_DEBRIS);
@@ -74,9 +79,22 @@ public class Debris extends GameEntity {
     }
 
     public SceneNode getNode() { return node; }
-    public RigidBody getBody() { return body; }
 
     @Override
-    public void update(float delta) { }
+    public void update(float delta) {
+        super.update(delta);
+
+        if (duration.exceeded(delta)) {
+            // ran out of life
+            destroy();
+            return;
+        }
+
+        // resize
+        float scalar = 1f - (float)Math.pow(duration.progress(), 2f);
+        node.setLocalScale(scalar, scalar, scalar);
+        collisionShape.setLocalScaling(new javax.vecmath.Vector3f(scalar, scalar, scalar));
+    }
+
 }
 
