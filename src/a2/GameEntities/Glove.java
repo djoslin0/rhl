@@ -37,6 +37,7 @@ public class Glove extends GameEntity {
     private SceneNode springNode;
     private boolean hit;
     private boolean createPow;
+    private boolean wasDead;
 
     private static float speed = 0.003f;
 
@@ -103,7 +104,22 @@ public class Glove extends GameEntity {
 
     @Override
     public void update(float delta) {
+        if (player.isDead()) {
+            if (gloveObj.getParentSceneNode() != null) {
+                gloveObj.getParentSceneNode().detachObject(gloveObj);
+            }
+            springNode.setLocalScale(0.001f, 0.001f, 0.001f);
+            time = 0;
+            target = null;
+            wasDead = true;
+            return;
+        } else if (wasDead) {
+            wasDead = false;
+            handNode.attachObject(gloveObj);
+        }
+
         if (target == null) { return; }
+
         time += speed * delta;
 
         if (time > 1) {

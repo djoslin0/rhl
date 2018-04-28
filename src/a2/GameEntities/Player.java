@@ -32,7 +32,10 @@ public class Player extends GameEntity implements Attackable {
     private SceneNode cameraNode;
     private SceneNode handNode;
     private SceneNode headNode;
+    private SceneNode leftEyeNode;
+    private SceneNode rightEyeNode;
     private SceneNode roboNode;
+    private SceneNode crosshairNode;
     private RigidBody body;
     private CharacterController controller;
     private CharacterAnimationController animationController;
@@ -82,10 +85,10 @@ public class Player extends GameEntity implements Attackable {
         }
 
         // create aiming flare
-        SceneNode flareNode = cameraNode.createChildSceneNode(name + "flareNode");
-        flareNode.moveForward(3);
+        crosshairNode = cameraNode.createChildSceneNode(name + "crosshairNode");
+        crosshairNode.moveForward(3);
         try {
-            Billboard flare = new Billboard(flareNode, 0.2f, 0.2f, "flare2.png", Color.RED);
+            Billboard flare = new Billboard(crosshairNode, 0.2f, 0.2f, "flare2.png", Color.RED);
             addResponsibility(flare);
         } catch (IOException e) {
             e.printStackTrace();
@@ -164,13 +167,13 @@ public class Player extends GameEntity implements Attackable {
             float eyeSize = 0.2f;
 
             // left eye
-            SceneNode leftEyeNode = headNode.createChildSceneNode(name + "EyeLNode");
+            leftEyeNode = headNode.createChildSceneNode(name + "EyeLNode");
             leftEyeNode.setLocalPosition(eyeSpacing, eyeHeight, distFromHead);
             Billboard leftEyeFlare = new Billboard(leftEyeNode, eyeSize, eyeSize, "flare1.png", Color.YELLOW);
             addResponsibility(leftEyeFlare);
 
             // right eye
-            SceneNode rightEyeNode = headNode.createChildSceneNode(name + "EyeRNode");
+            rightEyeNode = headNode.createChildSceneNode(name + "EyeRNode");
             rightEyeNode.setLocalPosition(-eyeSpacing, eyeHeight, distFromHead);
             Billboard rightEyeFlare = new Billboard(rightEyeNode, eyeSize, eyeSize, "flare1.png", Color.YELLOW);
             addResponsibility(rightEyeFlare);
@@ -387,7 +390,14 @@ public class Player extends GameEntity implements Attackable {
         createDebrisPart("leg_upper_L");
         createDebrisPart("leg_upper_R");
 
+        crosshairNode.setLocalScale(0.001f, 0.001f, 0.001f);
         PhysicsManager.removeRigidBody(body);
+
+        if (roboNode != null) {
+            node.detachChild(roboNode);
+            leftEyeNode.setLocalScale(0.001f, 0.001f, 0.001f);
+            rightEyeNode.setLocalScale(0.001f, 0.001f, 0.001f);
+        }
     }
 
     public void respawn() {
@@ -396,8 +406,16 @@ public class Player extends GameEntity implements Attackable {
         health = 100;
         absorbHurt = 0;
         setPosition(Settings.get().spawnPoint);
+        setVelocity(Vector3f.createZeroVector());
 
+        crosshairNode.setLocalScale(1f, 1f, 1f);
         PhysicsManager.addRigidBody(body);
+
+        if (roboNode != null) {
+            node.attachChild(roboNode);
+            leftEyeNode.setLocalScale(1f, 1f, 1f);
+            rightEyeNode.setLocalScale(1f, 1f, 1f);
+        }
     }
 
     private Debris createDebrisPart(String boneName) {

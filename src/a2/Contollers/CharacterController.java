@@ -247,7 +247,15 @@ public class CharacterController extends InternalTickCallback {
 
     @Override
     public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
-        if (player.isDead()) { return; }
+        if (player.isDead()) {
+            jumping = false;
+            wasJumping = false;
+            attacking = false;
+            wasAttacking = false;
+            jumpTicks = 0;
+            attackTicks = 0;
+            return;
+        }
 
         // restrict angular velocity to 0
         angularVelocity.set(0, 0, 0);

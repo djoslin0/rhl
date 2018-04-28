@@ -114,6 +114,7 @@ public class Billboard extends GameEntity implements Camera.Listener {
         // snap to parent node, look at camera
         if (this.parentNode != null) {
             node.setLocalPosition(parentNode.getWorldPosition());
+            node.setLocalScale(parentNode.getWorldScale());
         }
 
         if (node == null || camera.getParentSceneNode() == null) { return; }
