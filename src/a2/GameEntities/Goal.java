@@ -32,7 +32,6 @@ public class Goal extends GameEntity {
         node = sm.getRootSceneNode().createChildSceneNode("Goal" + side);
 
         // load model
-        node.scale(Vector3f.createFrom(2f,2f,2f));
         obj = sm.createEntity("GoalEntity" + side, "goal.obj");
         node.rotate(Degreef.createFrom(90),Vector3f.createUnitVectorY());
         obj.setPrimitive(Renderable.Primitive.TRIANGLES);
@@ -43,9 +42,9 @@ public class Goal extends GameEntity {
         // which side are you creating the goal on?
         float goalDistance = Settings.get().goalDistance.floatValue();
         if(side == 0){
-            node.setLocalPosition(goalDistance,3f,0f);
+            node.setLocalPosition(goalDistance,0f,0f);
         }else{
-            node.setLocalPosition(-goalDistance,3f,0f);
+            node.setLocalPosition(-goalDistance,0f,0f);
         }
 
         // set initial locations
