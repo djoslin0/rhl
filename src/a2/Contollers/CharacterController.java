@@ -519,6 +519,7 @@ public class CharacterController extends InternalTickCallback {
 
     public void setCrouching(boolean crouching) {
         if (crouching == this.crouching) { return; }
+        if (player.isDead()) { return; }
         this.crouching = crouching;
         this.body = player.createBody(crouching);
     }

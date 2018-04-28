@@ -135,11 +135,21 @@ public class Puck extends GameEntity implements Attackable {
         float linearDot = linearPush.dot(player.getVelocity()) / 45000;
         int hurtAmount = (int)(linearDot + angularVelocity.length() * 1.5f);
         if (hurtAmount > 0) {
-            // create squeezekill start / stop
+            // squeezekill?
+
+            // figure out if we should be squishing downward
+            float yScalar = 1;
+            Vector3 playerLocalPoint = isA ? Vector3f.createFrom(contactPoint.localPointB) : Vector3f.createFrom(contactPoint.localPointA);
+            if (playerLocalPoint.y() > 1f) {
+                yScalar = Player.height * 0.9f;
+            }
+
+            // create collision direction vector
             Vector3 diff2 = Vector3f.createFrom(contactPoint.positionWorldOnA).sub(Vector3f.createFrom(contactPoint.positionWorldOnB)).normalize().mult(2.5f);
             if (!isA) { diff2 = diff2.mult(-1f); }
-            float playerHeight = player.getController().isCrouching() ? Player.crouchHeight : Player.height;
-            diff2 = Vector3f.createFrom(diff2.x(), diff2.y() * playerHeight * 0.9f, diff2.z());
+            diff2 = Vector3f.createFrom(diff2.x(), diff2.y() * yScalar, diff2.z());
+
+            // create start/end vectors for ray trace
             javax.vecmath.Vector3f start = isA ? Vector3f.createFrom(contactPoint.positionWorldOnB).toJavaX() : Vector3f.createFrom(contactPoint.positionWorldOnA).toJavaX();
             javax.vecmath.Vector3f end = Vector3f.createFrom(start).add(diff2).toJavaX();
 

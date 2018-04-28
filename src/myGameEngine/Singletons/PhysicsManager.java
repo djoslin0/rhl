@@ -136,7 +136,6 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
 
     @Override
     public void update(float delta) {
-        System.out.println(instance.world.getCollisionWorld().getCollisionObjectArray().size());
         stepSimulation(delta / 1000f);
     }
 

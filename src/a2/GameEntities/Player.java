@@ -384,7 +384,6 @@ public class Player extends GameEntity implements Attackable {
     public void die() {
         if (dead) { return; }
         respawnTimeout = respawnSeconds * 1000f;
-        dead = true;
 
         health = 0;
         if (local) {
@@ -399,6 +398,7 @@ public class Player extends GameEntity implements Attackable {
         createDebrisPart("leg_upper_L");
         createDebrisPart("leg_upper_R");
 
+        controller.setCrouching(false);
         crosshairNode.setLocalScale(0.001f, 0.001f, 0.001f);
         PhysicsManager.removeRigidBody(body);
 
@@ -407,6 +407,8 @@ public class Player extends GameEntity implements Attackable {
             leftEyeNode.setLocalScale(0.001f, 0.001f, 0.001f);
             rightEyeNode.setLocalScale(0.001f, 0.001f, 0.001f);
         }
+
+        dead = true;
     }
 
     public void respawn() {
