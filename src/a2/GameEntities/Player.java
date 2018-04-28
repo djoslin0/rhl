@@ -407,7 +407,9 @@ public class Player extends GameEntity implements Attackable {
         absorbHurt = 0;
         setPosition(Settings.get().spawnPoint);
         setVelocity(Vector3f.createZeroVector());
-
+        setPitch(0);
+        setYaw(0);
+        
         crosshairNode.setLocalScale(1f, 1f, 1f);
         PhysicsManager.addRigidBody(body);
 
