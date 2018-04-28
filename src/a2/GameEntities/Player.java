@@ -1,6 +1,7 @@
 package a2.GameEntities;
 
 import Networking.UDPClient;
+import Networking.UDPServer;
 import a2.Actions.ActionRotate;
 import a2.Contollers.CharacterAnimationController;
 import a2.Contollers.LocalCharacterAnimationController;
@@ -45,7 +46,7 @@ public class Player extends GameEntity implements Attackable {
     private byte playerSide;
     private boolean local;
     public short lastReceivedTick;
-    private int health;
+    private byte health;
     private float absorbHurt;
     private Debris headDebris;
     private float respawnTimeout;
@@ -236,6 +237,14 @@ public class Player extends GameEntity implements Attackable {
     public SceneNode getHandNode() { return handNode; }
     public boolean isDead() { return dead; }
 
+    public byte getHealth() { return health; }
+
+    public void setHealth(byte health) {
+        if (!dead && health <= 0) { die(); }
+        else if (dead && health > 0) { respawn(); }
+        this.health = health;
+    }
+
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
 
     public void setPitch(double pitch) {
@@ -325,7 +334,7 @@ public class Player extends GameEntity implements Attackable {
     public void update(float delta) {
         super.update(delta);
 
-        if (dead) {
+        if (dead && local) {
             lookAt(headDebris.getNode().getWorldPosition());
             if (respawnTimeout > 0) {
                 respawnTimeout -= delta;
@@ -358,7 +367,7 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public void hurt(int value) {
-        if (UDPClient.hasClient()) { return; }
+        if (!local && (UDPServer.hasServer() || UDPClient.hasClient())) { return; }
         if (value < absorbHurt) { return; }
         int applyHurt = (int)(value - absorbHurt);
         absorbHurt = value;
@@ -401,15 +410,20 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public void respawn() {
+        if (!dead) { return; }
+
         dead = false;
         respawnTimeout = 0;
-        health = 100;
-        absorbHurt = 0;
-        setPosition(Settings.get().spawnPoint);
-        setVelocity(Vector3f.createZeroVector());
-        setPitch(0);
-        setYaw(0);
-        
+
+        if (local || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
+            health = 100;
+            absorbHurt = 0;
+            setPosition(Settings.get().spawnPoint);
+            setVelocity(Vector3f.createZeroVector());
+            setPitch(0);
+            setYaw(0);
+        }
+
         crosshairNode.setLocalScale(1f, 1f, 1f);
         PhysicsManager.addRigidBody(body);
 

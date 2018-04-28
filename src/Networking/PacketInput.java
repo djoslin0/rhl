@@ -14,6 +14,7 @@ public class PacketInput extends Packet {
     // read variables
     private short tick;
     private byte controls;
+    private byte health;
     private float pitch;
     private float yaw;
     public Vector3 position;
@@ -29,12 +30,13 @@ public class PacketInput extends Packet {
 
     @Override
     public ByteBuffer writeInfo() {
-        ByteBuffer buffer = ByteBuffer.allocate(19);
+        ByteBuffer buffer = ByteBuffer.allocate(20);
 
         short onTick = TimeManager.getTick();
         buffer.putShort(onTick);
 
         Player player = Networking.UDPClient.getPlayer();
+        buffer.put(player.getHealth());
         buffer.put(player.getController().getControls());
 
         buffer.putShort(NetworkFloat.encode(player.getPitch() * 100f));
@@ -56,6 +58,7 @@ public class PacketInput extends Packet {
     @Override
     public void readInfo(ByteBuffer buffer) {
         tick = buffer.getShort();
+        health = buffer.get();
         controls = buffer.get();
         pitch = NetworkFloat.decode(buffer.getShort()) / 100f;
         yaw = NetworkFloat.decode(buffer.getShort()) / 100f;
@@ -87,6 +90,8 @@ public class PacketInput extends Packet {
         player.setYaw(yaw);
         player.setPosition(position);
         player.setVelocity(velocity);
+
+        player.setHealth(health);
     }
 
     @Override
