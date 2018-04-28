@@ -10,10 +10,7 @@ import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
-import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.PhysicsManager;
-import myGameEngine.Singletons.TimeManager;
-import myGameEngine.Singletons.UniqueCounter;
+import myGameEngine.Singletons.*;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
@@ -77,7 +74,16 @@ public class Puck extends GameEntity implements Attackable {
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
          if (entity instanceof  Goal) {
-            System.out.println("puck --> goal");
+             try{
+                 Particle pow = new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow.png", Color.WHITE, 300f);
+                 for(int i=0;i<8;i++) {
+                     new PuckPartical("puckParticle" + i, i);
+                 }
+             }
+             catch (IOException e) {
+                 e.printStackTrace();
+             }
+             System.out.println("puck --> goal");
             body.setLinearVelocity(new javax.vecmath.Vector3f());
             body.setAngularVelocity(new javax.vecmath.Vector3f());
             Transform t = new Transform();

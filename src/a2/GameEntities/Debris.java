@@ -73,7 +73,6 @@ public class Debris extends GameEntity {
         rot.y = rotation.y();
         rot.z = rotation.z();
         t.setRotation(rot);
-
         body.setWorldTransform(t);
         body.setLinearVelocity(velocity.toJavaX());
     }

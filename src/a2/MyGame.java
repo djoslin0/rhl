@@ -113,7 +113,7 @@ public class MyGame extends VariableFrameRateGame {
         new StaticSkyBox(sm.getRootSceneNode(),camera);
         new WorldAxes();
         new Ground();
-        aip = new AIPlayer((byte)200,false,(byte)0,Vector3f.createFrom(50f,0f,0f));
+        //aip = new AIPlayer((byte)200,false,(byte)0,Vector3f.createFrom(50f,0f,0f));
         //goalSize = GoalSize.GetGoalSize();
         if (!playMode) {
         	new Terrain();
