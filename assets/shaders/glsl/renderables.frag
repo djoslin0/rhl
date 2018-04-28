@@ -162,11 +162,6 @@ vec4 get_light_effect(
  */
 void main()
 {
-    /*if (ssbo.lights.length() == 1)
-    {
-        fragment = material.ambient;
-        return;
-    }*/
     // do not light materials with a white emissive
     vec4 texel = texture2D(texture_sampler, fs_in.vertex_texcoord);
 

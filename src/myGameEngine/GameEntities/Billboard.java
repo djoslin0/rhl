@@ -18,9 +18,9 @@ import java.io.IOException;
 public class Billboard extends GameEntity implements Camera.Listener {
     private ManualObject obj;
     private SceneNode parentNode;
+    private Material mat;
     private TextureState texState;
     private Texture tex;
-    private Texture clear;
 
     public Billboard(SceneNode parentNode, float width, float height, String textureName, Color color) throws IOException {
         super(true);
@@ -70,7 +70,7 @@ public class Billboard extends GameEntity implements Camera.Listener {
         obj.setIndexBuffer(BufferUtil.directIntBuffer(indices));
 
         // create and load billboard texture & material
-        Material mat = engine.getMaterialManager().createManualAsset("billboard-alpha" +  name);
+        mat = engine.getMaterialManager().createManualAsset("billboard-alpha" +  name);
         addResponsibility(mat);
         mat.setEmissive(Color.WHITE);
         mat.setAmbient(color);
@@ -78,7 +78,6 @@ public class Billboard extends GameEntity implements Camera.Listener {
         texState.setMinificationFilter(TextureState.MinificationFilter.BILINEAR_NO_MIPMAPS);
         tex = engine.getTextureManager().getAssetByPath(textureName);
         texState.setTexture(tex);
-        clear = engine.getTextureManager().getAssetByPath("clear.png");
 
         obj.setDataSource(Renderable.DataSource.INDEX_BUFFER);
         obj.setRenderState(texState);
@@ -100,6 +99,7 @@ public class Billboard extends GameEntity implements Camera.Listener {
     }
 
     public ManualObject getManualObject() { return obj; }
+    public Material getMaterial() { return mat; }
 
     public void setSize(float width, float height) {
         float[] vertices = new float[] {

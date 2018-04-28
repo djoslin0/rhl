@@ -3,18 +3,16 @@ package a2.GameEntities;
 import Networking.UDPClient;
 import Networking.UDPServer;
 import a2.Actions.ActionRotate;
-import a2.Contollers.CharacterAnimationController;
-import a2.Contollers.LocalCharacterAnimationController;
-import a2.Contollers.RemoteCharacterAnimationController;
+import a2.Contollers.*;
 import a2.MyGame;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
-import a2.Contollers.CharacterController;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.PlayerMotionStateController;
 import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.Settings;
@@ -37,10 +35,10 @@ public class Player extends GameEntity implements Attackable {
     private SceneNode leftEyeNode;
     private SceneNode rightEyeNode;
     private SceneNode roboNode;
-    private SceneNode crosshairNode;
     private RigidBody body;
     private CharacterController controller;
     private CharacterAnimationController animationController;
+    private HudController hudController;
     private SkeletalEntity robo;
     private Glove glove;
     private byte playerId;
@@ -66,6 +64,7 @@ public class Player extends GameEntity implements Attackable {
         this.playerId = playerId;
         this.local = local;
         playerSide = side;
+
         SceneManager sm = EngineManager.getSceneManager();
         String name = "Player" + playerId;
 
@@ -86,22 +85,6 @@ public class Player extends GameEntity implements Attackable {
             camera.setMode('n');
         }
 
-        // create aiming flare
-        if (local) {
-            crosshairNode = cameraNode.createChildSceneNode(name + "crosshairNode");
-            crosshairNode.moveForward(3);
-            try {
-                Billboard crosshair = new Billboard(crosshairNode, 0.2f, 0.2f, "flare2.png", Color.RED);
-                addResponsibility(crosshair);
-
-                // set crosshair to no depth testing
-                ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
-                zBufferState.setSecondaryStage(true);
-                crosshair.getManualObject().setRenderState(zBufferState);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
         // store tick
         lastReceivedTick = TimeManager.getTick();
 
@@ -117,6 +100,11 @@ public class Player extends GameEntity implements Attackable {
 
         // attach glove to hands
         glove = new Glove(this, name, handNode);
+
+        // create hud
+        if (local) {
+            hudController = new HudController(this);
+        }
 
         health = 100;
         absorbHurt = 0;
@@ -385,6 +373,12 @@ public class Player extends GameEntity implements Attackable {
         }
         if (local) {
             MyGame.healthText.text = "Health: " + health;
+            if (!dead) {
+                float alpha = value / 20f + 0.1f;
+                if (alpha > 1) { alpha = 1; }
+                hudController.showPeripheral(new Color(1f, 0f, 0f, alpha), 800f * (alpha));
+            }
+
         }
     }
 
@@ -406,7 +400,12 @@ public class Player extends GameEntity implements Attackable {
         createDebrisPart("leg_upper_R");
 
         controller.setCrouching(false);
-        if (crosshairNode != null) { crosshairNode.setLocalScale(0.001f, 0.001f, 0.001f); }
+
+        if (local && hudController != null) {
+            hudController.hideLivingHud();
+            hudController.showPeripheral(Color.BLACK, respawnSeconds * 10000f);
+        }
+
         PhysicsManager.removeRigidBody(body);
 
         if (roboNode != null) {
@@ -433,7 +432,11 @@ public class Player extends GameEntity implements Attackable {
             setYaw(0);
         }
 
-        if (crosshairNode != null) { crosshairNode.setLocalScale(1f, 1f, 1f); }
+        if (hudController != null) {
+            hudController.showLivingHud();
+            hudController.showPeripheral(Color.WHITE, 1000f);
+        }
+
         PhysicsManager.addRigidBody(body);
 
         if (roboNode != null) {
