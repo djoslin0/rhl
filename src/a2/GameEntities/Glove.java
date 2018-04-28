@@ -14,6 +14,7 @@ import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.rendersystem.states.RenderState;
+import ray.rage.rendersystem.states.ZBufferState;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
@@ -50,8 +51,18 @@ public class Glove extends GameEntity {
             gloveObj = sm.createEntity(playerName + "Glove", "glove.obj");
             addResponsibility(gloveObj);
             gloveObj.setPrimitive(Renderable.Primitive.TRIANGLES);
+
             springObj = sm.createEntity(playerName + "Spring", "spring.obj");
+            addResponsibility(springObj);
             springObj.setPrimitive(Renderable.Primitive.TRIANGLES);
+
+            if (player.isLocal()) {
+                ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
+                zBufferState.setSecondaryStage(true);
+                gloveObj.setRenderState(zBufferState);
+                springObj.setRenderState(zBufferState);
+            }
+
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -142,7 +153,14 @@ public class Glove extends GameEntity {
             if (createPow) {
                 createPow = false;
                 try {
-                    new Particle(1.5f, 1.5f, target, Vector3f.createZeroVector(), "pow.png", Color.WHITE, 120f);
+                    Particle pow = new Particle(1.5f, 1.5f, target, Vector3f.createZeroVector(), "pow.png", Color.WHITE, 120f);
+
+                    if (player.isLocal()) {
+                        SceneManager sm = EngineManager.getSceneManager();
+                        ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
+                        zBufferState.setSecondaryStage(true);
+                        pow.getManualObject().setRenderState(zBufferState);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

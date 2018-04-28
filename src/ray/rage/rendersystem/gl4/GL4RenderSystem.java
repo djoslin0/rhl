@@ -46,6 +46,7 @@ import ray.rage.rendersystem.shader.GpuShaderProgram.Context;
 import ray.rage.rendersystem.shader.GpuShaderProgram.Type;
 import ray.rage.rendersystem.shader.glsl.GlslProgramFactory;
 import ray.rage.rendersystem.states.RenderState;
+import ray.rage.rendersystem.states.ZBufferState;
 import ray.rage.scene.AmbientLight;
 import ray.rage.scene.Light;
 import ray.rage.scene.TessellationBody;
@@ -202,12 +203,12 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         // TODO: turn all remaining enable/disable/etc. calls to render states
         // at some point to allow changes after this initialization(?)
 
-        //gl.glEnable(GL4.GL_CULL_FACE);
+        gl.glEnable(GL4.GL_CULL_FACE);
         gl.glEnable(GL4.GL_DEPTH_TEST);
-        //gl.glDepthFunc(GL4.GL_LEQUAL);
-        //gl.glEnable(GL4.GL_SCISSOR_TEST);
-        //gl.glEnable(GL4.GL_PROGRAM_POINT_SIZE);
-        //gl.glEnable(GL4.GL_TEXTURE_CUBE_MAP_SEAMLESS);
+        gl.glDepthFunc(GL4.GL_LEQUAL);
+        gl.glEnable(GL4.GL_SCISSOR_TEST);
+        gl.glEnable(GL4.GL_PROGRAM_POINT_SIZE);
+        gl.glEnable(GL4.GL_TEXTURE_CUBE_MAP_SEAMLESS);
         gl.glEnable(GL.GL_BLEND);
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA); /* MyChange: ADDED LINE */
 
@@ -259,17 +260,30 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
 
         // render opaque, gather transparencies (alphas)
         PriorityQueue<SortableRenderable> alphas = new PriorityQueue<>();
+        PriorityQueue<SortableRenderable> secondStage = new PriorityQueue<>();
         for (Renderable r : renderQueue) {
-            if (r.getMaterial() != null && r.getMaterial().getName().contains("alpha")) {
-                alphas.add(new SortableRenderable(r));
-                continue;
-            }
+            try {
+                // detect secondary stage
+                ZBufferState zbs = (ZBufferState)r.getRenderState(RenderState.Type.ZBUFFER);
+                if (zbs.isSecondaryStage()) {
+                    secondStage.add(new SortableRenderable(r));
+                    continue;
+                }
+            } catch (RuntimeException ex) { }
+            // detect alphas
+            if (r.getMaterial() != null && r.getMaterial().getName().contains("alpha")) { alphas.add(new SortableRenderable(r)); continue; }
             doRender(gl, r);
         }
 
         // render transparencies (alphas)
         while (alphas.size() > 0) {
             doRender(gl, alphas.poll().renderable);
+        }
+
+        // draw secondary stage
+        gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
+        while (secondStage.size() > 0) {
+            doRender(gl, secondStage.poll().renderable);
         }
 
         // draw hud

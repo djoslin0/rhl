@@ -99,6 +99,8 @@ public class Billboard extends GameEntity implements Camera.Listener {
 
     }
 
+    public ManualObject getManualObject() { return obj; }
+
     public void setSize(float width, float height) {
         float[] vertices = new float[] {
                 -width, -height, 0, // BL

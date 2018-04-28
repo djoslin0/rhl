@@ -22,6 +22,7 @@ import myGameEngine.Singletons.TimeManager;
 import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
+import ray.rage.rendersystem.states.ZBufferState;
 import ray.rage.scene.*;
 import ray.rml.*;
 
@@ -86,15 +87,21 @@ public class Player extends GameEntity implements Attackable {
         }
 
         // create aiming flare
-        crosshairNode = cameraNode.createChildSceneNode(name + "crosshairNode");
-        crosshairNode.moveForward(3);
-        try {
-            Billboard flare = new Billboard(crosshairNode, 0.2f, 0.2f, "flare2.png", Color.RED);
-            addResponsibility(flare);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        if (local) {
+            crosshairNode = cameraNode.createChildSceneNode(name + "crosshairNode");
+            crosshairNode.moveForward(3);
+            try {
+                Billboard crosshair = new Billboard(crosshairNode, 0.2f, 0.2f, "flare2.png", Color.RED);
+                addResponsibility(crosshair);
 
+                // set crosshair to no depth testing
+                ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
+                zBufferState.setSecondaryStage(true);
+                crosshair.getManualObject().setRenderState(zBufferState);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         // store tick
         lastReceivedTick = TimeManager.getTick();
 
@@ -399,7 +406,7 @@ public class Player extends GameEntity implements Attackable {
         createDebrisPart("leg_upper_R");
 
         controller.setCrouching(false);
-        crosshairNode.setLocalScale(0.001f, 0.001f, 0.001f);
+        if (crosshairNode != null) { crosshairNode.setLocalScale(0.001f, 0.001f, 0.001f); }
         PhysicsManager.removeRigidBody(body);
 
         if (roboNode != null) {
@@ -426,7 +433,7 @@ public class Player extends GameEntity implements Attackable {
             setYaw(0);
         }
 
-        crosshairNode.setLocalScale(1f, 1f, 1f);
+        if (crosshairNode != null) { crosshairNode.setLocalScale(1f, 1f, 1f); }
         PhysicsManager.addRigidBody(body);
 
         if (roboNode != null) {

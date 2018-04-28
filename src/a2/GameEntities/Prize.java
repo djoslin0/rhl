@@ -54,10 +54,10 @@ public class Prize extends GameEntity {
         addResponsibility(node);
         node.attachObject(obj);
         node.setLocalPosition(location);
-        float scale = 5f;
+        float scale = 2.5f;
         node.setLocalScale(scale, scale, scale);
 
-        Billboard flare = new Billboard(node, 1.5f * scale, 1.5f * scale, "flare2.png", color3);
+        Billboard flare = new Billboard(node, scale, scale, "flare2.png", color3);
         addResponsibility(flare);
 
         initPhysics();
