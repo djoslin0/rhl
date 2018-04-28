@@ -1,6 +1,8 @@
 package myGameEngine.Helpers;
 
+import myGameEngine.Singletons.EngineManager;
 import ray.rage.rendersystem.Renderable;
+import ray.rage.scene.Camera;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
@@ -10,17 +12,17 @@ import java.nio.FloatBuffer;
 public class SortableRenderable implements Comparable<SortableRenderable> {
     public Renderable renderable;
     public float dist;
-    public SortableRenderable(Renderable renderable, Vector3 cameraPosition) {
+    public SortableRenderable(Renderable renderable) {
         this.renderable = renderable;
 
-        FloatBuffer vBuffer = renderable.getVertexBuffer();
-        dist = Float.MAX_VALUE;
-        for (int i = 0; i < vBuffer.limit(); i += 3) {
-            Vector3 vPosition = Vector3f.createFrom(vBuffer.get(i + 0), vBuffer.get(i + 1), vBuffer.get(i + 2));
-            dist = Math.max(dist, cameraPosition.sub(vPosition).length());
+        for (Camera c : EngineManager.getSceneManager().getCameras()) {
+            Vector3 vPosition = renderable.getWorldTransformMatrix().column(3).toVector3();
+            dist = c.getParentSceneNode().getWorldPosition().sub(vPosition).lengthSquared();
+            break;
         }
+
     }
     public int compareTo(SortableRenderable sr) {
-        return (this.dist < sr.dist) ? -1 : 1;
+        return (this.dist > sr.dist) ? -1 : 1;
     }
 }

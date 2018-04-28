@@ -169,6 +169,10 @@ void main()
     }*/
     // do not light materials with a white emissive
     vec4 texel = texture2D(texture_sampler, fs_in.vertex_texcoord);
+
+    if (texel.a < 0.01)
+        discard;
+        
     if (material.emissive.x == 1 && material.emissive.y == 1 && material.emissive.z == 1)
     {
         fragment = texel * material.ambient;

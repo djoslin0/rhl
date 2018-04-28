@@ -3,6 +3,7 @@ package a2.Contollers;
 import Networking.PacketAttack;
 import Networking.UDPClient;
 import Networking.UDPServer;
+import a2.MyGame;
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
 import a2.GameEntities.Attackable;
@@ -74,9 +75,11 @@ public class CharacterController extends InternalTickCallback {
         this.body = player.getBody();
         PhysicsManager.addCallback(this);
 
-        for (Object o : EntityManager.get("terrain")) {
-            terrain = (Terrain) o;
-            break;
+        if (!MyGame.playMode) {
+	        for (Object o : EntityManager.get("terrain")) {
+	            terrain = (Terrain) o;
+	            break;
+	        }
         }
     }
 
@@ -244,6 +247,16 @@ public class CharacterController extends InternalTickCallback {
 
     @Override
     public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
+        if (player.isDead()) {
+            jumping = false;
+            wasJumping = false;
+            attacking = false;
+            wasAttacking = false;
+            jumpTicks = 0;
+            attackTicks = 0;
+            return;
+        }
+
         // restrict angular velocity to 0
         angularVelocity.set(0, 0, 0);
         body.setAngularVelocity(angularVelocity);
@@ -272,10 +285,6 @@ public class CharacterController extends InternalTickCallback {
 
         // keep linearVelocity up to date
         body.setLinearVelocity(linearVelocity);
-
-        if (jumpQueued) {
-            System.out.println("WAS JUMP");
-        }
 
         wasOnGround = onGround;
     }
@@ -415,7 +424,7 @@ public class CharacterController extends InternalTickCallback {
 
         if (!player.isLocal()) { return; }
 
-        Vector3 toPosition = cameraNode.getWorldPosition().add(cameraNode.getWorldForwardAxis().mult(5f));
+        Vector3 toPosition = cameraNode.getWorldPosition().add(cameraNode.getWorldForwardAxis().mult(6f));
         javax.vecmath.Vector3f from = cameraNode.getWorldPosition().toJavaX();
         javax.vecmath.Vector3f to = toPosition.toJavaX();
         CollisionWorld.ClosestRayResultCallback closest = new CollisionWorld.ClosestRayResultCallback(from, to);
@@ -510,6 +519,7 @@ public class CharacterController extends InternalTickCallback {
 
     public void setCrouching(boolean crouching) {
         if (crouching == this.crouching) { return; }
+        if (player.isDead()) { return; }
         this.crouching = crouching;
         this.body = player.createBody(crouching);
     }

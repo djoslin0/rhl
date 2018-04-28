@@ -2,8 +2,6 @@ package a2.GameEntities;
 
 import com.bulletphysics.collision.shapes.BoxShape;
 import com.bulletphysics.collision.shapes.CollisionShape;
-import com.bulletphysics.dynamics.RigidBody;
-import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
 import com.bulletphysics.linearmath.DefaultMotionState;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.GameEntities.GameEntity;
@@ -18,7 +16,6 @@ import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
 import ray.rage.scene.ManualObject;
 import ray.rage.scene.SceneManager;
-import ray.rage.scene.SceneNode;
 import ray.rage.util.BufferUtil;
 
 import java.awt.*;
@@ -55,9 +52,9 @@ public class Ground extends GameEntity {
         };
         float[] texcoords = new float[] {
                 0, 0, // BL
-                0, size * 2f, // BR
-                size * 2f, 0, // TL
-                size * 2f, size * 2f, // TR
+                0, 1, // BR
+                1, 0, // TL
+                1, 1, // TR
         };
         int[] indices = new int[] {
                 0, 1, 2,
@@ -71,11 +68,14 @@ public class Ground extends GameEntity {
         obj.setIndexBuffer(BufferUtil.directIntBuffer(indices));
 
         // create and load billboard texture & material
-        Material mat = engine.getMaterialManager().createManualAsset("ground-alpha" +  name);
-        mat.setEmissive(Color.GREEN);
+        Material mat = engine.getMaterialManager().createManualAsset("ground" +  name);
+        mat.setEmissive(Color.GRAY);
+        mat.setDiffuse(Color.WHITE);
+        mat.setSpecular(Color.WHITE);
+        mat.setShininess(10f);
         addResponsibility(mat);
         try {
-            Texture tex = engine.getTextureManager().getAssetByPath("grid.png");
+            Texture tex = engine.getTextureManager().getAssetByPath("snow.png");
             TextureState texState = (TextureState) sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
             texState.setTexture(tex);
             texState.setWrapMode(TextureState.WrapMode.REPEAT);
@@ -104,6 +104,6 @@ public class Ground extends GameEntity {
 
         CollisionShape collisionShape = new BoxShape(new javax.vecmath.Vector3f(100f, 2f, 100f));
 
-        createBody(mass, motionState, collisionShape);
+        createBody(mass, motionState, collisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
     }
 }

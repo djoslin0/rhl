@@ -1,22 +1,31 @@
 package a2.GameEntities;
 
 import com.bulletphysics.collision.dispatch.CollisionObject;
+import com.bulletphysics.collision.dispatch.CollisionWorld;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.PhysicsManager;
+import myGameEngine.Singletons.TimeManager;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
+import ray.rml.Quaternionf;
 import ray.rml.Radianf;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
+import javax.vecmath.Matrix3f;
+import javax.vecmath.Quat4f;
+import java.awt.*;
 import java.io.IOException;
 
 public class Puck extends GameEntity implements Attackable {
@@ -68,9 +77,14 @@ public class Puck extends GameEntity implements Attackable {
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         if (entity instanceof  Goal) {
-            System.out.println("registered");
-            Vector3 newpos = node.getWorldPosition();
-            body.translate(new javax.vecmath.Vector3f(-newpos.x(),-newpos.y()+25f,-newpos.z()));
+            System.out.println("puck --> goal");
+            body.setLinearVelocity(new javax.vecmath.Vector3f());
+            body.setAngularVelocity(new javax.vecmath.Vector3f());
+            Transform t = new Transform();
+            t.origin.x = 0;
+            t.origin.y = 25f;
+            t.origin.z = 0;
+            body.setWorldTransform(t);
             body.clearForces();
             return;
         }
@@ -116,10 +130,55 @@ public class Puck extends GameEntity implements Attackable {
         Vector3 push = angularPush.add(linearPush);
         Vector3 collisionPoint = Vector3f.createFrom(contactPoint.positionWorldOnA).add(Vector3f.createFrom(contactPoint.positionWorldOnB)).div(2f);
         player.getController().knockback(push, collisionPoint.sub(player.getPosition()));
+
+        // calculate player hurt/squeeze
+        float linearDot = linearPush.dot(player.getVelocity()) / 45000;
+        int hurtAmount = (int)(linearDot + angularVelocity.length() * 1.5f);
+        if (hurtAmount > 0) {
+            // squeezekill?
+
+            // figure out if we should be squishing downward
+            float yScalar = 1;
+            Vector3 playerLocalPoint = isA ? Vector3f.createFrom(contactPoint.localPointB) : Vector3f.createFrom(contactPoint.localPointA);
+            if (playerLocalPoint.y() > 1f) {
+                yScalar = Player.height * 0.9f;
+            }
+
+            // create collision direction vector
+            Vector3 diff2 = Vector3f.createFrom(contactPoint.positionWorldOnA).sub(Vector3f.createFrom(contactPoint.positionWorldOnB)).normalize().mult(2.5f);
+            if (!isA) { diff2 = diff2.mult(-1f); }
+            diff2 = Vector3f.createFrom(diff2.x(), diff2.y() * yScalar, diff2.z());
+
+            // create start/end vectors for ray trace
+            javax.vecmath.Vector3f start = isA ? Vector3f.createFrom(contactPoint.positionWorldOnB).toJavaX() : Vector3f.createFrom(contactPoint.positionWorldOnA).toJavaX();
+            javax.vecmath.Vector3f end = Vector3f.createFrom(start).add(diff2).toJavaX();
+
+            // raytrace squeezekill
+            CollisionWorld.ClosestRayResultCallback squeezeKill = new CollisionWorld.ClosestRayResultCallback(start, end);
+            squeezeKill.collisionFilterMask = PhysicsManager.COLLIDE_WORLD;
+            PhysicsManager.getWorld().rayTest(start, end, squeezeKill);
+
+            if (squeezeKill.hasHit() && hurtAmount > 4) {
+                // squeezekill
+                player.hurt(100);
+            } else {
+                // hurt player
+                player.hurt(hurtAmount);
+            }
+        }
     }
 
     public void attacked(Vector3 aim, Vector3 relative) {
-        javax.vecmath.Vector3f force = aim.mult(20000f).toJavaX();
+        javax.vecmath.Vector3f jvel = new javax.vecmath.Vector3f();
+        body.getLinearVelocity(jvel);
+        Vector3 velocity = Vector3f.createFrom(jvel);
+        float dot = velocity.dot(aim.normalize()) * 1.5f;
+        float rally = 0;
+        if (dot < 0) {
+            rally = -dot;
+            if (rally > 50f) { rally = 50f; }
+        }
+        javax.vecmath.Vector3f force = aim.mult(20000f + rally * 1000f).toJavaX();
         body.applyImpulse(force, relative.toJavaX());
         body.activate();
     }

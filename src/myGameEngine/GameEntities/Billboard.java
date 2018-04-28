@@ -18,13 +18,12 @@ import java.io.IOException;
 public class Billboard extends GameEntity implements Camera.Listener {
     private ManualObject obj;
     private SceneNode parentNode;
-    private Camera camera;
     private TextureState texState;
     private Texture tex;
     private Texture clear;
 
     public Billboard(SceneNode parentNode, float width, float height, String textureName, Color color) throws IOException {
-        super(false);
+        super(true);
 
         Engine engine = EngineManager.getEngine();
         SceneManager sm = EngineManager.getSceneManager();
@@ -100,10 +99,7 @@ public class Billboard extends GameEntity implements Camera.Listener {
 
     }
 
-    public Billboard(SceneNode parentNode, float width, float height, String textureName, Color color, Camera camera) throws IOException {
-        this(parentNode, width, height, textureName, color);
-        this.camera = camera;
-    }
+    public ManualObject getManualObject() { return obj; }
 
     public void setSize(float width, float height) {
         float[] vertices = new float[] {
@@ -120,15 +116,9 @@ public class Billboard extends GameEntity implements Camera.Listener {
         // snap to parent node, look at camera
         if (this.parentNode != null) {
             node.setLocalPosition(parentNode.getWorldPosition());
+            node.setLocalScale(parentNode.getWorldScale());
         }
 
-        if (this.camera != null) {
-            if (this.camera == camera) {
-                texState.setTexture(tex);
-            } else {
-                texState.setTexture(clear);
-            }
-        }
         if (node == null || camera.getParentSceneNode() == null) { return; }
         try {
             node.lookAt(camera.getParentSceneNode().getWorldPosition(), camera.getParentSceneNode().getWorldUpAxis());

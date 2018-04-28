@@ -25,12 +25,12 @@ public class Particle extends Billboard {
     @Override
     public void update(float delta) {
         super.update(delta);
+
         if (duration.exceeded(delta)) {
             // ran out of life
             destroy();
             return;
         }
-
         // move with velocity
         node.setLocalPosition(node.getLocalPosition().add(velocity.mult(delta)));
 

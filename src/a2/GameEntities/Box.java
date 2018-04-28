@@ -2,10 +2,13 @@ package a2.GameEntities;
 
 import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
+
+import a2.MyGame;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
+import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
@@ -26,7 +29,7 @@ public class Box extends GameEntity {
         long unique = UniqueCounter.next();
         String name = "Box" + unique;
 
-        obj = sm.createEntity(name, "cubetilt.obj");
+        obj = sm.createEntity(name, MyGame.playMode ? "cube.obj" : "cubetilt.obj");
         addResponsibility(obj);
         obj.setPrimitive(Renderable.Primitive.TRIANGLES);
 
@@ -45,8 +48,8 @@ public class Box extends GameEntity {
         ConvexHullShape collisionShape = BulletConvert.entityToConvexHullShape(obj);
         collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
 
-        RigidBody body = createBody(mass, motionState, collisionShape);
-        body.setRestitution(0.1f);
+        RigidBody body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        body.setRestitution(0.15f);
         body.setFriction(0.9f);
         body.setDamping(0.05f, 0.05f);
     }

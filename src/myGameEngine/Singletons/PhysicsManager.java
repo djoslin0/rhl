@@ -1,6 +1,5 @@
 package myGameEngine.Singletons;
 
-import a2.GameEntities.Player;
 import com.bulletphysics.collision.broadphase.*;
 import com.bulletphysics.collision.dispatch.CollisionDispatcher;
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration;
@@ -35,8 +34,13 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
     private ArrayList<RigidBody> rigidBodies = new ArrayList<>();
 
     public static short COL_LOCAL_PLAYER = (short)(1 << 2);
-    public static short COLLIDE_ALL = -1;
-    public static short COLLIDE_IGNORE_LOCAL_PLAYER = (short)(COLLIDE_ALL ^ COL_LOCAL_PLAYER);
+    public static short COL_WORLD = (short)(1 << 3);
+    public static short COL_DEBRIS = (short)(1 << 4);
+    public static short COLLIDE_ALL = (short)(-1);
+    public static short COLLIDE_DEFAULT = (short)(COLLIDE_ALL ^ COL_DEBRIS);
+    public static short COLLIDE_WORLD = COL_WORLD;
+    public static short COLLIDE_DEBRIS = (short)(COL_WORLD | COL_DEBRIS);
+    public static short COLLIDE_IGNORE_LOCAL_PLAYER = (short)(COLLIDE_DEFAULT ^ COL_LOCAL_PLAYER);
 
     public static void initPhysics() {
 
@@ -102,6 +106,7 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
         int manifoldCount = dispatcher.getNumManifolds();
         for (int i = 0; i < manifoldCount; i++) {
             PersistentManifold manifold = dispatcher.getManifoldByIndexInternal(i);
+            if (manifold == null) { continue; }
             RigidBody object1 = (RigidBody)manifold.getBody0();
             RigidBody object2 = (RigidBody)manifold.getBody1();
             if (!registeredCollisions.contains(object1)) { continue; }

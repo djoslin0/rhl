@@ -34,7 +34,7 @@ public class PacketWorldState extends Packet {
     @Override
     public ByteBuffer writeInfo() {
         Collection<Player> players = UDPServer.getPlayers();
-        ByteBuffer buffer = ByteBuffer.allocate(29 + 18 * players.size());
+        ByteBuffer buffer = ByteBuffer.allocate(29 + 19 * players.size());
         Puck puck = EntityManager.getPuck();
         puckPosition = puck.getNode().getWorldPosition();
         puck.getBody().getOrientation(puckOrientation);
@@ -69,6 +69,7 @@ public class PacketWorldState extends Packet {
         buffer.put((byte)players.size());
         for (Player player : players) {
             buffer.put(player.getId());
+            buffer.put(player.getHealth());
             buffer.put(player.getController().getControls());
             buffer.putShort(NetworkFloat.encode(player.getPitch() * 100f));
             buffer.putShort(NetworkFloat.encode(player.getYaw() * 100f));
@@ -113,6 +114,7 @@ public class PacketWorldState extends Packet {
         byte playerCount = buffer.get();
         while(playerCount-- > 0) {
             byte id = buffer.get();
+            byte health = buffer.get();
             byte controls = buffer.get();
             float pitch = NetworkFloat.decode(buffer.getShort()) / 100f;
             float yaw = NetworkFloat.decode(buffer.getShort()) / 100f;
@@ -128,7 +130,7 @@ public class PacketWorldState extends Packet {
                     NetworkFloat.decode(buffer.getShort()));
 
             if (id != UDPClient.getPlayerId()) {
-                playerStates.add(new PlayerState(id, controls, pitch, yaw, position, velocity));
+                playerStates.add(new PlayerState(id, health, controls, pitch, yaw, position, velocity));
             }
         }
     }
@@ -171,14 +173,16 @@ public class PacketWorldState extends Packet {
 
     private class PlayerState {
         private byte id;
+        private byte health;
         private byte controls;
         private float pitch;
         private float yaw;
         private Vector3 position;
         private Vector3 velocity;
 
-        public PlayerState(byte id, byte controls, float pitch, float yaw, Vector3 position, Vector3 velocity) {
+        public PlayerState(byte id, byte health, byte controls, float pitch, float yaw, Vector3 position, Vector3 velocity) {
             this.id = id;
+            this.health = health;
             this.controls = controls;
             this.pitch = pitch;
             this.yaw = yaw;
@@ -201,6 +205,7 @@ public class PacketWorldState extends Packet {
             player.setYaw(yaw);
             player.setPosition(position);
             player.setVelocity(velocity);
+            player.setHealth(health);
         }
     }
 }

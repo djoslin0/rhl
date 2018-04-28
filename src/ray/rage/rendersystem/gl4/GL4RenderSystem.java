@@ -24,6 +24,7 @@ import java.awt.Canvas;
 import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.nio.FloatBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -45,6 +46,7 @@ import ray.rage.rendersystem.shader.GpuShaderProgram.Context;
 import ray.rage.rendersystem.shader.GpuShaderProgram.Type;
 import ray.rage.rendersystem.shader.glsl.GlslProgramFactory;
 import ray.rage.rendersystem.states.RenderState;
+import ray.rage.rendersystem.states.ZBufferState;
 import ray.rage.scene.AmbientLight;
 import ray.rage.scene.Light;
 import ray.rage.scene.TessellationBody;
@@ -207,7 +209,8 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         gl.glEnable(GL4.GL_SCISSOR_TEST);
         gl.glEnable(GL4.GL_PROGRAM_POINT_SIZE);
         gl.glEnable(GL4.GL_TEXTURE_CUBE_MAP_SEAMLESS);
-        gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_DST_ALPHA); /* MyChange: ADDED LINE */
+        gl.glEnable(GL.GL_BLEND);
+        gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA); /* MyChange: ADDED LINE */
 
         int[] vaos = new int[1];
         gl.glGenVertexArrays(vaos.length, vaos, 0);
@@ -256,24 +259,32 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         GL4 gl = (GL4) glad.getGL();
 
         // render opaque, gather transparencies (alphas)
-        gl.glDisable(GL.GL_BLEND);
         PriorityQueue<SortableRenderable> alphas = new PriorityQueue<>();
-        Vector3 cameraPosition = viewMatrix.column(3).toVector3();
+        PriorityQueue<SortableRenderable> secondStage = new PriorityQueue<>();
         for (Renderable r : renderQueue) {
-            if (r.getMaterial() != null && r.getMaterial().getName().contains("alpha")) {
-                alphas.add(new SortableRenderable(r, cameraPosition));
-                continue;
-            }
+            try {
+                // detect secondary stage
+                ZBufferState zbs = (ZBufferState)r.getRenderState(RenderState.Type.ZBUFFER);
+                if (zbs.isSecondaryStage()) {
+                    secondStage.add(new SortableRenderable(r));
+                    continue;
+                }
+            } catch (RuntimeException ex) { }
+            // detect alphas
+            if (r.getMaterial() != null && r.getMaterial().getName().contains("alpha")) { alphas.add(new SortableRenderable(r)); continue; }
             doRender(gl, r);
         }
 
         // render transparencies (alphas)
         while (alphas.size() > 0) {
-            gl.glDepthMask(false);
-            gl.glEnable(GL.GL_BLEND);
             doRender(gl, alphas.poll().renderable);
         }
-        gl.glDepthMask(true);
+
+        // draw secondary stage
+        gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
+        while (secondStage.size() > 0) {
+            doRender(gl, secondStage.poll().renderable);
+        }
 
         // draw hud
         GL4bc gl4bc = (GL4bc)gl;

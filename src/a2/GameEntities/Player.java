@@ -2,9 +2,11 @@ package a2.GameEntities;
 
 import Networking.UDPClient;
 import Networking.UDPServer;
+import a2.Actions.ActionRotate;
 import a2.Contollers.CharacterAnimationController;
 import a2.Contollers.LocalCharacterAnimationController;
 import a2.Contollers.RemoteCharacterAnimationController;
+import a2.MyGame;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
@@ -18,14 +20,13 @@ import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.TimeManager;
 import ray.rage.asset.texture.Texture;
-import ray.rage.rendersystem.RenderWindow;
-import ray.rage.rendersystem.Renderable;
-import ray.rage.rendersystem.Viewport;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
+import ray.rage.rendersystem.states.ZBufferState;
 import ray.rage.scene.*;
 import ray.rml.*;
 
+import javax.vecmath.Quat4f;
 import java.awt.*;
 import java.io.IOException;
 
@@ -33,6 +34,10 @@ public class Player extends GameEntity implements Attackable {
     private SceneNode cameraNode;
     private SceneNode handNode;
     private SceneNode headNode;
+    private SceneNode leftEyeNode;
+    private SceneNode rightEyeNode;
+    private SceneNode roboNode;
+    private SceneNode crosshairNode;
     private RigidBody body;
     private CharacterController controller;
     private CharacterAnimationController animationController;
@@ -42,11 +47,18 @@ public class Player extends GameEntity implements Attackable {
     private byte playerSide;
     private boolean local;
     public short lastReceivedTick;
+    private byte health;
+    private float absorbHurt;
+    private Debris headDebris;
+    private float respawnTimeout;
+    private boolean dead;
 
     public static float height = 1.8f;
     public static float crouchHeight = 0.75f;
     public static float cameraHeight = 1.2f;
     public static float cameraCrouchHeight = -0.45f;
+    public static float absorbHurtFalloff = 0.015f;
+    public static float respawnSeconds = 5f;
 
     public Player(byte playerId, boolean local, byte side, Vector3 location) {
         super(true);
@@ -75,15 +87,21 @@ public class Player extends GameEntity implements Attackable {
         }
 
         // create aiming flare
-        SceneNode flareNode = cameraNode.createChildSceneNode(name + "flareNode");
-        flareNode.moveForward(3);
-        try {
-            Billboard flare = new Billboard(flareNode, 0.2f, 0.2f, "flare2.png", Color.RED);
-            addResponsibility(flare);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        if (local) {
+            crosshairNode = cameraNode.createChildSceneNode(name + "crosshairNode");
+            crosshairNode.moveForward(3);
+            try {
+                Billboard crosshair = new Billboard(crosshairNode, 0.2f, 0.2f, "flare2.png", Color.RED);
+                addResponsibility(crosshair);
 
+                // set crosshair to no depth testing
+                ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
+                zBufferState.setSecondaryStage(true);
+                crosshair.getManualObject().setRenderState(zBufferState);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         // store tick
         lastReceivedTick = TimeManager.getTick();
 
@@ -100,6 +118,8 @@ public class Player extends GameEntity implements Attackable {
         // attach glove to hands
         glove = new Glove(this, name, handNode);
 
+        health = 100;
+        absorbHurt = 0;
     }
 
     private void loadLocalCharacter(String name) {
@@ -137,7 +157,7 @@ public class Player extends GameEntity implements Attackable {
             robo.setRenderState(textureState);
 
             // setup character node
-            SceneNode roboNode = node.createChildSceneNode(name + "RoboNode");
+            roboNode = node.createChildSceneNode(name + "RoboNode");
             roboNode.setLocalPosition(0, -height, -0.3f);
             addResponsibility(roboNode);
             roboNode.attachObject(robo);
@@ -155,13 +175,13 @@ public class Player extends GameEntity implements Attackable {
             float eyeSize = 0.2f;
 
             // left eye
-            SceneNode leftEyeNode = headNode.createChildSceneNode(name + "EyeLNode");
+            leftEyeNode = headNode.createChildSceneNode(name + "EyeLNode");
             leftEyeNode.setLocalPosition(eyeSpacing, eyeHeight, distFromHead);
             Billboard leftEyeFlare = new Billboard(leftEyeNode, eyeSize, eyeSize, "flare1.png", Color.YELLOW);
             addResponsibility(leftEyeFlare);
 
             // right eye
-            SceneNode rightEyeNode = headNode.createChildSceneNode(name + "EyeRNode");
+            rightEyeNode = headNode.createChildSceneNode(name + "EyeRNode");
             rightEyeNode.setLocalPosition(-eyeSpacing, eyeHeight, distFromHead);
             Billboard rightEyeFlare = new Billboard(rightEyeNode, eyeSize, eyeSize, "flare1.png", Color.YELLOW);
             addResponsibility(rightEyeFlare);
@@ -190,11 +210,11 @@ public class Player extends GameEntity implements Attackable {
         float height = crouching ? crouchHeight : this.height;
         float mass = 70;
 
-        PlayerMotionStateController motionState = new PlayerMotionStateController(this.node);
+        PlayerMotionStateController motionState = new PlayerMotionStateController(this, this.node);
         CapsuleShape collisionShape = new CapsuleShape(0.85f, height);
 
         if (local) {
-            body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_LOCAL_PLAYER, PhysicsManager.COLLIDE_ALL);
+            body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_LOCAL_PLAYER, PhysicsManager.COLLIDE_DEFAULT);
         } else {
             body = createBody(mass, motionState, collisionShape);
         }
@@ -222,10 +242,19 @@ public class Player extends GameEntity implements Attackable {
     public Glove getGlove() { return glove; }
     public CharacterAnimationController getAnimationController() { return animationController; }
     public SceneNode getHandNode() { return handNode; }
+    public boolean isDead() { return dead; }
+
+    public byte getHealth() { return health; }
+
+    public void setHealth(byte health) {
+        if (!dead && health <= 0) { die(); }
+        else if (dead && health > 0) { respawn(); }
+        this.health = health;
+    }
 
     public float getPitch() { return (float)cameraNode.getLocalRotation().getPitch(); }
 
-    public void setPitch(float pitch) {
+    public void setPitch(double pitch) {
         Matrix3 cameraNodeRotation = Matrix3f.createFrom(pitch, 0, 0);
         cameraNode.setLocalRotation(cameraNodeRotation);
 
@@ -285,12 +314,49 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public void attacked(Vector3 aim, Vector3 relative) {
-        controller.knockback(aim.mult(2500f), relative);
+        float dot = getVelocity().dot(aim.normalize()) * 1.5f;
+        float rally = 0;
+        if (dot < 0) {
+            rally = -dot;
+            if (rally > 25f) { rally = 25f; }
+        }
+
+        controller.knockback(aim.mult(3500f + 100f * rally), relative);
+    }
+
+    public void lookAt(Vector3 target) {
+        try {
+            Matrix3 m = Matrix4f.createLookAtMatrix(cameraNode.getWorldPosition(), target, Vector3f.createUnitVectorY()).toMatrix3();
+            if (m.getRoll() > 0) {
+                setPitch(Math.PI + m.getPitch());
+                setYaw(Math.PI - m.getYaw());
+            } else {
+                setPitch(m.getPitch());
+                setYaw(m.getYaw());
+            }
+        } catch (ArithmeticException ex) { }
     }
 
     @Override
     public void update(float delta) {
         super.update(delta);
+
+        if (dead && (local || (!UDPServer.hasServer() && !UDPClient.hasClient()))) {
+            lookAt(headDebris.getNode().getWorldPosition());
+            if (respawnTimeout > 0) {
+                respawnTimeout -= delta;
+                if (respawnTimeout <= 0) {
+                    respawn();
+                }
+            }
+            return;
+        }
+
+        if (absorbHurt > 0) {
+            absorbHurt -= absorbHurtFalloff * delta;
+            if (absorbHurt < 0) { absorbHurt = 0; }
+        }
+
         if (robo != null) {
             // update animations
             robo.update(delta);
@@ -305,5 +371,92 @@ public class Player extends GameEntity implements Attackable {
             headNode.setLocalPosition(headTransform.column(3).toVector3());
             headNode.setLocalRotation(headTransform.toMatrix3());
         }
+    }
+
+    public void hurt(int value) {
+        if (!local && (UDPServer.hasServer() || UDPClient.hasClient())) { return; }
+        if (value < absorbHurt) { return; }
+        int applyHurt = (int)(value - absorbHurt);
+        absorbHurt = value;
+        health -= applyHurt;
+        if (health <= 0) {
+            health = 0;
+            die();
+        }
+        if (local) {
+            MyGame.healthText.text = "Health: " + health;
+        }
+    }
+
+    public void die() {
+        if (dead) { return; }
+        respawnTimeout = respawnSeconds * 1000f;
+
+        health = 0;
+        if (local) {
+            MyGame.healthText.text = "Health: " + health;
+        }
+        absorbHurt = 0;
+
+        headDebris = createDebrisPart("head");
+        createDebrisPart("torso");
+        createDebrisPart("arm_upper_L");
+        createDebrisPart("arm_upper_R");
+        createDebrisPart("leg_upper_L");
+        createDebrisPart("leg_upper_R");
+
+        controller.setCrouching(false);
+        if (crosshairNode != null) { crosshairNode.setLocalScale(0.001f, 0.001f, 0.001f); }
+        PhysicsManager.removeRigidBody(body);
+
+        if (roboNode != null) {
+            node.detachChild(roboNode);
+            leftEyeNode.setLocalScale(0.001f, 0.001f, 0.001f);
+            rightEyeNode.setLocalScale(0.001f, 0.001f, 0.001f);
+        }
+
+        dead = true;
+    }
+
+    public void respawn() {
+        if (!dead) { return; }
+
+        dead = false;
+        respawnTimeout = 0;
+
+        if (local || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
+            health = 100;
+            absorbHurt = 0;
+            setPosition(Settings.get().spawnPoint);
+            setVelocity(Vector3f.createZeroVector());
+            setPitch(0);
+            setYaw(0);
+        }
+
+        if (crosshairNode != null) { crosshairNode.setLocalScale(1f, 1f, 1f); }
+        PhysicsManager.addRigidBody(body);
+
+        if (roboNode != null) {
+            node.attachChild(roboNode);
+            leftEyeNode.setLocalScale(1f, 1f, 1f);
+            rightEyeNode.setLocalScale(1f, 1f, 1f);
+        }
+    }
+
+    private Debris createDebrisPart(String boneName) {
+        float duration = 10000f;
+        try {
+            if (local) {
+                return new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), boneName + ".obj", duration);
+            } else {
+                Matrix4 matrix = roboNode.getWorldTransform().mult(robo.getBoneModelTransform(boneName));
+                Vector3 location = matrix.column(3).toVector3();
+                Quaternion rotation = matrix.toQuaternion();
+                return new Debris(location, rotation, getVelocity(), boneName + ".obj", duration);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

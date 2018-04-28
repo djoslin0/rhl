@@ -23,13 +23,4 @@ public class BulletConvert {
         }
         return new ConvexHullShape(vertices);
     }
-
-    public static Matrix3 jxMatrix4fToMatrix3(javax.vecmath.Matrix4f mat4) {
-        float[] rot = new float[] {
-                mat4.m00, mat4.m10, mat4.m20,
-                mat4.m01, mat4.m11, mat4.m21,
-                mat4.m02, mat4.m12, mat4.m22
-        };
-        return Matrix3f.createFrom(rot);
-    }
 }
