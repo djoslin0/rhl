@@ -372,11 +372,10 @@ public class Player extends GameEntity implements Attackable {
             die();
         }
         if (local) {
-            MyGame.healthText.text = "Health: " + health;
             if (!dead) {
                 float alpha = value / 20f + 0.1f;
                 if (alpha > 1) { alpha = 1; }
-                hudController.showPeripheral(new Color(1f, 0f, 0f, alpha), 800f * (alpha));
+                hudController.showPeripheral(new Color(1f, 0.1f, 0.1f, alpha), 800f * (alpha));
             }
 
         }
@@ -387,9 +386,6 @@ public class Player extends GameEntity implements Attackable {
         respawnTimeout = respawnSeconds * 1000f;
 
         health = 0;
-        if (local) {
-            MyGame.healthText.text = "Health: " + health;
-        }
         absorbHurt = 0;
 
         headDebris = createDebrisPart("head");

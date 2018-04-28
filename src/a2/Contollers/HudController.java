@@ -1,26 +1,27 @@
 package a2.Contollers;
 
 import a2.GameEntities.Player;
-import myGameEngine.GameEntities.Billboard;
+import myGameEngine.GameEntities.HudElement;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.Settings;
-import myGameEngine.Singletons.TimeManager;
 import myGameEngine.Singletons.UpdateManager;
-import ray.rage.rendersystem.Viewport;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.ZBufferState;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
+import ray.rml.Vector2f;
 
 import java.awt.*;
 import java.io.IOException;
 
 public class HudController implements Updatable {
     private Player player;
-    private SceneNode crosshairNode;
-    private Billboard peripheral;
-    private SceneNode peripheralNode;
+    private HudElement peripheral;
+    private HudElement healthBar;
+    private HudElement healthBar2;
+    private HudElement crosshair;
+    private float healthBar2Width;
     private float peripheralDuration;
     private float peripheralMaxDuration;
     private Color peripheralColor = new Color(1f, 1f, 1f, 0f);
@@ -35,24 +36,28 @@ public class HudController implements Updatable {
         SceneNode cameraNode = player.getCameraNode();
 
         try {
-            // create crosshair
-            crosshairNode = cameraNode.createChildSceneNode(name + "crosshairNode");
-            player.addResponsibility(crosshairNode);
-            crosshairNode.moveForward(3);
-            Billboard crosshair = new Billboard(crosshairNode, 0.2f, 0.2f, "flare2.png", Color.RED);
-            player.addResponsibility(crosshair);
+            SceneNode hudNode = cameraNode.createChildSceneNode(name + "Node");
+            hudNode.moveForward(0.05f);
 
             // create peripheral
-            peripheralNode = cameraNode.createChildSceneNode(name + "peripheralNode");
-            player.addResponsibility(peripheralNode);
-            peripheralNode.moveForward(0.05f);
-            peripheral = new Billboard(peripheralNode, 1f, 1f, "peripheral.png", peripheralColor);
+            peripheral = new HudElement(hudNode, 1f, Vector2f.createZeroVector(), Vector2f.createZeroVector(), 0, "peripheral.png", peripheralColor);
+            peripheral.fullscreen = true;
+            player.addResponsibility(peripheral);
 
-            // set no depth testing
-            ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
-            zBufferState.setSecondaryStage(true);
-            crosshair.getManualObject().setRenderState(zBufferState);
-            peripheral.getManualObject().setRenderState(zBufferState);
+            // create battery
+            HudElement battery = new HudElement(hudNode, 0.002f, Vector2f.createFrom(-0.9f, -0.8f), Vector2f.createFrom(-1f, 0f), 4, "battery.png", Color.WHITE);
+            player.addResponsibility(battery);
+
+            // create healthbar
+            healthBar = new HudElement(hudNode, 0.00185f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), 2, "bar.png", new Color(60, 255, 60));
+            player.addResponsibility(healthBar);
+
+            healthBar2 = new HudElement(hudNode, 0.001849f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), 3, "bar.png", new Color(255, 100, 100));
+            player.addResponsibility(healthBar2);
+
+            // create crosshair
+            crosshair = new HudElement(hudNode, 0.0007f, Vector2f.createZeroVector(), Vector2f.createZeroVector(), 1, "flare2.png", Color.RED);
+            player.addResponsibility(crosshair);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -69,12 +74,12 @@ public class HudController implements Updatable {
 
     public void hideLivingHud() {
         hidingLivingHud = true;
-        crosshairNode.setLocalScale(0.001f, 0.001f, 0.001f);
+        crosshair.getNode().setLocalScale(0.001f, 0.001f, 0.001f);
     }
 
     public void showLivingHud() {
         hidingLivingHud = false;
-        crosshairNode.setLocalScale(1f, 1f, 1f);
+        crosshair.getNode().setLocalScale(1f, 1f, 1f);
     }
 
     private Color calculatePeripheralColor() {
@@ -101,21 +106,31 @@ public class HudController implements Updatable {
 
     @Override
     public void update(float delta) {
-
-        // get default position according to aspect ratio
-        Viewport vp = EngineManager.getRenderWindow().getViewport(0);
-        float aspectRatio = (float)vp.getActualWidth() / (float)vp.getActualHeight();
-
-        float h = 0.0577434f;
-        float w = h * aspectRatio;
-
+        // update peripheral
         if (peripheralDuration > 0) {
             peripheralDuration -= delta;
             if (peripheralDuration < 0) { peripheralDuration = 0; }
         }
-
         peripheral.getMaterial().setAmbient(calculatePeripheralColor());
-        peripheralNode.setLocalScale(w, h, 1);
+
+        // update health bars
+        float barWidth = player.getHealth() / 100f * 59f;
+        if (barWidth < 0.001f) { barWidth = 0.001f; }
+        if (barWidth > healthBar2Width) { healthBar2Width = barWidth - 0.1f; }
+        if (healthBar2Width > barWidth - 0.1f) {
+            healthBar2Width -= delta * 0.005f;
+        }
+        healthBar.getNode().setLocalScale(barWidth, 1f, 1f);
+        healthBar2.getNode().setLocalScale(healthBar2Width, 0.99f, 1f);
+
+        float barHealthF = player.getHealth() / 100f - (healthBar2Width - barWidth) / 50f;
+        if (barHealthF < 0) { barHealthF = 0; }
+        float barR = (float)Math.pow(1 - barHealthF, 1.5f) * 0.7f + 0.4f;
+        float barG = (float)Math.sqrt(barHealthF * 0.8f) + 0.2f;
+        if (barR > 1) { barR = 1; }
+        if (barG > 1) { barG = 1; }
+        Color healthBarColor = new Color(barR, barG, 0.2f);
+        healthBar.getMaterial().setAmbient(healthBarColor);
     }
 
     @Override

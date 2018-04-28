@@ -43,7 +43,6 @@ public class MyGame extends VariableFrameRateGame {
     private HudText fpsText = new HudText(-80, -30, Color.white, GLUT.BITMAP_8_BY_13);
 
     public static boolean playMode = true;
-    public static HudText healthText = new HudText(15, -30, Color.BLUE, GLUT.BITMAP_HELVETICA_18);
     
     public static void main(String[] args) throws IOException {
         MyGame game = new MyGame(args);
@@ -164,9 +163,7 @@ public class MyGame extends VariableFrameRateGame {
         }
 
         GL4RenderSystem rs = (GL4RenderSystem) engine.getRenderSystem();
-        rs.addHud(healthText);
         rs.addHud(fpsText);
-        healthText.text = "Health: 100";
 
         setupNetworking();
         setupInputs();
@@ -176,7 +173,7 @@ public class MyGame extends VariableFrameRateGame {
         im = new GenericInputManager();
         InputSetup.setupKeyboard(im, player);
         InputSetup.setupMouse(im, player);
-        InputSetup.listenToControllers(im, player, healthText);
+        //InputSetup.listenToControllers(im, player, healthText);
     }
 
     @Override

@@ -27,11 +27,9 @@ public class GoalSize {
 
     }
     public void setSize(){
-        Settings.runScript();
         size.setLocalPosition(Settings.get().goalLocation);
     }
     public void setScale(){
-        Settings.runScript();
         size.setLocalScale(Settings.get().scaleX.floatValue(), (Float) Settings.get().scaleY.floatValue(),(Float) Settings.get().scaleZ.floatValue());
     }
 }
