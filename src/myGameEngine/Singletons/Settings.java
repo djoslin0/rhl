@@ -35,6 +35,10 @@ public class Settings {
     public Double debug3;
     public Double debug4;
     public Double debug5;
+    public Double scaleX;
+    public Double scaleY;
+    public Double scaleZ;
+    public Vector3 goalLocation;
 
     public static void initScript() {
         ScriptEngineManager factory = new ScriptEngineManager();
@@ -67,6 +71,14 @@ public class Settings {
             instance.debug3 = (Double)(instance.jsEngine.eval("debug3"));
             instance.debug4 = (Double)(instance.jsEngine.eval("debug4"));
             instance.debug5 = (Double)(instance.jsEngine.eval("debug5"));
+
+            instance.scaleX = (Double) (instance.jsEngine.eval("scaleX"));
+            instance.scaleY = (Double) (instance.jsEngine.eval("scaleY"));
+            instance.scaleZ = (Double) (instance.jsEngine.eval("scaleZ"));
+            instance.goalLocation =  (Vector3)(instance.jsEngine.eval("goalSize"));
+
+
+
 
         } catch (FileNotFoundException e) {
             System.out.println(instance.scriptFile + " not found " + e);

@@ -76,7 +76,7 @@ public class Puck extends GameEntity implements Attackable {
     public boolean shouldRegisterCollision() { return true; }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        if (entity instanceof  Goal) {
+         if (entity instanceof  Goal) {
             System.out.println("puck --> goal");
             body.setLinearVelocity(new javax.vecmath.Vector3f());
             body.setAngularVelocity(new javax.vecmath.Vector3f());

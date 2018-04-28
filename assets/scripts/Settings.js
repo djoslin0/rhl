@@ -11,6 +11,7 @@ with (JavaPackages) {
 	
 	var spawnPoint = Vector3f.createFrom(0, 1.8, -30);
 	var puckSpawnPoint = Vector3f.createFrom(0, 5, -10);
+	
 
 	var terrainEmissive = new Color(.2, .2, .2);
 	var terrainSpecular = new Color(.5, .5, .5);
@@ -22,5 +23,12 @@ with (JavaPackages) {
 	var debug3 = 0.0;
 	var debug4 = 0.0;
 	var debug5 = 0.0;
+
+	// goal size
+	var goalSize = Vector3f.createFrom(70,0,0);
+	var scaleX = 1.0;
+	var scaleY = 1.5;
+	var scaleZ = 7.9;
+
 
 }

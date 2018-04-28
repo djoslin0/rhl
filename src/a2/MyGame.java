@@ -37,7 +37,9 @@ public class MyGame extends VariableFrameRateGame {
     private GenericInputManager im;
     private Camera camera;
     private Player player;
-
+    private GoalSize goalSize;
+    private int ai = 2;
+    private AIPlayer aip;
     private HudText fpsText = new HudText(-80, -30, Color.white, GLUT.BITMAP_8_BY_13);
 
     public static boolean playMode = true;
@@ -112,6 +114,8 @@ public class MyGame extends VariableFrameRateGame {
         new StaticSkyBox(sm.getRootSceneNode(),camera);
         new WorldAxes();
         new Ground();
+        aip = new AIPlayer((byte)200,false,(byte)0,Vector3f.createFrom(50f,0f,0f));
+        //goalSize = GoalSize.GetGoalSize();
         if (!playMode) {
         	new Terrain();
         }
@@ -177,6 +181,8 @@ public class MyGame extends VariableFrameRateGame {
 
     @Override
     protected void update(Engine engine) {
+        //goalSize.setSize();
+        //goalSize.setScale();
         float delta = engine.getElapsedTimeMillis();
         if (UDPClient.hasClient()) {
             UDPClient.update();

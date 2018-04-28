@@ -3,6 +3,7 @@ package a2.Contollers;
 import Networking.PacketAttack;
 import Networking.UDPClient;
 import Networking.UDPServer;
+import a2.GameEntities.AIPlayer;
 import a2.MyGame;
 import a2.Actions.ActionMove;
 import a2.Actions.ActionRotate;
@@ -422,7 +423,7 @@ public class CharacterController extends InternalTickCallback {
 
         attackTicks = attackTickTimeout;
 
-        if (!player.isLocal()) { return; }
+        if (!player.isLocal() && !(player instanceof AIPlayer)) { return; }
 
         Vector3 toPosition = cameraNode.getWorldPosition().add(cameraNode.getWorldForwardAxis().mult(6f));
         javax.vecmath.Vector3f from = cameraNode.getWorldPosition().toJavaX();
