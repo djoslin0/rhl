@@ -131,9 +131,6 @@ public class Puck extends GameEntity implements Attackable {
         Vector3 collisionPoint = Vector3f.createFrom(contactPoint.positionWorldOnA).add(Vector3f.createFrom(contactPoint.positionWorldOnB)).div(2f);
         player.getController().knockback(push, collisionPoint.sub(player.getPosition()));
 
-
-        player.hurt(100);
-        /*
         // calculate player hurt/squeeze
         float linearDot = linearPush.dot(player.getVelocity()) / 45000;
         int hurtAmount = (int)(linearDot + angularVelocity.length() * 1.5f);
@@ -158,7 +155,7 @@ public class Puck extends GameEntity implements Attackable {
                 // hurt player
                 player.hurt(hurtAmount);
             }
-        }*/
+        }
     }
 
     public void attacked(Vector3 aim, Vector3 relative) {
