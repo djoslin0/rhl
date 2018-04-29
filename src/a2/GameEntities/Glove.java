@@ -12,8 +12,10 @@ import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.UniqueCounter;
+import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.rendersystem.states.RenderState;
+import ray.rage.rendersystem.states.TextureState;
 import ray.rage.rendersystem.states.ZBufferState;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
@@ -42,7 +44,7 @@ public class Glove extends GameEntity {
 
     private static float speed = 0.003f;
 
-    public Glove(Player player, String playerName, SceneNode handNode) {
+    public Glove(Player player, String playerName, TextureState textureState, SceneNode handNode) {
         super(true);
 
         SceneManager sm = EngineManager.getSceneManager();
@@ -51,6 +53,7 @@ public class Glove extends GameEntity {
             gloveObj = sm.createEntity(playerName + "Glove", "glove.obj");
             addResponsibility(gloveObj);
             gloveObj.setPrimitive(Renderable.Primitive.TRIANGLES);
+            gloveObj.setRenderState(textureState);
 
             springObj = sm.createEntity(playerName + "Spring", "spring.obj");
             addResponsibility(springObj);
@@ -194,6 +197,5 @@ public class Glove extends GameEntity {
         float size = hit ? (float)(1f + 2f * Math.pow(scalar, 4)) : 1;
         node.setLocalScale(size, size, size);
     }
-
 }
 
