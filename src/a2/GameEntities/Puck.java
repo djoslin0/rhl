@@ -146,8 +146,10 @@ public class Puck extends GameEntity implements Attackable {
             // figure out if we should be squishing downward
             float yScalar = 1;
             Vector3 playerLocalPoint = isA ? Vector3f.createFrom(contactPoint.localPointB) : Vector3f.createFrom(contactPoint.localPointA);
-            if (playerLocalPoint.y() > 1f) {
+            if (playerLocalPoint.y() > 1f && linearVelocity.y() < -5) {
                 yScalar = Player.height * 0.9f;
+            } else {
+                yScalar = 0;
             }
 
             // create collision direction vector
