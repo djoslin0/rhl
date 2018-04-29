@@ -60,9 +60,9 @@ public class Goal extends GameEntity {
             node.setLocalPosition(goalDistance,0f,0f);
         }else{
             backCollisionBox.setLocalPosition(-goalDistance-2.0f,2.5f,0f);
-            lSideCollisionBox.setLocalPosition(-67.8f,2.5f,8f);
-            rSideCollisionBox.setLocalPosition(-67.8f,2.5f,-8f);
-            tRailCollisionBox.setLocalPosition(-64f,4.7f,0f);
+            lSideCollisionBox.setLocalPosition(-goalDistance+2.2f,2.5f,8f);
+            rSideCollisionBox.setLocalPosition(-goalDistance+2.2f,2.5f,-8f);
+            tRailCollisionBox.setLocalPosition(-goalDistance+6f,4.7f,0f);
             goalBox.setLocalPosition(-goalDistance,0f,0f);
             node.setLocalPosition(-goalDistance,0f,0f);
             node.rotate(Degreef.createFrom(180f),Vector3f.createUnitVectorY());
