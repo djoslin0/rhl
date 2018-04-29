@@ -73,7 +73,7 @@ public class Puck extends GameEntity implements Attackable {
     public boolean shouldRegisterCollision() { return true; }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-         if (entity instanceof  Goal) {
+        if (entity instanceof Goal) {
              try{
                  Particle pow = new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow.png", Color.WHITE, 300f);
                  for(int i=0;i<8;i++) {
@@ -178,13 +178,13 @@ public class Puck extends GameEntity implements Attackable {
         javax.vecmath.Vector3f jvel = new javax.vecmath.Vector3f();
         body.getLinearVelocity(jvel);
         Vector3 velocity = Vector3f.createFrom(jvel);
-        float dot = velocity.dot(aim.normalize()) * 1.5f;
+        float dot = velocity.dot(aim.normalize()) * 1.45f;
         float rally = 0;
         if (dot < 0) {
             rally = -dot;
             if (rally > 50f) { rally = 50f; }
         }
-        javax.vecmath.Vector3f force = aim.mult(20000f + rally * 1000f).toJavaX();
+        javax.vecmath.Vector3f force = aim.mult(18000f + rally * 1000f).toJavaX();
         body.applyImpulse(force, relative.toJavaX());
         body.activate();
     }
