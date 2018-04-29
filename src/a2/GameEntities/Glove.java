@@ -116,6 +116,7 @@ public class Glove extends GameEntity {
     @Override
     public void update(float delta) {
         if (player.isDead()) {
+            // player head, hide glove
             if (gloveObj.getParentSceneNode() != null) {
                 gloveObj.getParentSceneNode().detachObject(gloveObj);
             }
@@ -125,6 +126,7 @@ public class Glove extends GameEntity {
             wasDead = true;
             return;
         } else if (wasDead) {
+            // player respawn, show glove
             wasDead = false;
             handNode.attachObject(gloveObj);
         }
@@ -145,11 +147,17 @@ public class Glove extends GameEntity {
 
         double theta = (1f - Math.pow(1f - time, 4)) * Math.PI;
 
-
         Vector3 smoothedTarget = target;
+        if (!hit) { smoothedTarget = player.getCameraNode().getWorldPosition().add(offset); }
 
-        if (theta > Math.PI / 2f) {
-            smoothedTarget = player.getCameraNode().getWorldPosition().add(offset).lerp(target, 0.2f);
+        double halfPi = Math.PI / 2f;
+        if (theta > halfPi) {
+            if (hit) {
+                float toTargetLerp = (float) ((halfPi - (theta - halfPi)) / halfPi);
+                toTargetLerp *= toTargetLerp;
+                toTargetLerp *= toTargetLerp;
+                smoothedTarget = player.getCameraNode().getWorldPosition().add(offset).lerp(target, toTargetLerp);
+            }
             if (createPow) {
                 createPow = false;
                 try {

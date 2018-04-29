@@ -437,7 +437,11 @@ public class CharacterController extends InternalTickCallback {
         Attackable attackable = getAttackable(closest.collisionObject);
 
         Vector3 rayEnd = closest.hasHit() ? Vector3f.createFrom(closest.hitPointWorld) : Vector3f.createFrom(closest.rayToWorld);
-        player.getGlove().attack((attackable != null), rayEnd);
+        if (attackable != null) {
+            player.getGlove().attack(true, rayEnd);
+        } else {
+            player.getGlove().attack(false, rayEnd.sub(player.getCameraNode().getWorldForwardAxis().mult(3f)));
+        }
 
         if (!closest.hasHit()
             || !(closest.collisionObject instanceof RigidBody)
