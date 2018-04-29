@@ -91,11 +91,11 @@ public class Goal extends GameEntity {
         BoxShape goalBoxCollisionShape = new BoxShape(new javax.vecmath.Vector3f(0.9f,1.5f,+7.9f));
 
         // rigid bodies
-        RigidBody backBody = createBody(mass, backMotionState, backCollisionShape);
-        RigidBody leftBody = createBody(mass, leftMotionState, leftCollisionShape);
-        RigidBody rightBody = createBody(mass, rightMotionState, rightCollisionShape);
-        RigidBody railBody= createBody(mass, railMotionState, tRailCollisionShape);
-        RigidBody goalBoxBody= createBody(mass, goalBoxMotionState, goalBoxCollisionShape);
+        RigidBody backBody = createBody(mass, backMotionState, backCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        RigidBody leftBody = createBody(mass, leftMotionState, leftCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        RigidBody rightBody = createBody(mass, rightMotionState, rightCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        RigidBody railBody= createBody(mass, railMotionState, tRailCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        RigidBody goalBoxBody= createBody(mass, goalBoxMotionState, goalBoxCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
 
 
         // unregister collisions

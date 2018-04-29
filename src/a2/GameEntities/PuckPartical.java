@@ -26,12 +26,13 @@ public class PuckPartical extends GameEntity{
     private Entity obj;
     private RigidBody body;
     private ConvexHullShape collisionShape;
-    private Duration duration = new Duration(1000f);
+    private Duration duration = new Duration(3000f);
     public PuckPartical(String name,int rotate) throws IOException {
         super(true);
             obj = EngineManager.getSceneManager().createEntity(name,"puckpartical.obj");
             node = EngineManager.getSceneManager().getRootSceneNode().createChildSceneNode(name);
             node.setLocalPosition(EntityManager.getPuck().getNode().getWorldPosition());
+            node.setLocalRotation(EntityManager.getPuck().getNode().getWorldRotation());
             node.rotate(Degreef.createFrom(45f*rotate), Vector3f.createUnitVectorY());
             node.attachObject(obj);
             addResponsibility(node);
@@ -56,14 +57,13 @@ public class PuckPartical extends GameEntity{
         t.origin.y = EntityManager.getPuck().getNode().getWorldPosition().y();
         t.origin.z = EntityManager.getPuck().getNode().getWorldPosition().z();
         Quat4f rot = new Quat4f();
-        rot.w = 1f;
-        rot.x = 1f;
-        rot.y = 1f;
-        rot.z = 1f;
+        rot.w = node.getWorldRotation().toQuaternion().w();
+        rot.x = node.getWorldRotation().toQuaternion().x();
+        rot.y = node.getWorldRotation().toQuaternion().y();
+        rot.z = node.getWorldRotation().toQuaternion().z();
         t.setRotation(rot);
         body.setWorldTransform(t);
-        javax.vecmath.Vector3f velocity = new javax.vecmath.Vector3f(1f,1f,1f);
-        body.setLinearVelocity(velocity);
+        body.setLinearVelocity(node.getWorldForwardAxis().mult(60f).toJavaX());
     }
     public void update(float delta){
         super.update(delta);
