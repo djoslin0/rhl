@@ -115,6 +115,7 @@ public class MyGame extends VariableFrameRateGame {
         new WorldAxes();
         new Ground();
         aip = new AIPlayer((byte)200,false,(byte)0,Vector3f.createFrom(50f,0f,0f));
+        new Rink();
         //goalSize = GoalSize.GetGoalSize();
         if (!playMode) {
         	new Terrain();
@@ -153,14 +154,13 @@ public class MyGame extends VariableFrameRateGame {
 	        // setup walls
         	float rinkWidth = 80;
         	float rinkLength = 130;
-	        for (int i = 0; i < 8; i++) {
+	        /*for (int i = 0; i < 8; i++) {
 	            float scale = 32;
 	            new Box(Vector3f.createFrom((i - 4) * scale, 0f, rinkWidth), scale);
 	            new Box(Vector3f.createFrom((i - 4) * scale, 0f, -rinkWidth), scale);
 	            new Box(Vector3f.createFrom(rinkLength, 0f, (i - 4) * scale), scale);
 	            new Box(Vector3f.createFrom(-rinkLength, 0f, (i - 4) * -scale), scale);
-	            
-	        }
+	        }*/
         }
 
         GL4RenderSystem rs = (GL4RenderSystem) engine.getRenderSystem();
