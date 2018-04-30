@@ -113,6 +113,18 @@ public class HudElement extends GameEntity implements Camera.Listener {
     public ManualObject getManualObject() { return obj; }
     public Material getMaterial() { return mat; }
 
+    public void updateTexture(String textureName){
+        Texture texture = null;
+        try {
+            texture = EngineManager.getSceneManager().getTextureManager().getAssetByPath(textureName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        TextureState textureState = (TextureState)EngineManager.getSceneManager().getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
+        textureState.setTexture(texture);
+        obj.setRenderState(textureState);
+    }
+
     @Override
     public void onCameraPreRenderScene(Camera camera) {
 

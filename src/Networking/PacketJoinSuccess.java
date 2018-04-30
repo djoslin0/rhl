@@ -16,7 +16,7 @@ public class PacketJoinSuccess extends Packet {
     // read variables
     private short tick;
     private byte id;
-    private byte side;
+    private Player.Team side;
     private Vector3 position;
 
     public PacketJoinSuccess() { }
@@ -37,7 +37,7 @@ public class PacketJoinSuccess extends Packet {
         Vector3 position = player.getNode().getWorldPosition();
         buffer.putShort(TimeManager.getTick());
         buffer.put(player.getId());
-        buffer.put(player.getSide());
+        buffer.put((byte)player.getSide().ordinal());
         buffer.putShort(NetworkFloat.encode(position.x()));
         buffer.putShort(NetworkFloat.encode(position.y()));
         buffer.putShort(NetworkFloat.encode(position.z()));
@@ -48,7 +48,11 @@ public class PacketJoinSuccess extends Packet {
     public void readInfo(ByteBuffer buffer) {
         tick = buffer.getShort();
         id = buffer.get();
-        side = buffer.get();
+        if(buffer.get() == Player.Team.Orange.ordinal()){
+            side = Player.Team.Orange;
+        }else{
+            side = Player.Team.Blue;
+        }
         position = Vector3f.createFrom(
                 NetworkFloat.decode(buffer.getShort()),
                 NetworkFloat.decode(buffer.getShort()),

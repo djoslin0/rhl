@@ -43,7 +43,7 @@ public class Player extends GameEntity implements Attackable {
     private SkeletalEntity robo;
     private Glove glove;
     private byte playerId;
-    private byte playerSide;
+    private Player.Team playerSide;
     private boolean local;
     public short lastReceivedTick;
     private byte health;
@@ -59,7 +59,11 @@ public class Player extends GameEntity implements Attackable {
     public static float absorbHurtFalloff = 0.015f;
     public static float respawnSeconds = 5f;
 
-    public Player(byte playerId, boolean local, byte side, Vector3 location) {
+    // side definition
+    public static enum Team{
+        Orange,Blue
+    }
+    public Player(byte playerId, boolean local, Player.Team side, Vector3 location) {
         super(true);
         System.out.println("CREATE PLAYER " + playerId);
         this.playerId = playerId;
@@ -94,7 +98,7 @@ public class Player extends GameEntity implements Attackable {
 
         // load texture
         try {
-            String textureName = (playerSide == 0) ? "robo_orange.png" : "robo_blue.png";
+            String textureName = (side == Team.Orange) ? "robo_orange.png" : "robo_blue.png";
             Texture texture = sm.getTextureManager().getAssetByPath(textureName);
             textureState = (TextureState)sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
             textureState.setTexture(texture);
@@ -114,7 +118,7 @@ public class Player extends GameEntity implements Attackable {
 
         // create hud
         if (local) {
-            hudController = new HudController(this);
+            hudController = HudController.getHudController(this);
         }
 
         health = 100;
@@ -170,7 +174,7 @@ public class Player extends GameEntity implements Attackable {
             float eyeHeight = 0.6f;
             float eyeSize = 0.2f;
 
-            Color eyeColor = (playerSide == 0) ? Color.YELLOW : new Color(200, 150, 255);
+            Color eyeColor = (playerSide == Team.Orange) ? Color.YELLOW : new Color(200, 150, 255);
 
             // left eye
             leftEyeNode = headNode.createChildSceneNode(name + "EyeLNode");
@@ -235,7 +239,7 @@ public class Player extends GameEntity implements Attackable {
     public CharacterController getController() { return controller; }
     public SkeletalEntity getRobo() { return robo; }
     public byte getId() { return playerId; }
-    public byte getSide(){ return playerSide; }
+    public Team getSide(){ return playerSide; }
     public boolean isLocal() { return local; }
     public Glove getGlove() { return glove; }
     public CharacterAnimationController getAnimationController() { return animationController; }

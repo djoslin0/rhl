@@ -9,13 +9,13 @@ import ray.rml.Vector3f;
 public class AIPlayer extends Player{
     private Vector3 goalPosition;
     private Vector3 puckPosition;
-    public AIPlayer(byte playerId, boolean local, byte side, Vector3 location) {
+    public AIPlayer(byte playerId, boolean local, Player.Team side, Vector3 location) {
         super(playerId, local, side, location);
     }
     public void update(float delta){
         super.update(delta);
         puckPosition = EntityManager.getPuck().getNode().getWorldPosition();
-        if(this.getSide() == 0){
+        if(this.getSide() == Team.Orange){
            goalPosition = EngineManager.getSceneManager().getSceneNode("Goalbox0").getWorldPosition();
         }else{
             goalPosition = EngineManager.getSceneManager().getSceneNode("Goalbox1").getWorldPosition();
@@ -52,7 +52,6 @@ public class AIPlayer extends Player{
             }
 
         }
-        System.out.println(me);
 
     }
 }

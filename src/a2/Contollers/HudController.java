@@ -21,13 +21,36 @@ public class HudController implements Updatable {
     private HudElement healthBar;
     private HudElement healthBar2;
     private HudElement crosshair;
+    private HudElement orangeSideScore0;
+    private HudElement blueSideScore0;
+    private HudElement orangeSideScore1 = null;
+    private HudElement blueSideScore1 = null;
+    private HudElement scoreHud;
+    private SceneNode hudNode;
+    private int blueScore = 9;
+    private int orangeScore = 9;
     private float healthBar2Width;
     private float peripheralDuration;
     private float peripheralMaxDuration;
+    private static HudController hudController = null;
     private Color peripheralColor = new Color(1f, 1f, 1f, 0f);
     private boolean hidingLivingHud = false;
 
-    public HudController(Player player) {
+    // initial instantiation of singleton hud controller
+    public static HudController getHudController(Player player){
+        if(hudController == null){
+            hudController = new HudController(player);
+            return hudController;
+        }else
+            return hudController;
+    }
+
+    //get hug controller after instantiation
+    public static HudController getHudController() {
+        return hudController;
+    }
+
+    private HudController(Player player) {
         this.player = player;
 
         SceneManager sm = EngineManager.getSceneManager();
@@ -36,7 +59,7 @@ public class HudController implements Updatable {
         SceneNode cameraNode = player.getCameraNode();
 
         try {
-            SceneNode hudNode = cameraNode.createChildSceneNode(name + "Node");
+            hudNode = cameraNode.createChildSceneNode(name + "Node");
             hudNode.moveForward(0.05f);
 
             // create peripheral
@@ -58,6 +81,19 @@ public class HudController implements Updatable {
             // create crosshair
             crosshair = new HudElement(hudNode, 0.0007f, Vector2f.createZeroVector(), Vector2f.createZeroVector(), 1, "flare2.png", Color.RED);
             player.addResponsibility(crosshair);
+
+            // orange side score board
+            orangeSideScore0 = new HudElement(hudNode,0.002f,Vector2f.createFrom(-.40f,.85f),Vector2f.createZeroVector(),5,"0.png",Color.WHITE);
+            player.addResponsibility(orangeSideScore0);
+            //blue side score board
+
+            blueSideScore0 = new HudElement(hudNode,0.002f,Vector2f.createFrom(.40f,.85f),Vector2f.createZeroVector(),5,"0.png",Color.WHITE);
+            player.addResponsibility(blueSideScore0);
+
+            //score container
+            scoreHud = new HudElement(hudNode,0.022f,Vector2f.createFrom(0f,.60f),Vector2f.createZeroVector(),8,"scorehud.png",Color.WHITE);
+            player.addResponsibility(scoreHud);
+
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -103,7 +139,42 @@ public class HudController implements Updatable {
 
         return new Color(red, green, blue, alpha);
     }
-
+    public void updateScore(Player.Team side, int num){
+        if(side == Player.Team.Orange){
+            orangeScore = orangeScore + num;
+        }else{
+            blueScore = blueScore +num;
+        }
+        if( side == Player.Team.Orange && orangeScore % 10 != 0 ){
+            orangeSideScore0.updateTexture(orangeScore % 10 +".png");
+        }else if(side == Player.Team.Orange && orangeSideScore1 != null){
+            orangeSideScore0.updateTexture("0.png");
+            orangeSideScore1.updateTexture(orangeScore / 10 + ".png" );
+        }else if(side == Player.Team.Orange){
+                orangeSideScore0.destroy();
+            try {
+                orangeSideScore0 = new HudElement(hudNode,0.002f,Vector2f.createFrom(-.34f,.85f),Vector2f.createZeroVector(),5,"0.png",Color.WHITE);
+                orangeSideScore1 = new HudElement(hudNode,0.002f,Vector2f.createFrom(-.40f,.85f),Vector2f.createZeroVector(),5,"1.png",Color.WHITE);
+                player.addResponsibility(orangeSideScore1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if(side == Player.Team.Blue && blueScore % 10 != 0){
+            blueSideScore0.updateTexture(blueScore % 10 +".png");
+        }else if(side == Player.Team.Blue && blueSideScore1 != null){
+            blueSideScore0.updateTexture("0.png");
+            blueSideScore1.updateTexture(blueScore / 10 + ".png" );
+        }else if(side == Player.Team.Blue){
+            blueSideScore0.updateTexture("0.png");
+            try {
+                blueSideScore1 = new HudElement(hudNode,0.002f,Vector2f.createFrom(0.34f,.85f),Vector2f.createZeroVector(),5,"1.png",Color.WHITE);
+                player.addResponsibility(blueSideScore1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     @Override
     public void update(float delta) {
         // update peripheral

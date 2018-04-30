@@ -24,7 +24,7 @@ public class UDPServer extends GameConnectionServer<Byte> {
 
     private long nextWorldState;
     private byte nextId = 1;
-    private byte nextSide = 0;
+    private Player.Team nextSide = Player.Team.Orange;
     private static ConcurrentHashMap<Byte, Player> players = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, Player> clientPlayers = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, ClientInfo> clientInfos = new ConcurrentHashMap<>();
@@ -61,7 +61,21 @@ public class UDPServer extends GameConnectionServer<Byte> {
                     instance.nextId = 2;
                 }
             }
-            instance.nextSide = (byte) ((instance.nextSide + 1) % 2);
+
+            // check how many players on each side
+            int blueSide = 0;
+            int orangeSide = 0;
+            for(Player playerItr: players.values()){
+                if(playerItr.getSide() == Player.Team.Orange){
+                    orangeSide++;
+                }else{
+                    blueSide++;
+                }
+            }
+            if(orangeSide > blueSide){
+                instance.nextSide = Player.Team.Blue;
+            }else
+                instance.nextSide = Player.Team.Orange;
             return player;
         }
     }

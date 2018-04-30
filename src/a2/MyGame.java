@@ -6,10 +6,7 @@ import Networking.UDPServer;
 import a2.GameEntities.*;
 import a2.GameEntities.Box;
 import com.jogamp.opengl.util.gl2.GLUT;
-import myGameEngine.GameEntities.ShaderSkyBox;
-import myGameEngine.GameEntities.StaticSkyBox;
-import myGameEngine.GameEntities.Terrain;
-import myGameEngine.GameEntities.WorldAxes;
+import myGameEngine.GameEntities.*;
 import myGameEngine.Helpers.HudText;
 import myGameEngine.Singletons.*;
 import ray.input.GenericInputManager;
@@ -66,7 +63,7 @@ public class MyGame extends VariableFrameRateGame {
         if (args.length > 0) {
             if (args[0].equals("s")) {
                 UDPServer.createServer(8800);
-                player = new Player((byte)0, true, (byte)0, Settings.get().spawnPoint.add(0, 0, -10));
+                player = new Player((byte)0, true, Player.Team.Orange, Settings.get().spawnPoint.add(0, 0, -10));
                 return;
             } else if (args[0].equals("c")) {
                 UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
@@ -81,9 +78,9 @@ public class MyGame extends VariableFrameRateGame {
         }
 
         System.out.println("continuing without networking");
-        player = new Player((byte)0, true, (byte)0, Settings.get().spawnPoint);
-        new Player((byte)1, false, (byte)0, Settings.get().spawnPoint.add(10, 0, 0));
-        new Player((byte)2, false, (byte)1, Settings.get().spawnPoint.add(20, 0, 0));
+        player = new Player((byte)0, true, Player.Team.Orange, Settings.get().spawnPoint);
+        new Player((byte)1, false, Player.Team.Orange, Settings.get().spawnPoint.add(10, 0, 0));
+        new Player((byte)2, false, Player.Team.Blue, Settings.get().spawnPoint.add(20, 0, 0));
     }
 
     @Override
@@ -109,13 +106,13 @@ public class MyGame extends VariableFrameRateGame {
         PhysicsManager.initPhysics();
         Settings.initScript();
        //new ShaderSkyBox(engine, sm, this);
-        new Goal(0);
-        new Goal(1);
+        new Goal(Player.Team.Orange);
+        new Goal(Player.Team.Blue);
         new StaticSkyBox(sm.getRootSceneNode(),camera);
         new WorldAxes();
         new Ground();
-        aip = new AIPlayer((byte)200,false,(byte)0,Vector3f.createFrom(50f,0f,0f));
         new Rink();
+        //aip = new AIPlayer((byte)200,false,Player.Team.Orange,Vector3f.createFrom(50f,0f,0f));
         //goalSize = GoalSize.GetGoalSize();
         if (!playMode) {
         	new Terrain();

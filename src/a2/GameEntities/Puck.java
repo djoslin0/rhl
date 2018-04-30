@@ -1,5 +1,6 @@
 package a2.GameEntities;
 
+import a2.Contollers.HudController;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
@@ -29,6 +30,7 @@ public class Puck extends GameEntity implements Attackable {
     private Entity obj;
     private RigidBody body;
     private SceneNode angularTestNode;
+    private int numgoals =0;
 
     private float angularPushScale = 400f;
     private float linearPushScale = 200f;
@@ -74,16 +76,23 @@ public class Puck extends GameEntity implements Attackable {
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         if (entity instanceof Goal) {
+            numgoals++;
              try{
                  Particle pow = new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow.png", Color.WHITE, 300f);
                  for(int i=0;i<8;i++) {
-                     new PuckPartical("puckParticle" + i, i);
+                     new PuckPartical("puckParticle" + i * numgoals, i);
                  }
              }
              catch (IOException e) {
                  e.printStackTrace();
              }
-             System.out.println("puck --> goal");
+             javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
+            contactPoint.getPositionWorldOnA(point);
+            if(point.x<0f){
+                HudController.getHudController().updateScore(Player.Team.Blue,1);
+            }else{
+                HudController.getHudController().updateScore(Player.Team.Orange,1);
+            }
             body.setLinearVelocity(new javax.vecmath.Vector3f());
             body.setAngularVelocity(new javax.vecmath.Vector3f());
             Transform t = new Transform();

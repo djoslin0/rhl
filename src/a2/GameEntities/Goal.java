@@ -34,14 +34,14 @@ public class Goal extends GameEntity {
     private SceneNode tRailCollisionBox;
     private SceneNode goalBox;
 
-    public Goal(int side) throws IOException {
+    public Goal(Player.Team side) throws IOException {
         super(false);
         // instantiate nodes
         SceneManager sm = EngineManager.getSceneManager();
-        node = sm.getRootSceneNode().createChildSceneNode("Goal" + side);
+        node = sm.getRootSceneNode().createChildSceneNode("Goal" + side.ordinal());
 
         // load model
-        obj = sm.createEntity("GoalEntity" + side, "goal.obj");
+        obj = sm.createEntity("GoalEntity" + side.ordinal(), "goal.obj");
         node.rotate(Degreef.createFrom(90),Vector3f.createUnitVectorY());
         obj.setPrimitive(Renderable.Primitive.TRIANGLES);
 
@@ -51,10 +51,10 @@ public class Goal extends GameEntity {
         lSideCollisionBox = sm.getRootSceneNode().createChildSceneNode("Left" +side);
         rSideCollisionBox = sm.getRootSceneNode().createChildSceneNode("Right" +side);
         tRailCollisionBox = sm.getRootSceneNode().createChildSceneNode("Rail" +side);
-        goalBox = sm.getRootSceneNode().createChildSceneNode("Goalbox" + side);
+        goalBox = sm.getRootSceneNode().createChildSceneNode("Goalbox" + side.ordinal());
         // which side are you creating the goal on?
         float goalDistance = Settings.get().goalDistance.floatValue();
-        if(side == 0){
+        if(side == Player.Team.Orange){
             backCollisionBox.setLocalPosition(goalDistance+2.0f,2.5f,0f);
             lSideCollisionBox.setLocalPosition(goalDistance-2.2f,2.5f,8f);
             rSideCollisionBox.setLocalPosition(goalDistance-2.2f,2.5f,-8f);
