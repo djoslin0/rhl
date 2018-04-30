@@ -27,8 +27,8 @@ public class HudController implements Updatable {
     private HudElement blueSideScore1 = null;
     private HudElement scoreHud;
     private SceneNode hudNode;
-    private int blueScore = 9;
-    private int orangeScore = 9;
+    private int blueScore = 0;
+    private int orangeScore = 0;
     private float healthBar2Width;
     private float peripheralDuration;
     private float peripheralMaxDuration;
