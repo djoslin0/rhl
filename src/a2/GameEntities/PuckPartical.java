@@ -26,7 +26,7 @@ public class PuckPartical extends GameEntity{
     private Entity obj;
     private RigidBody body;
     private ConvexHullShape collisionShape;
-    private Duration duration = new Duration(3000f);
+    private Duration duration = new Duration(1000f);
     public PuckPartical(String name,int rotate) throws IOException {
         super(true);
             obj = EngineManager.getSceneManager().createEntity(name,"puckpartical.obj");

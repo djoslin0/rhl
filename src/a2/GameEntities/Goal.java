@@ -12,7 +12,10 @@ import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.Settings;
+import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.Renderable;
+import ray.rage.rendersystem.states.RenderState;
+import ray.rage.rendersystem.states.TextureState;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
@@ -59,6 +62,11 @@ public class Goal extends GameEntity {
             goalBox.setLocalPosition(goalDistance,0f,0f);
             node.setLocalPosition(goalDistance,0f,0f);
         }else{
+            String textureName = "goalorange.png";
+            Texture texture = EngineManager.getSceneManager().getTextureManager().getAssetByPath(textureName);
+            TextureState textureState = (TextureState)EngineManager.getSceneManager().getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
+            textureState.setTexture(texture);
+            obj.setRenderState(textureState);
             backCollisionBox.setLocalPosition(-goalDistance-2.0f,2.5f,0f);
             lSideCollisionBox.setLocalPosition(-goalDistance+2.2f,2.5f,8f);
             rSideCollisionBox.setLocalPosition(-goalDistance+2.2f,2.5f,-8f);
