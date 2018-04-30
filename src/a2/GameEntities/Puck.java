@@ -74,37 +74,39 @@ public class Puck extends GameEntity implements Attackable {
     @Override
     public boolean shouldRegisterCollision() { return true; }
 
-    public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        if (entity instanceof Goal) {
-            numgoals++;
-             try{
-                 Particle pow = new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow.png", Color.WHITE, 300f);
-                 for(int i=0;i<8;i++) {
-                     new PuckPartical("puckParticle" + i * numgoals, i);
-                 }
-             }
-             catch (IOException e) {
-                 e.printStackTrace();
-             }
-             javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
-            contactPoint.getPositionWorldOnA(point);
-            if(point.x<0f){
-                HudController.getHudController().updateScore(Player.Team.Blue,1);
-            }else{
-                HudController.getHudController().updateScore(Player.Team.Orange,1);
+    private void goalCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
+        numgoals++;
+        try{
+            new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow.png", Color.WHITE, 300f);
+            for(int i=0; i<8; i++) {
+                new PuckPartical(i);
             }
-            body.setLinearVelocity(new javax.vecmath.Vector3f());
-            body.setAngularVelocity(new javax.vecmath.Vector3f());
-            Transform t = new Transform();
-            t.origin.x = 0;
-            t.origin.y = 25f;
-            t.origin.z = 0;
-            body.setWorldTransform(t);
-            body.clearForces();
-            return;
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
 
-        if (!(entity instanceof Player)) { return; }
+        javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
+        contactPoint.getPositionWorldOnA(point);
+
+        if(point.x < 0f){
+            HudController.getHudController().updateScore(Player.Team.Blue,1);
+        }else{
+            HudController.getHudController().updateScore(Player.Team.Orange,1);
+        }
+
+        body.setLinearVelocity(new javax.vecmath.Vector3f());
+        body.setAngularVelocity(new javax.vecmath.Vector3f());
+        Transform t = new Transform();
+        t.origin.x = 0;
+        t.origin.y = 25f;
+        t.origin.z = 0;
+
+        body.setWorldTransform(t);
+        body.clearForces();
+    }
+
+    public void playerCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         Player player = (Player) entity;
         Vector3 entityPosition = entity.getNode().getWorldPosition();
         Vector3 thisPosition = node.getWorldPosition();
@@ -182,6 +184,14 @@ public class Puck extends GameEntity implements Attackable {
                 // hurt player
                 player.hurt(hurtAmount);
             }
+        }
+    }
+
+    public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
+        if (entity instanceof Goal) {
+            goalCollision(entity, contactPoint, isA);
+        } else if (entity instanceof Player) {
+            playerCollision(entity, contactPoint, isA);
         }
     }
 
