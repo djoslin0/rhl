@@ -64,7 +64,7 @@ public class Puck extends GameEntity implements Attackable {
         ConvexHullShape collisionShape = BulletConvert.entityToConvexHullShape(obj);
         collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
 
-        body = createBody(mass, motionState, collisionShape);
+        body = createBody(mass, motionState, collisionShape, PhysicsManager.COL_PUCK, PhysicsManager.COLLIDE_ALL);
         body.setRestitution(0.6f);
         body.setFriction(0.2f);
         body.setDamping(0.05f, 0f);

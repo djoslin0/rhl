@@ -103,7 +103,7 @@ public class Goal extends GameEntity {
         RigidBody leftBody = createBody(mass, leftMotionState, leftCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
         RigidBody rightBody = createBody(mass, rightMotionState, rightCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
         RigidBody railBody= createBody(mass, railMotionState, tRailCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
-        RigidBody goalBoxBody= createBody(mass, goalBoxMotionState, goalBoxCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        RigidBody goalBoxBody= createBody(mass, goalBoxMotionState, goalBoxCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_PUCK);
 
 
         // unregister collisions

@@ -35,7 +35,7 @@ public class Ground extends GameEntity {
         obj.createManualSection(name + "Section");
         obj.setGpuShaderProgram(sm.getRenderSystem().getGpuShaderProgram(GpuShaderProgram.Type.RENDERING));
 
-        float size = 100f;
+        float size = 150f;
 
         // populate arrays
         float[] vertices = new float[] {
@@ -102,7 +102,7 @@ public class Ground extends GameEntity {
         groundTransform.origin.set(0, -2.3f, 0);
         DefaultMotionState motionState = new DefaultMotionState(groundTransform);
 
-        CollisionShape collisionShape = new BoxShape(new javax.vecmath.Vector3f(100f, 2f, 100f));
+        CollisionShape collisionShape = new BoxShape(new javax.vecmath.Vector3f(150f, 2f, 150f));
 
         createBody(mass, motionState, collisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
     }

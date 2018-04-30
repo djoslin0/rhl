@@ -35,12 +35,8 @@ public class MyGame extends VariableFrameRateGame {
     private Camera camera;
     private Player player;
     private GoalSize goalSize;
-    private int ai = 2;
-    private AIPlayer aip;
     private HudText fpsText = new HudText(-80, -30, Color.white, GLUT.BITMAP_8_BY_13);
 
-    public static boolean playMode = true;
-    
     public static void main(String[] args) throws IOException {
         MyGame game = new MyGame(args);
         try {
@@ -81,6 +77,7 @@ public class MyGame extends VariableFrameRateGame {
         player = new Player((byte)0, true, Player.Team.Orange, Settings.get().spawnPoint);
         new Player((byte)1, false, Player.Team.Orange, Settings.get().spawnPoint.add(10, 0, 0));
         new Player((byte)2, false, Player.Team.Blue, Settings.get().spawnPoint.add(20, 0, 0));
+        new AIPlayer((byte)200,false,Player.Team.Orange,Vector3f.createFrom(50f,0f,0f));
     }
 
     @Override
@@ -105,18 +102,20 @@ public class MyGame extends VariableFrameRateGame {
         EngineManager.init(engine);
         PhysicsManager.initPhysics();
         Settings.initScript();
-       //new ShaderSkyBox(engine, sm, this);
+
+        new StaticSkyBox(sm.getRootSceneNode(),camera);
+
+        //new WorldAxes();
+
+        new Terrain();
+        new Rink();
+        new Ground();
+
         new Goal(Player.Team.Orange);
         new Goal(Player.Team.Blue);
-        new StaticSkyBox(sm.getRootSceneNode(),camera);
-        new WorldAxes();
-        new Ground();
-        new Rink();
-        //aip = new AIPlayer((byte)200,false,Player.Team.Orange,Vector3f.createFrom(50f,0f,0f));
+
         //goalSize = GoalSize.GetGoalSize();
-        if (!playMode) {
-        	new Terrain();
-        }
+
 
         // set up lights
         sm.getAmbientLight().setIntensity(new Color(.1f, .1f, .1f));
@@ -134,32 +133,6 @@ public class MyGame extends VariableFrameRateGame {
 
         new Puck(Settings.get().puckSpawnPoint);
 
-        if (!playMode) {
-	        // setup initial prizes
-	        for (int i = 0; i < 8; i++) {
-	            Vector3 pLocation = Vector3f.createFrom(0f, i * 10f, 50f);
-	            new Prize(pLocation);
-	        }
-	
-	        // setup initial boxes
-	        for (int i = 0; i < 32; i++) {
-	            float scale = 3;
-	            Vector3 pLocation = Vector3f.createFrom(0f, i / 2.7f - 4f, i);
-	            new Box(pLocation, scale);
-	        }
-        } else {
-	        // setup walls
-        	float rinkWidth = 80;
-        	float rinkLength = 130;
-	        /*for (int i = 0; i < 8; i++) {
-	            float scale = 32;
-	            new Box(Vector3f.createFrom((i - 4) * scale, 0f, rinkWidth), scale);
-	            new Box(Vector3f.createFrom((i - 4) * scale, 0f, -rinkWidth), scale);
-	            new Box(Vector3f.createFrom(rinkLength, 0f, (i - 4) * scale), scale);
-	            new Box(Vector3f.createFrom(-rinkLength, 0f, (i - 4) * -scale), scale);
-	        }*/
-        }
-
         GL4RenderSystem rs = (GL4RenderSystem) engine.getRenderSystem();
         rs.addHud(fpsText);
 
@@ -176,8 +149,8 @@ public class MyGame extends VariableFrameRateGame {
 
     @Override
     protected void update(Engine engine) {
-        //goalSize.setSize();
-        //goalSize.setScale();
+        //goalSize.update();
+
         float delta = engine.getElapsedTimeMillis();
         if (UDPClient.hasClient()) {
             UDPClient.update();

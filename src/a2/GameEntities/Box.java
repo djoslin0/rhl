@@ -29,7 +29,7 @@ public class Box extends GameEntity {
         long unique = UniqueCounter.next();
         String name = "Box" + unique;
 
-        obj = sm.createEntity(name, MyGame.playMode ? "cube.obj" : "cubetilt.obj");
+        obj = sm.createEntity(name, "cubetilt.obj");
         addResponsibility(obj);
         obj.setPrimitive(Renderable.Primitive.TRIANGLES);
 

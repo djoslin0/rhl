@@ -76,11 +76,9 @@ public class CharacterController extends InternalTickCallback {
         this.body = player.getBody();
         PhysicsManager.addCallback(this);
 
-        if (!MyGame.playMode) {
-	        for (Object o : EntityManager.get("terrain")) {
-	            terrain = (Terrain) o;
-	            break;
-	        }
+        for (Object o : EntityManager.get("terrain")) {
+            terrain = (Terrain) o;
+            break;
         }
     }
 

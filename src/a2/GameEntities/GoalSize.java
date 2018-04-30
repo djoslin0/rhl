@@ -5,6 +5,8 @@ import myGameEngine.Singletons.Settings;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
+import ray.rml.Matrix3f;
+import ray.rml.Quaternion;
 import ray.rml.Vector3;
 
 import java.io.IOException;
@@ -20,16 +22,15 @@ public class GoalSize {
     }
     private GoalSize() throws IOException {
         size = EngineManager.getSceneManager().getRootSceneNode().createChildSceneNode("size");
-        Entity box = EngineManager.getSceneManager().createEntity("sizeEntity","goalsize.obj");
+        Entity box = EngineManager.getSceneManager().createEntity("sizeEntity","cube.obj");
         size.attachObject(box);
-        size.scale(Settings.get().scaleX.floatValue(), (Float) Settings.get().scaleY.floatValue(),(Float) Settings.get().scaleZ.floatValue());
-        size.setLocalPosition(Settings.get().goalLocation);
+        update();
+    }
 
-    }
-    public void setSize(){
-        size.setLocalPosition(Settings.get().goalLocation);
-    }
-    public void setScale(){
-        size.setLocalScale(Settings.get().scaleX.floatValue(), (Float) Settings.get().scaleY.floatValue(),(Float) Settings.get().scaleZ.floatValue());
+    public void update(){
+        Settings.runScript();
+        size.setLocalPosition(Settings.get().debugPosition);
+        size.setLocalScale(Settings.get().debugScale);
+        size.setLocalRotation(Matrix3f.createFrom(Settings.get().debugRotation.x(), Settings.get().debugRotation.y(), Settings.get().debugRotation.z()));
     }
 }

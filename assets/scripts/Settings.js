@@ -25,10 +25,7 @@ with (JavaPackages) {
 	var debug5 = 0.0;
 
 	// goal size
-	var goalSize = Vector3f.createFrom(70,0,0);
-	var scaleX = 1.0;
-	var scaleY = 1.5;
-	var scaleZ = 7.9;
-
-
+	var debugPosition = Vector3f.createFrom(0, 50, 50.2);
+	var debugScale = Vector3f.createFrom(2.0, 50, 0.25);
+	var debugRotation = Vector3f.createFrom(0, 0, 0);
 }

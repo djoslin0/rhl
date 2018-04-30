@@ -1,6 +1,6 @@
 # Blender v2.79 (sub 0) OBJ File: 'rink.blend'
 # www.blender.org
-mtllib rink.mtl
+mtllib rink_glass-alpha.mtl
 o Cube
 v -9.599998 2.298500 50.200001
 v -2.000000 2.298500 50.200001

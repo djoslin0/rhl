@@ -9,6 +9,7 @@ import ray.rage.rendersystem.states.TextureState;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
 import ray.rage.scene.Tessellation;
+import ray.rml.Degreef;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
@@ -24,8 +25,9 @@ public class Terrain extends GameEntity {
         tessellation.setSubdivisions(0f);
 
         SceneNode node = sm.getRootSceneNode().createChildSceneNode("tesselationNode");
-        node.scale(300, 1500, 300);
+        node.scale(400, 1800, 400);
         node.moveDown(3f);
+        node.yaw(Degreef.createFrom(180f));
         node.attachObject(tessellation);
 
         Engine engine = EngineManager.getEngine();
