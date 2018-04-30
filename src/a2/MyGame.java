@@ -83,6 +83,7 @@ public class MyGame extends VariableFrameRateGame {
         System.out.println("continuing without networking");
         player = new Player((byte)0, true, (byte)0, Settings.get().spawnPoint);
         new Player((byte)1, false, (byte)0, Settings.get().spawnPoint.add(10, 0, 0));
+        new Player((byte)2, false, (byte)1, Settings.get().spawnPoint.add(20, 0, 0));
     }
 
     @Override

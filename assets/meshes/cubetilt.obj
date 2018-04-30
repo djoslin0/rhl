@@ -1,6 +1,6 @@
 # Blender v2.79 (sub 0) OBJ File: ''
 # www.blender.org
-mtllib cubetilt.mtl
+mtllib default.mtl
 o Cube.001
 v 1.000000 -1.281713 -0.597673
 v 1.000000 -0.597673 1.281713

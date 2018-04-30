@@ -36,6 +36,7 @@ public class Player extends GameEntity implements Attackable {
     private SceneNode rightEyeNode;
     private SceneNode roboNode;
     private RigidBody body;
+    private TextureState textureState;
     private CharacterController controller;
     private CharacterAnimationController animationController;
     private HudController hudController;
@@ -91,6 +92,16 @@ public class Player extends GameEntity implements Attackable {
         // initialize physics
         initPhysics();
 
+        // load texture
+        try {
+            String textureName = (playerSide == 0) ? "robo_orange.png" : "robo_blue.png";
+            Texture texture = sm.getTextureManager().getAssetByPath(textureName);
+            textureState = (TextureState)sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
+            textureState.setTexture(texture);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         // load character
         if (local) {
             loadLocalCharacter(name);
@@ -99,7 +110,7 @@ public class Player extends GameEntity implements Attackable {
         }
 
         // attach glove to hands
-        glove = new Glove(this, name, handNode);
+        glove = new Glove(this, name, textureState, handNode);
 
         // create hud
         if (local) {
@@ -139,9 +150,6 @@ public class Player extends GameEntity implements Attackable {
             robo.loadAnimation("crouch_sidestep", "crouch_sidestep.rka");
 
             // load texture
-            Texture texture = sm.getTextureManager().getAssetByPath("robo_uv.png");
-            TextureState textureState = (TextureState)sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
-            textureState.setTexture(texture);
             robo.setRenderState(textureState);
 
             // setup character node
@@ -162,16 +170,18 @@ public class Player extends GameEntity implements Attackable {
             float eyeHeight = 0.6f;
             float eyeSize = 0.2f;
 
+            Color eyeColor = (playerSide == 0) ? Color.YELLOW : new Color(200, 150, 255);
+
             // left eye
             leftEyeNode = headNode.createChildSceneNode(name + "EyeLNode");
             leftEyeNode.setLocalPosition(eyeSpacing, eyeHeight, distFromHead);
-            Billboard leftEyeFlare = new Billboard(leftEyeNode, eyeSize, eyeSize, "flare1.png", Color.YELLOW);
+            Billboard leftEyeFlare = new Billboard(leftEyeNode, eyeSize, eyeSize, "flare1.png", eyeColor);
             addResponsibility(leftEyeFlare);
 
             // right eye
             rightEyeNode = headNode.createChildSceneNode(name + "EyeRNode");
             rightEyeNode.setLocalPosition(-eyeSpacing, eyeHeight, distFromHead);
-            Billboard rightEyeFlare = new Billboard(rightEyeNode, eyeSize, eyeSize, "flare1.png", Color.YELLOW);
+            Billboard rightEyeFlare = new Billboard(rightEyeNode, eyeSize, eyeSize, "flare1.png", eyeColor);
             addResponsibility(rightEyeFlare);
 
             // animation controller
@@ -446,12 +456,13 @@ public class Player extends GameEntity implements Attackable {
         float duration = 10000f;
         try {
             if (local) {
-                return new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), boneName + ".obj", duration);
+                return new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), boneName + ".obj", textureState, duration);
             } else {
                 Matrix4 matrix = roboNode.getWorldTransform().mult(robo.getBoneModelTransform(boneName));
                 Vector3 location = matrix.column(3).toVector3();
                 Quaternion rotation = matrix.toQuaternion();
-                return new Debris(location, rotation, getVelocity(), boneName + ".obj", duration);
+                Debris debris = new Debris(location, rotation, getVelocity(), boneName + ".obj", textureState, duration);
+                return debris;
             }
         } catch (IOException e) {
             e.printStackTrace();

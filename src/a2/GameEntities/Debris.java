@@ -11,7 +11,10 @@ import myGameEngine.Helpers.Duration;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
+import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.Renderable;
+import ray.rage.rendersystem.states.RenderState;
+import ray.rage.rendersystem.states.TextureState;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
@@ -27,7 +30,7 @@ public class Debris extends GameEntity {
     private ConvexHullShape collisionShape;
     private Duration duration;
 
-    public Debris(Vector3 location, Quaternion rotation, Vector3 velocity, String modelName, float maxDuration) throws IOException {
+    public Debris(Vector3 location, Quaternion rotation, Vector3 velocity, String modelName, TextureState textureState, float maxDuration) throws IOException {
         super(true);
 
         this.duration = new Duration(maxDuration);
@@ -38,8 +41,9 @@ public class Debris extends GameEntity {
         String name = "Debris" + modelName + unique;
 
         obj = sm.createEntity(name, modelName);
-        addResponsibility(obj);
+        //addResponsibility(obj); since this uses the player's texture, do not remove this obj! (TODO: check to see if we're polluting the game with extra models)
         obj.setPrimitive(Renderable.Primitive.TRIANGLES);
+        obj.setRenderState(textureState);
 
         node = sm.getRootSceneNode().createChildSceneNode(obj.getName() + "Node");
         addResponsibility(node);

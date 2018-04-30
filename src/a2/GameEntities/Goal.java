@@ -60,9 +60,9 @@ public class Goal extends GameEntity {
             node.setLocalPosition(goalDistance,0f,0f);
         }else{
             backCollisionBox.setLocalPosition(-goalDistance-2.0f,2.5f,0f);
-            lSideCollisionBox.setLocalPosition(-67.8f,2.5f,8f);
-            rSideCollisionBox.setLocalPosition(-67.8f,2.5f,-8f);
-            tRailCollisionBox.setLocalPosition(-64f,4.7f,0f);
+            lSideCollisionBox.setLocalPosition(-goalDistance+2.2f,2.5f,8f);
+            rSideCollisionBox.setLocalPosition(-goalDistance+2.2f,2.5f,-8f);
+            tRailCollisionBox.setLocalPosition(-goalDistance+6f,4.7f,0f);
             goalBox.setLocalPosition(-goalDistance,0f,0f);
             node.setLocalPosition(-goalDistance,0f,0f);
             node.rotate(Degreef.createFrom(180f),Vector3f.createUnitVectorY());
@@ -91,11 +91,11 @@ public class Goal extends GameEntity {
         BoxShape goalBoxCollisionShape = new BoxShape(new javax.vecmath.Vector3f(0.9f,1.5f,+7.9f));
 
         // rigid bodies
-        RigidBody backBody = createBody(mass, backMotionState, backCollisionShape);
-        RigidBody leftBody = createBody(mass, leftMotionState, leftCollisionShape);
-        RigidBody rightBody = createBody(mass, rightMotionState, rightCollisionShape);
-        RigidBody railBody= createBody(mass, railMotionState, tRailCollisionShape);
-        RigidBody goalBoxBody= createBody(mass, goalBoxMotionState, goalBoxCollisionShape);
+        RigidBody backBody = createBody(mass, backMotionState, backCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        RigidBody leftBody = createBody(mass, leftMotionState, leftCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        RigidBody rightBody = createBody(mass, rightMotionState, rightCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        RigidBody railBody= createBody(mass, railMotionState, tRailCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
+        RigidBody goalBoxBody= createBody(mass, goalBoxMotionState, goalBoxCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
 
 
         // unregister collisions
