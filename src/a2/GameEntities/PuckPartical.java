@@ -26,7 +26,7 @@ public class PuckPartical extends GameEntity{
     private Entity obj;
     private RigidBody body;
     private ConvexHullShape collisionShape;
-    private Duration duration = new Duration(1000f);
+    private Duration duration = new Duration(3000f);
     public PuckPartical(String name,int rotate) throws IOException {
         super(true);
             obj = EngineManager.getSceneManager().createEntity(name,"puckpartical.obj");
@@ -72,5 +72,8 @@ public class PuckPartical extends GameEntity{
             destroy();
             return;
         }
+        float scalar = 1f - (float)Math.pow(duration.progress(), 2f);
+        node.setLocalScale(scalar, scalar, scalar);
+        collisionShape.setLocalScaling(new javax.vecmath.Vector3f(scalar, scalar, scalar));
     }
 }
