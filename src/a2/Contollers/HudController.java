@@ -21,11 +21,11 @@ public class HudController implements Updatable {
     private HudElement healthBar;
     private HudElement healthBar2;
     private HudElement crosshair;
-    private HudElement orangeSideScore0;
+    /*private HudElement orangeSideScore0;
     private HudElement blueSideScore0;
     private HudElement orangeSideScore1 = null;
     private HudElement blueSideScore1 = null;
-    private HudElement scoreHud;
+    private HudElement scoreHud;*/
     private SceneNode hudNode;
     private int blueScore = 0;
     private int orangeScore = 0;
@@ -83,7 +83,7 @@ public class HudController implements Updatable {
             player.addResponsibility(crosshair);
 
             // orange side score board
-            orangeSideScore0 = new HudElement(hudNode,0.002f,Vector2f.createFrom(-.40f,.85f),Vector2f.createZeroVector(),5,"0.png",Color.WHITE);
+            /*orangeSideScore0 = new HudElement(hudNode,0.002f,Vector2f.createFrom(-.40f,.85f),Vector2f.createZeroVector(),5,"0.png",Color.WHITE);
             player.addResponsibility(orangeSideScore0);
             //blue side score board
 
@@ -92,7 +92,7 @@ public class HudController implements Updatable {
 
             //score container
             scoreHud = new HudElement(hudNode,0.022f,Vector2f.createFrom(0f,.60f),Vector2f.createZeroVector(),8,"scorehud.png",Color.WHITE);
-            player.addResponsibility(scoreHud);
+            player.addResponsibility(scoreHud);*/
 
 
         } catch (IOException e) {
@@ -140,7 +140,7 @@ public class HudController implements Updatable {
         return new Color(red, green, blue, alpha);
     }
     public void updateScore(Player.Team side, int num){
-        if(side == Player.Team.Orange){
+        /*if(side == Player.Team.Orange){
             orangeScore = orangeScore + num;
         }else{
             blueScore = blueScore +num;
@@ -173,7 +173,7 @@ public class HudController implements Updatable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
     @Override
     public void update(float delta) {
