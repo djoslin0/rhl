@@ -9,6 +9,7 @@ import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.*;
@@ -76,8 +77,15 @@ public class Puck extends GameEntity implements Attackable {
 
     private void goalCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         numgoals++;
+
+        javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
+        contactPoint.getPositionWorldOnA(point);
+        Player.Team goalTeam = (point.x < 0) ? Player.Team.Blue : Player.Team.Orange;
+
         try{
-            new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow.png", Color.WHITE, 300f);
+            Color powColor = (goalTeam == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
+            Particle pow = new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
+            new LightFade(pow.getNode(), powColor, 100f, 0.01f, 300f);
             for(int i=0; i<8; i++) {
                 new PuckPartical(i);
             }
@@ -86,14 +94,7 @@ public class Puck extends GameEntity implements Attackable {
             e.printStackTrace();
         }
 
-        javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
-        contactPoint.getPositionWorldOnA(point);
-
-        if(point.x < 0f){
-            HudController.getHudController().updateScore(Player.Team.Blue,1);
-        }else{
-            HudController.getHudController().updateScore(Player.Team.Orange,1);
-        }
+        HudController.getHudController().updateScore(goalTeam,1);
 
         body.setLinearVelocity(new javax.vecmath.Vector3f());
         body.setAngularVelocity(new javax.vecmath.Vector3f());

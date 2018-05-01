@@ -6,6 +6,7 @@ import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
 import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Helpers.MathHelper;
@@ -165,7 +166,7 @@ public class Glove extends GameEntity {
                 createPow = false;
                 try {
                     Particle pow = new Particle(1.5f, 1.5f, target, Vector3f.createZeroVector(), "pow.png", Color.WHITE, 120f);
-
+                    new LightFade(pow.getNode(), new Color(240, 240, 140), 50f, 0.2f, 120f);
                     if (player.isLocal()) {
                         SceneManager sm = EngineManager.getSceneManager();
                         ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);

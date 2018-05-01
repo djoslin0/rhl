@@ -181,5 +181,6 @@ void main()
     for (int i = 0; i < ssbo.lights.length(); ++i)
         effect += get_light_effect(ssbo.lights[i], material);
 
+    effect.a = 1;
     fragment = texel * effect;
 }

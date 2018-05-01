@@ -12,6 +12,7 @@ import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.PlayerMotionStateController;
 import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
+import myGameEngine.GameEntities.LightFade;
 import myGameEngine.Helpers.MathHelper;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
@@ -397,6 +398,9 @@ public class Player extends GameEntity implements Attackable {
 
     public void die() {
         if (dead) { return; }
+        Color lightColor = (playerSide == Team.Orange) ? new Color(255, 200, 80) : new Color(100, 100, 255);
+        new LightFade(node, lightColor, 100f, 0.01f, 300f);
+
         respawnTimeout = respawnSeconds * 1000f;
 
         health = 0;

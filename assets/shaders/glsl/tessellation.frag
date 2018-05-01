@@ -68,7 +68,7 @@ float get_attenuation(light_t light) {
     float a0  = light.const_attenuation;
     float a1  = light.linear_attenuation;
     float a2  = light.quadratic_attenuation;
-    return 1.0 / (a0 + a1 * d + a2 * dd);
+    return ((light.range - d) / light.range) * 1.0 / (a0 + a1 * d + a2 * dd);
 }
 
 
@@ -119,6 +119,7 @@ vec4 get_light_effect(light_t light, material_t mat) {
         light_dir   = normalize(light.position.xyz - varyingVertPos);
         attenuation = get_attenuation(light);
         spot_factor = get_spot_factor(light, light_dir);
+        return vec4(0, 0, 0, 0);
     }
 
     vec3 N = varyingNormal;
