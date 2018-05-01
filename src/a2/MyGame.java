@@ -77,7 +77,7 @@ public class MyGame extends VariableFrameRateGame {
         player = new Player((byte)0, true, Player.Team.Orange, Settings.get().spawnPoint);
         new Player((byte)1, false, Player.Team.Orange, Settings.get().spawnPoint.add(10, 0, 0));
         new Player((byte)2, false, Player.Team.Blue, Settings.get().spawnPoint.add(20, 0, 0));
-        new AIPlayer((byte)200,false,Player.Team.Orange,Vector3f.createFrom(50f,0f,0f));
+        //new AIPlayer((byte)200,false,Player.Team.Orange,Vector3f.createFrom(50f,0f,0f));
     }
 
     @Override

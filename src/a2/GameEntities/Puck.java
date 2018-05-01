@@ -32,13 +32,12 @@ public class Puck extends GameEntity implements Attackable {
     private RigidBody body;
     private SceneNode angularTestNode;
     private int numgoals =0;
-
+    private PuckPartical[] particals = new PuckPartical[8];
     private float angularPushScale = 400f;
     private float linearPushScale = 200f;
 
     public Puck(Vector3 location) throws IOException {
         super(true);
-
         SceneManager sm = EngineManager.getSceneManager();
 
         long unique = UniqueCounter.next();
@@ -57,6 +56,9 @@ public class Puck extends GameEntity implements Attackable {
         addResponsibility(angularTestNode);
 
         initPhysics();
+        for(int i =0; i<8; i++){
+            particals[i] = new PuckPartical(i);
+        }
     }
 
     private void initPhysics() {
@@ -86,8 +88,10 @@ public class Puck extends GameEntity implements Attackable {
             Color powColor = (goalTeam == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
             Particle pow = new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
             new LightFade(pow.getNode(), powColor, 100f, 0.01f, 300f);
-            for(int i=0; i<8; i++) {
-                new PuckPartical(i);
+            for(int i =0; i<8;i++){
+                particals[i].resetExplosion();
+                particals[i].startPhysics();
+
             }
         }
         catch (IOException e) {
@@ -105,6 +109,7 @@ public class Puck extends GameEntity implements Attackable {
 
         body.setWorldTransform(t);
         body.clearForces();
+        body.destroy();
     }
 
     public void playerCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
