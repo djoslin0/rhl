@@ -97,6 +97,7 @@ public class HudElement extends GameEntity implements Camera.Listener {
         // set no depth testing
         ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
         zBufferState.setSecondaryStage(true);
+        zBufferState.setWritable(false);
         obj.setRenderState(zBufferState);
 
         // create dummy node and attach our obj
