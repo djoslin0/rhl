@@ -261,13 +261,13 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
 
         // render opaque, gather transparencies (alphas)
         PriorityQueue<SortableRenderable> alphas = new PriorityQueue<>();
-        ArrayList<Renderable> secondStage = new ArrayList<>();
+        PriorityQueue<SortableRenderable> secondStage = new PriorityQueue<>();
         for (Renderable r : renderQueue) {
             try {
                 // detect secondary stage
                 ZBufferState zbs = (ZBufferState)r.getRenderState(RenderState.Type.ZBUFFER);
                 if (zbs.isSecondaryStage()) {
-                    secondStage.add(r);
+                    secondStage.add(new SortableRenderable(r));
                     continue;
                 }
             } catch (RuntimeException ex) { }
@@ -283,8 +283,8 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
 
         // draw secondary stage
         gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
-        for (Renderable r : secondStage) {
-            doRender(gl, r);
+        while (secondStage.size() > 0) {
+            doRender(gl, secondStage.poll().renderable);
         }
 
         // draw hud

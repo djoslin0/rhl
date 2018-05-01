@@ -67,35 +67,32 @@ public class HudController implements Updatable {
             peripheral.fullscreen = true;
             player.addResponsibility(peripheral);
 
-            // create healthbar
-            healthBar = new HudElement(hudNode, 0.00185f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), 0, "bar.png", new Color(60, 255, 60));
-            player.addResponsibility(healthBar);
-
-            healthBar2 = new HudElement(hudNode, 0.001849f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), 0, "bar.png", new Color(255, 100, 100));
-            player.addResponsibility(healthBar2);
-
             // create battery
-            HudElement battery = new HudElement(hudNode, 0.002f, Vector2f.createFrom(-0.9f, -0.8f), Vector2f.createFrom(-1f, 0f), 0, "battery.png", Color.WHITE);
+            HudElement battery = new HudElement(hudNode, 0.002f, Vector2f.createFrom(-0.9f, -0.8f), Vector2f.createFrom(-1f, 0f), 4, "battery.png", Color.WHITE);
             player.addResponsibility(battery);
 
+            // create healthbar
+            healthBar = new HudElement(hudNode, 0.00185f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), 2, "bar.png", new Color(60, 255, 60));
+            player.addResponsibility(healthBar);
+
+            healthBar2 = new HudElement(hudNode, 0.001849f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), 3, "bar.png", new Color(255, 100, 100));
+            player.addResponsibility(healthBar2);
+
             // create crosshair
-            crosshair = new HudElement(hudNode, 0.0007f, Vector2f.createZeroVector(), Vector2f.createZeroVector(), 0, "flare2.png", Color.RED);
+            crosshair = new HudElement(hudNode, 0.0007f, Vector2f.createZeroVector(), Vector2f.createZeroVector(), 1, "flare2.png", Color.RED);
             player.addResponsibility(crosshair);
 
-            SceneNode leftHudNode = hudNode.createChildSceneNode("leftHudNode");
-            leftHudNode.setLocalPosition(-0.007f, 0, 0);
             // orange side score board
-            orangeSideScore0 = new HudElement(leftHudNode,0.002f,Vector2f.createFrom(0f,.60f),Vector2f.createZeroVector(),0,"0.png",Color.WHITE);
+            orangeSideScore0 = new HudElement(hudNode,0.002f,Vector2f.createFrom(-.40f,.85f),Vector2f.createZeroVector(),5,"0.png",Color.WHITE);
             player.addResponsibility(orangeSideScore0);
             //blue side score board
 
-            //score container
-            scoreHud = new HudElement(hudNode,0.002f,Vector2f.createFrom(0f,.60f),Vector2f.createZeroVector(),0,"scorehud.png",Color.WHITE);
-            player.addResponsibility(scoreHud);
-
-            blueSideScore0 = new HudElement(hudNode,0.002f,Vector2f.createFrom(.40f,.85f),Vector2f.createZeroVector(),0,"0.png",Color.WHITE);
+            blueSideScore0 = new HudElement(hudNode,0.002f,Vector2f.createFrom(.40f,.85f),Vector2f.createZeroVector(),5,"0.png",Color.WHITE);
             player.addResponsibility(blueSideScore0);
 
+            //score container
+            scoreHud = new HudElement(hudNode,0.022f,Vector2f.createFrom(0f,.60f),Vector2f.createZeroVector(),8,"scorehud.png",Color.WHITE);
+            player.addResponsibility(scoreHud);
 
 
         } catch (IOException e) {
