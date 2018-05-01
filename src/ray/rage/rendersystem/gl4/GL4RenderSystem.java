@@ -229,6 +229,7 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
                     + GpuShaderProgram.class.getSimpleName() + " set");
             return;
         }
+        gl.glDepthMask(true);
         setRenderStates(r);
         final Context ctx = program.createContext();
         ctx.setRenderable(r);
