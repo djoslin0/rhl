@@ -185,7 +185,7 @@ public class Puck extends GameEntity implements Attackable {
 
         // calculate player hurt/squeeze
         float linearDot = linearPush.dot(player.getVelocity()) / 45000;
-        int hurtAmount = (int)(linearDot + angularVelocity.length() * 1.5f);
+        int hurtAmount = (int)(linearDot + angularVelocity.length() * 2f);
 
         // create small pow particle
         if (hurtAmount > 5 && player.willhurt(hurtAmount)) {
