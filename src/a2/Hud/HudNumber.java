@@ -42,4 +42,16 @@ public class HudNumber {
             digitNodes[i].setLocalPosition((i - (numberLength - 1) / 2f) * spacing, 0, 0);
         }
     }
+
+    public void setScale(float scale) {
+        for (HudElement digit : digits) {
+            digit.getNode().setLocalScale(scale, scale, scale);
+        }
+    }
+
+    public void setColor(Color color) {
+        for (HudElement digit : digits) {
+            digit.getMaterial().setAmbient(color);
+        }
+    }
 }

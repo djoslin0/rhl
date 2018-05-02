@@ -260,12 +260,9 @@ public class Puck extends GameEntity implements Attackable {
         Vector2 contained = Vector2f.createFrom(node.getLocalPosition().x(),node.getLocalPosition().z());
         if (dunkBox1.contains(node.getLocalPosition()) || dunkBox2.contains(node.getLocalPosition())) {
             dunk = true;
-            System.out.println(dunk);
-        }else if(dunkBox1.Contains2d(contained) || dunkBox2.Contains2d(contained)){
-            System.out.println(dunk);
-        }else{
+        } else if (dunkBox1.Contains2d(contained) || dunkBox2.Contains2d(contained)){
+        } else {
             dunk = false;
-            System.out.println(dunk);
         }
 
         if (freezeTime > 0) {
