@@ -48,6 +48,7 @@ public class Player extends GameEntity implements Attackable {
     public short lastReceivedTick;
     private byte health;
     private float absorbHurt;
+    private float invulnerability;
     private Debris headDebris;
     private float respawnTimeout;
     private boolean dead;
@@ -358,6 +359,11 @@ public class Player extends GameEntity implements Attackable {
             if (absorbHurt < 0) { absorbHurt = 0; }
         }
 
+        if (invulnerability > 0) {
+            invulnerability -= delta;
+            if (invulnerability < 0) { invulnerability = 0; }
+        }
+
         if (robo != null) {
             // update animations
             robo.update(delta);
@@ -375,11 +381,12 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public boolean willhurt(int value) {
-        return (value > absorbHurt);
+        return (value > absorbHurt && invulnerability <= 0);
     }
 
     public void hurt(int value) {
         if (!local && (UDPServer.hasServer() || UDPClient.hasClient())) { return; }
+        if (invulnerability > 0) { return; }
         if (value <= absorbHurt) { return; }
         int applyHurt = (int)(value - absorbHurt);
         absorbHurt = value;
@@ -413,6 +420,7 @@ public class Player extends GameEntity implements Attackable {
 
         health = 0;
         absorbHurt = 0;
+        invulnerability = 0;
 
         headDebris = createDebrisPart("head");
         createDebrisPart("torso");
@@ -444,11 +452,13 @@ public class Player extends GameEntity implements Attackable {
 
         dead = false;
         respawnTimeout = 0;
+        absorbHurt = 0;
 
         if (local || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
-            health = 100;
-            absorbHurt = 0;
-            setPosition(Settings.get().spawnPoint);
+            invulnerability = 3000;
+            float xPosition = 20 + 20 * (float)Math.random();
+            if (getSide() == Team.Orange) { xPosition *= -1; }
+            setPosition(Vector3f.createFrom(xPosition, 1.9f, -53.5f));
             setVelocity(Vector3f.createZeroVector());
             setPitch(0);
             setYaw(0);
