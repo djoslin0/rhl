@@ -1,6 +1,7 @@
 package a2.Hud;
 
 import a2.GameEntities.Player;
+import a2.GameState;
 import myGameEngine.GameEntities.HudElement;
 import ray.rage.scene.SceneNode;
 import ray.rml.Vector2f;
@@ -12,9 +13,6 @@ public class ScoreBoard {
     private HudNumber orange;
     private HudNumber blue;
     private HudElement container;
-
-    private int blueScore = 0;
-    private int orangeScore = 0;
 
     public ScoreBoard(SceneNode parentNode) {
         try {
@@ -35,23 +33,8 @@ public class ScoreBoard {
         }
     }
 
-    public void addScore(Player.Team side, int num) {
-        if(side == Player.Team.Orange){
-            orangeScore += num;
-            orange.update(orangeScore);
-        }else{
-            blueScore += num;
-            blue.update(blueScore);
-        }
-    }
-
-    public void updateScore(Player.Team side, int num) {
-        if(side == Player.Team.Orange){
-            orangeScore = num;
-            orange.update(orangeScore);
-        }else{
-            blueScore = num;
-            blue.update(blueScore);
-        }
+    public void updateScore() {
+        orange.update(GameState.getScore(Player.Team.Orange));
+        blue.update(GameState.getScore(Player.Team.Blue));
     }
 }

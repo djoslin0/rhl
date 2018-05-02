@@ -24,21 +24,12 @@ public class HudController {
     private ScoreBoard scoreBoard;
     private HudElement crosshair;
     private SceneNode hudNode;
-    private static HudController hudController = null;
+    private static HudController instance = null;
 
     // initial instantiation of singleton hud controller
-    public static HudController getHudController(Player player){
-        if(hudController == null) {
-            hudController = new HudController(player);
-            return hudController;
-        } else {
-            return hudController;
-        }
-    }
-
-    //get hud controller after instantiation
-    public static HudController getHudController() {
-        return hudController;
+    public static HudController get(Player player){
+        if (instance == null) { instance = new HudController(player); }
+        return instance;
     }
 
     private HudController(Player player) {
@@ -70,11 +61,7 @@ public class HudController {
         crosshair.getNode().setLocalScale(1f, 1f, 1f);
     }
 
-    public void addScore(Player.Team side, int num){
-        scoreBoard.addScore(side, num);
-    }
-
-    public void updateScore(Player.Team side, int num){
-        scoreBoard.updateScore(side, num);
+    public static void updateScore(){
+        instance.scoreBoard.updateScore();
     }
 }

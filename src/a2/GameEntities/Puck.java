@@ -1,6 +1,7 @@
 package a2.GameEntities;
 
 import a2.Contollers.HudController;
+import a2.GameState;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
@@ -94,7 +95,7 @@ public class Puck extends GameEntity implements Attackable {
             e.printStackTrace();
         }
 
-        HudController.getHudController().addScore(goalTeam,1);
+        GameState.addScore(goalTeam,1);
 
         body.setLinearVelocity(new javax.vecmath.Vector3f());
         body.setAngularVelocity(new javax.vecmath.Vector3f());
