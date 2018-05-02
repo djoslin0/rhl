@@ -2,9 +2,7 @@ package a2.GameEntities;
 
 import Networking.UDPClient;
 import Networking.UDPServer;
-import a2.Actions.ActionRotate;
 import a2.Contollers.*;
-import a2.MyGame;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
@@ -13,7 +11,7 @@ import myGameEngine.Controllers.PlayerMotionStateController;
 import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.LightFade;
-import myGameEngine.Helpers.MathHelper;
+import myGameEngine.GameEntities.Particle;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.Settings;
@@ -21,11 +19,12 @@ import myGameEngine.Singletons.TimeManager;
 import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
-import ray.rage.rendersystem.states.ZBufferState;
-import ray.rage.scene.*;
+import ray.rage.scene.Camera;
+import ray.rage.scene.SceneManager;
+import ray.rage.scene.SceneNode;
+import ray.rage.scene.SkeletalEntity;
 import ray.rml.*;
 
-import javax.vecmath.Quat4f;
 import java.awt.*;
 import java.io.IOException;
 
@@ -323,7 +322,6 @@ public class Player extends GameEntity implements Attackable {
             rally = -dot;
             if (rally > 25f) { rally = 25f; }
         }
-
         controller.knockback(aim.mult(3500f + 100f * rally), relative);
     }
 
@@ -376,9 +374,13 @@ public class Player extends GameEntity implements Attackable {
         }
     }
 
+    public boolean willhurt(int value) {
+        return (value > absorbHurt);
+    }
+
     public void hurt(int value) {
         if (!local && (UDPServer.hasServer() || UDPClient.hasClient())) { return; }
-        if (value < absorbHurt) { return; }
+        if (value <= absorbHurt) { return; }
         int applyHurt = (int)(value - absorbHurt);
         absorbHurt = value;
         health -= applyHurt;
@@ -400,6 +402,12 @@ public class Player extends GameEntity implements Attackable {
         if (dead) { return; }
         Color lightColor = (playerSide == Team.Orange) ? new Color(255, 200, 80) : new Color(100, 100, 255);
         new LightFade(node, lightColor, 100f, 0.01f, 300f);
+
+        try {
+            new Particle(4f, 4f, node.getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", lightColor, 250f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         respawnTimeout = respawnSeconds * 1000f;
 

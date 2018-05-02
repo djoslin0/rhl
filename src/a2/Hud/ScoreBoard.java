@@ -7,6 +7,8 @@ import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.UpdateManager;
 import ray.rage.scene.SceneNode;
 import ray.rml.Vector2f;
+import ray.rml.Vector3;
+import ray.rml.Vector3f;
 
 import java.awt.*;
 import java.io.IOException;

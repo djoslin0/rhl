@@ -141,6 +141,7 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     public void playerCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
+
         Player player = (Player) entity;
         Vector3 entityPosition = entity.getNode().getWorldPosition();
         Vector3 thisPosition = node.getWorldPosition();
@@ -185,6 +186,18 @@ public class Puck extends GameEntity implements Attackable {
         // calculate player hurt/squeeze
         float linearDot = linearPush.dot(player.getVelocity()) / 45000;
         int hurtAmount = (int)(linearDot + angularVelocity.length() * 1.5f);
+
+        // create small pow particle
+        if (hurtAmount > 5 && player.willhurt(hurtAmount)) {
+            float size = 1 + hurtAmount / 15f;
+            if (size > 2) { size = 2; }
+            try {
+                new Particle(size, size, Vector3f.createFrom(contactPoint.positionWorldOnB), push.mult(0.000014f), "pow2.png", Color.white, 200f);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         if (hurtAmount > 0) {
             // squeezekill?
 
