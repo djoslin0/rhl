@@ -18,10 +18,10 @@ with (JavaPackages) {
 
 	var goalDistance = 85.0;
 
-	var debug1 = 0.0018;
-	var debug2 = 50.0;
-	var debug3 = 0.0;
-	var debug4 = 0.0;
+	var debug1 = 0.2;
+	var debug2 = 1.0;
+	var debug3 = 0.2;
+	var debug4 = 0.3;
 	var debug5 = 0.0;
 
 	// goal size

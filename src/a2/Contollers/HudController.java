@@ -1,6 +1,7 @@
 package a2.Contollers;
 
 import a2.GameEntities.Player;
+import a2.GameState;
 import a2.Hud.HealthBar;
 import a2.Hud.Peripheral;
 import a2.Hud.ScoreBoard;
@@ -61,8 +62,9 @@ public class HudController {
         crosshair.getNode().setLocalScale(1f, 1f, 1f);
     }
 
-    public static void updateScore(){
+    public static void updateScore(Player.Team team){
         if (instance.scoreBoard == null) { return; }
-        instance.scoreBoard.updateScore();
+        instance.scoreBoard.updateScore(team);
+        instance.peripheral.updateScore(team);
     }
 }

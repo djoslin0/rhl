@@ -24,7 +24,7 @@ public class GameState {
         } else {
             instance.blueScore += amount;
         }
-        HudController.updateScore();
+        HudController.updateScore(team);
         if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketScore()); }
     }
 
@@ -34,7 +34,7 @@ public class GameState {
         } else {
             instance.blueScore = amount;
         }
-        HudController.updateScore();
+        HudController.updateScore(team);
         if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketScore()); }
     }
 }

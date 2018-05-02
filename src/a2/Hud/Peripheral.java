@@ -1,6 +1,7 @@
 package a2.Hud;
 
 import a2.GameEntities.Player;
+import a2.GameState;
 import myGameEngine.GameEntities.HudElement;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.EngineManager;
@@ -53,6 +54,14 @@ public class Peripheral extends HudElement implements Updatable {
         this.maxDuration = duration;
     }
 
+    private void scoreAdded(Player.Team team) {
+    }
+
+    public void updateScore(Player.Team team) {
+        if (team != player.getSide()) {
+            show(Color.BLACK, 1000f);
+        }
+    }
 
     @Override
     public void onCameraPreRenderScene(Camera camera) {

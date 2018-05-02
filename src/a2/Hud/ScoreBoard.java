@@ -18,9 +18,6 @@ public class ScoreBoard implements Updatable {
     private HudNumber blue;
     private HudElement container;
 
-    private int lastSeenOrangeScore = 0;
-    private int lastSeenBlueScore = 0;
-
     private float orangeChangeTime = 0;
     private float blueChangeTime = 0;
 
@@ -44,17 +41,13 @@ public class ScoreBoard implements Updatable {
         UpdateManager.add(this);
     }
 
-    public void updateScore() {
-        if (lastSeenOrangeScore != GameState.getScore(Player.Team.Orange)) {
-            lastSeenOrangeScore = GameState.getScore(Player.Team.Orange);
+    public void updateScore(Player.Team team) {
+        if (team == Player.Team.Orange) {
             orangeChangeTime = 1000f;
             orange.update(GameState.getScore(Player.Team.Orange));
         }
-        
-        if (lastSeenBlueScore != GameState.getScore(Player.Team.Blue)) {
-            lastSeenBlueScore = GameState.getScore(Player.Team.Blue);
+        else if (team == Player.Team.Blue) {
             blueChangeTime = 1000f;
-            blue.update(GameState.getScore(Player.Team.Blue));
         }
     }
 
