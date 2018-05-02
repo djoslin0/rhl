@@ -62,6 +62,7 @@ public class HudController {
     }
 
     public static void updateScore(){
+        if (instance.scoreBoard == null) { return; }
         instance.scoreBoard.updateScore();
     }
 }

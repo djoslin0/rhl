@@ -16,7 +16,8 @@ public abstract class Packet {
             new PacketJoinSuccess(),
             new PacketWorldState(),
             new PacketInput(),
-            new PacketAttack()
+            new PacketAttack(),
+            new PacketScore()
     });
 
     public static HashMap<String, HashMap<Byte, Packet>> unackedPackets = new HashMap<>();

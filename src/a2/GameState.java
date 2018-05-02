@@ -1,5 +1,7 @@
 package a2;
 
+import Networking.PacketScore;
+import Networking.UDPServer;
 import a2.Contollers.HudController;
 import a2.GameEntities.Player;
 
@@ -23,6 +25,7 @@ public class GameState {
             instance.blueScore += amount;
         }
         HudController.updateScore();
+        if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketScore()); }
     }
 
     public static void setScore(Player.Team team, int amount) {
@@ -32,5 +35,6 @@ public class GameState {
             instance.blueScore = amount;
         }
         HudController.updateScore();
+        if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketScore()); }
     }
 }
