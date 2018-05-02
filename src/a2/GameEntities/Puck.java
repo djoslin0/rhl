@@ -32,10 +32,12 @@ public class Puck extends GameEntity implements Attackable {
     private Entity obj;
     private RigidBody body;
     private SceneNode angularTestNode;
-    private int numgoals =0;
 
     private float angularPushScale = 400f;
     private float linearPushScale = 200f;
+    private float mass = 1000f;
+
+    private float freezeTime = 0;
 
     public Puck(Vector3 location) throws IOException {
         super(true);
@@ -61,7 +63,6 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     private void initPhysics() {
-        float mass = 1000f;
         MotionStateController motionState = new MotionStateController(this.node);
         ConvexHullShape collisionShape = BulletConvert.entityToConvexHullShape(obj);
         collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
@@ -76,15 +77,45 @@ public class Puck extends GameEntity implements Attackable {
     @Override
     public boolean shouldRegisterCollision() { return true; }
 
-    private void goalCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        numgoals++;
+    public void reset() {
+        body.setLinearVelocity(new javax.vecmath.Vector3f());
+        body.setAngularVelocity(new javax.vecmath.Vector3f());
+        Transform t = new Transform();
+        t.origin.x = 0;
+        t.origin.y = 25f;
+        t.origin.z = 0;
 
-        javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
-        contactPoint.getPositionWorldOnA(point);
-        Player.Team goalTeam = (point.x < 0) ? Player.Team.Blue : Player.Team.Orange;
+        body.setWorldTransform(t);
+        body.clearForces();
 
+        try {
+            new Particle(10f, 10f, Vector3f.createFrom(0, 25f, 0), Vector3f.createZeroVector(), "pow2.png", Color.WHITE, 300f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        freeze();
+    }
+
+    private void freeze() {
+        freezeTime = 5000f;
+        body.setMassProps(0, new javax.vecmath.Vector3f(0, 0f, 0));
+        Transform t = new Transform();
+        body.getWorldTransform(t);
+        body.getMotionState().setWorldTransform(t);
+    }
+
+    public void unfreeze() {
+        freezeTime = 0f;
+        javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0f, 0);
+        body.getCollisionShape().calculateLocalInertia(mass, localInertia);
+        body.setMassProps(mass, localInertia);
+
+    }
+
+    public void goalCollision(Player.Team team) {
         try{
-            Color powColor = (goalTeam == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
+            Color powColor = (team == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
             Particle pow = new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
             new LightFade(pow.getNode(), powColor, 100f, 0.01f, 300f);
             for(int i=0; i<8; i++) {
@@ -95,17 +126,9 @@ public class Puck extends GameEntity implements Attackable {
             e.printStackTrace();
         }
 
-        GameState.addScore(goalTeam,1);
+        GameState.addScore(team, 1);
 
-        body.setLinearVelocity(new javax.vecmath.Vector3f());
-        body.setAngularVelocity(new javax.vecmath.Vector3f());
-        Transform t = new Transform();
-        t.origin.x = 0;
-        t.origin.y = 25f;
-        t.origin.z = 0;
-
-        body.setWorldTransform(t);
-        body.clearForces();
+        reset();
     }
 
     public void playerCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
@@ -191,7 +214,9 @@ public class Puck extends GameEntity implements Attackable {
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         if (entity instanceof Goal) {
-            goalCollision(entity, contactPoint, isA);
+            javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
+            contactPoint.getPositionWorldOnA(point);
+            goalCollision((point.x < 0) ? Player.Team.Blue : Player.Team.Orange);
         } else if (entity instanceof Player) {
             playerCollision(entity, contactPoint, isA);
         }
@@ -220,9 +245,17 @@ public class Puck extends GameEntity implements Attackable {
     public String listedName() { return "puck"; }
     public SceneNode getNode() { return node; }
     public RigidBody getBody() { return body; }
+    public boolean isFrozen() { return freezeTime > 0; }
 
     @Override
-    public void update(float delta) { }
+    public void update(float delta) {
+        if (freezeTime > 0) {
+            freezeTime -= delta;
+            if (freezeTime <= 0) {
+                unfreeze();
+            }
+        }
+    }
 
 }
 
