@@ -1,5 +1,6 @@
 package a2.GameEntities;
 
+import Networking.UDPClient;
 import a2.Contollers.HudController;
 import a2.GameState;
 import com.bulletphysics.collision.dispatch.CollisionObject;
@@ -78,6 +79,19 @@ public class Puck extends GameEntity implements Attackable {
     public boolean shouldRegisterCollision() { return true; }
 
     public void reset() {
+        try{
+            Player.Team team = (node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange;
+            Color powColor = (team == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
+            Particle pow = new Particle(10f, 10f, node.getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
+            new LightFade(pow.getNode(), powColor, 100f, 0.01f, 300f);
+            for(int i=0; i<8; i++) {
+                new PuckPartical(i);
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
         body.setLinearVelocity(new javax.vecmath.Vector3f());
         body.setAngularVelocity(new javax.vecmath.Vector3f());
         Transform t = new Transform();
@@ -99,6 +113,7 @@ public class Puck extends GameEntity implements Attackable {
 
     private void freeze() {
         freezeTime = 5000f;
+        if (UDPClient.hasClient()) { freezeTime *= 2; }
         body.setMassProps(0, new javax.vecmath.Vector3f(0, 0f, 0));
         Transform t = new Transform();
         body.getWorldTransform(t);
@@ -114,20 +129,7 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     public void goalCollision(Player.Team team) {
-        try{
-            Color powColor = (team == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
-            Particle pow = new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
-            new LightFade(pow.getNode(), powColor, 100f, 0.01f, 300f);
-            for(int i=0; i<8; i++) {
-                new PuckPartical(i);
-            }
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
         GameState.addScore(team, 1);
-
         reset();
     }
 
@@ -213,10 +215,8 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        if (entity instanceof Goal) {
-            javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
-            contactPoint.getPositionWorldOnA(point);
-            goalCollision((point.x < 0) ? Player.Team.Blue : Player.Team.Orange);
+        if (entity instanceof Goal && !UDPClient.hasClient()) {
+            goalCollision((node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange);
         } else if (entity instanceof Player) {
             playerCollision(entity, contactPoint, isA);
         }
