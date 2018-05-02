@@ -59,7 +59,7 @@ public class MyGame extends VariableFrameRateGame {
         if (args.length > 0) {
             if (args[0].equals("s")) {
                 UDPServer.createServer(8800);
-                player = new Player((byte)0, true, Player.Team.Orange, Settings.get().spawnPoint.add(0, 0, -10));
+                player = new Player((byte)0, true, Player.Team.Orange);
                 return;
             } else if (args[0].equals("c")) {
                 UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
@@ -74,10 +74,10 @@ public class MyGame extends VariableFrameRateGame {
         }
 
         System.out.println("continuing without networking");
-        player = new Player((byte)0, true, Player.Team.Orange, Settings.get().spawnPoint);
-        new Player((byte)1, false, Player.Team.Orange, Settings.get().spawnPoint.add(10, 0, 0));
-        new Player((byte)2, false, Player.Team.Blue, Settings.get().spawnPoint.add(20, 0, 0));
-        //new AIPlayer((byte)200,false,Player.Team.Orange,Vector3f.createFrom(50f,0f,0f));
+        player = new Player((byte)0, true, Player.Team.Orange);
+        new Player((byte)1, false, Player.Team.Orange);
+        new Player((byte)2, false, Player.Team.Blue);
+        //new AIPlayer((byte)200,false,Player.Team.Orange);
         goalSize = GoalSize.GetGoalSize();
     }
 

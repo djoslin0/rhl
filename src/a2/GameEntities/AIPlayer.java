@@ -9,8 +9,8 @@ import ray.rml.Vector3f;
 public class AIPlayer extends Player{
     private Vector3 goalPosition;
     private Vector3 puckPosition;
-    public AIPlayer(byte playerId, boolean local, Player.Team side, Vector3 location) {
-        super(playerId, local, side, location);
+    public AIPlayer(byte playerId, boolean local, Player.Team side) {
+        super(playerId, local, side);
     }
     public void update(float delta){
         super.update(delta);

@@ -78,7 +78,9 @@ public class PacketJoinSuccess extends Packet {
         UDPClient.setLastReceivedTick(tick);
         TimeManager.setTick(tick);
         UDPClient.setPlayerId(id);
-        UDPClient.addPlayer(new Player(id, true, side, position));
+        Player player = new Player(id, true, side);
+        UDPClient.addPlayer(player);
+        player.setPosition(position);
         GameState.setScore(Player.Team.Orange, orange);
         GameState.setScore(Player.Team.Blue, blue);
         System.out.println("joined as player " + id);

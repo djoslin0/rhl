@@ -64,7 +64,7 @@ public class Player extends GameEntity implements Attackable {
     public static enum Team{
         Orange,Blue
     }
-    public Player(byte playerId, boolean local, Player.Team side, Vector3 location) {
+    public Player(byte playerId, boolean local, Player.Team side) {
         super(true);
         System.out.println("CREATE PLAYER " + playerId);
         this.playerId = playerId;
@@ -76,7 +76,7 @@ public class Player extends GameEntity implements Attackable {
 
         // create entity's base node, and move to desired location
         node = sm.getRootSceneNode().createChildSceneNode(name + "Node");
-        node.setLocalPosition(location);
+        node.setLocalPosition(getSpawnPosition());
         addResponsibility(node);
 
         // create entity's camera node
@@ -447,6 +447,12 @@ public class Player extends GameEntity implements Attackable {
         dead = true;
     }
 
+    private Vector3 getSpawnPosition() {
+        float xPosition = 20 + 20 * (float)Math.random();
+        if (getSide() == Team.Orange) { xPosition *= -1; }
+        return Vector3f.createFrom(xPosition, 1.9f, -53.5f);
+    }
+
     public void respawn() {
         if (!dead) { return; }
 
@@ -455,10 +461,9 @@ public class Player extends GameEntity implements Attackable {
         absorbHurt = 0;
 
         if (local || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
+            health = 100;
             invulnerability = 3000;
-            float xPosition = 20 + 20 * (float)Math.random();
-            if (getSide() == Team.Orange) { xPosition *= -1; }
-            setPosition(Vector3f.createFrom(xPosition, 1.9f, -53.5f));
+            setPosition(getSpawnPosition());
             setVelocity(Vector3f.createZeroVector());
             setPitch(0);
             setYaw(0);

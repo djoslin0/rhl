@@ -211,7 +211,8 @@ public class PacketWorldState extends Packet {
             Player player = UDPClient.getPlayer(id);
 
             if (player == null) {
-                player = new Player(id, false, Player.Team.values()[side], position);
+                player = new Player(id, false, Player.Team.values()[side]);
+                player.setPosition(position);
                 UDPClient.addPlayer(player);
                 System.out.println("NEW PLAYER: " + id);
             }

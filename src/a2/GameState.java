@@ -30,11 +30,16 @@ public class GameState {
 
     public static void setScore(Player.Team team, int amount) {
         if (team == Player.Team.Orange) {
-            instance.orangeScore = amount;
+            if (instance.orangeScore != amount) {
+                instance.orangeScore = amount;
+                HudController.updateScore(team);
+            }
         } else {
-            instance.blueScore = amount;
+            if (instance.blueScore != amount) {
+                instance.blueScore = amount;
+                HudController.updateScore(team);
+            }
         }
-        HudController.updateScore(team);
         if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketScore()); }
     }
 }

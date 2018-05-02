@@ -45,7 +45,7 @@ public class UDPServer extends GameConnectionServer<Byte> {
         if (instance.clientPlayers.contains(cli.info())) {
             return instance.clientPlayers.get(cli.info());
         } else {
-            Player player = new Player(instance.nextId, false, instance.nextSide, Settings.get().spawnPoint);
+            Player player = new Player(instance.nextId, false, instance.nextSide);
             instance.clientPlayers.put(cli.info(), player);
             instance.players.put(player.getId(), player);
             try {

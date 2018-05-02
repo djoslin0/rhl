@@ -48,6 +48,7 @@ public class ScoreBoard implements Updatable {
         }
         else if (team == Player.Team.Blue) {
             blueChangeTime = 1000f;
+            blue.update(GameState.getScore(Player.Team.Blue));
         }
     }
 

@@ -91,6 +91,7 @@ public class Glove extends GameEntity {
     public float getTime() { return time; }
 
     public void attack(boolean hit, Vector3 target) {
+        if (player.isDead()) { return; }
         boolean hadTarget = (this.target != null);
 
         this.hit = hit;
