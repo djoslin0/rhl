@@ -78,6 +78,7 @@ public class MyGame extends VariableFrameRateGame {
         new Player((byte)1, false, Player.Team.Orange, Settings.get().spawnPoint.add(10, 0, 0));
         new Player((byte)2, false, Player.Team.Blue, Settings.get().spawnPoint.add(20, 0, 0));
         //new AIPlayer((byte)200,false,Player.Team.Orange,Vector3f.createFrom(50f,0f,0f));
+        goalSize = GoalSize.GetGoalSize();
     }
 
     @Override
@@ -150,7 +151,6 @@ public class MyGame extends VariableFrameRateGame {
     @Override
     protected void update(Engine engine) {
         //goalSize.update();
-
         float delta = engine.getElapsedTimeMillis();
         if (UDPClient.hasClient()) {
             UDPClient.update();

@@ -91,7 +91,6 @@ public class PuckPartical extends GameEntity{
                 duration = new Duration(4000f);
                 return;
             }
-            System.out.println(node.getLocalScale());
             float scalar = 1f - (float)Math.pow(duration.progress(), 2f);
             node.setLocalScale(scalar, scalar, scalar);
             collisionShape.setLocalScaling(new javax.vecmath.Vector3f(scalar, scalar, scalar));

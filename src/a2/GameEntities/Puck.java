@@ -17,10 +17,7 @@ import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
 import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
-import ray.rml.Quaternionf;
-import ray.rml.Radianf;
-import ray.rml.Vector3;
-import ray.rml.Vector3f;
+import ray.rml.*;
 
 import javax.vecmath.Matrix3f;
 import javax.vecmath.Quat4f;
@@ -31,10 +28,12 @@ public class Puck extends GameEntity implements Attackable {
     private Entity obj;
     private RigidBody body;
     private SceneNode angularTestNode;
-    private int numgoals =0;
     private PuckPartical[] particals = new PuckPartical[8];
     private float angularPushScale = 400f;
     private float linearPushScale = 200f;
+    private boolean dunk = false;
+    private CollisionBox dunkBox1;
+    private  CollisionBox dunkBox2;
 
     public Puck(Vector3 location) throws IOException {
         super(true);
@@ -54,7 +53,8 @@ public class Puck extends GameEntity implements Attackable {
 
         angularTestNode = sm.getRootSceneNode().createChildSceneNode(obj.getName() + "TestNode");
         addResponsibility(angularTestNode);
-
+        dunkBox1 = new CollisionBox(8f,2f,16f, Vector3f.createFrom(83f,5.9f,0.0f));
+        dunkBox2 = new CollisionBox(8f,2f,16f, Vector3f.createFrom(-83f,5.9f,0.0f));
         initPhysics();
         for(int i =0; i<8; i++){
             particals[i] = new PuckPartical(i);
@@ -78,8 +78,7 @@ public class Puck extends GameEntity implements Attackable {
     public boolean shouldRegisterCollision() { return true; }
 
     private void goalCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        numgoals++;
-
+        System.out.println(entity.getNode().getName());
         javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
         contactPoint.getPositionWorldOnA(point);
         Player.Team goalTeam = (point.x < 0) ? Player.Team.Blue : Player.Team.Orange;
@@ -97,13 +96,17 @@ public class Puck extends GameEntity implements Attackable {
         catch (IOException e) {
             e.printStackTrace();
         }
+        if(dunk == false){
+            HudController.getHudController().updateScore(goalTeam,1);
+        }else{
+            HudController.getHudController().updateScore(goalTeam,3);
+        }
 
-        HudController.getHudController().updateScore(goalTeam,1);
 
         body.setLinearVelocity(new javax.vecmath.Vector3f());
         body.setAngularVelocity(new javax.vecmath.Vector3f());
         Transform t = new Transform();
-        t.origin.x = 0;
+        t.origin.x = 0f;
         t.origin.y = 25f;
         t.origin.z = 0;
 
@@ -226,7 +229,20 @@ public class Puck extends GameEntity implements Attackable {
     public RigidBody getBody() { return body; }
 
     @Override
-    public void update(float delta) { }
+    public void update(float delta) {
+        Vector2 contained = Vector2f.createFrom(node.getLocalPosition().x(),node.getLocalPosition().z());
+        if(dunkBox1.contains(node.getLocalPosition()) || dunkBox2.contains(node.getLocalPosition())){
+            dunk = true;
+            System.out.println(dunk);
+        }else if(dunkBox1.Contains2d(contained) || dunkBox2.Contains2d(contained)){
+            System.out.println(dunk);
+        }else{
+            dunk = false;
+            //System.out.println(node.getLocalPosition());
+        }
+
+
+    }
 
 }
 

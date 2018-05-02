@@ -34,6 +34,7 @@ public class Goal extends GameEntity {
     private SceneNode tRailCollisionBox;
     private SceneNode goalBox;
 
+
     public Goal(Player.Team side) throws IOException {
         super(false);
         // instantiate nodes
@@ -91,6 +92,7 @@ public class Goal extends GameEntity {
         MotionStateController railMotionState = new MotionStateController(tRailCollisionBox);
         MotionStateController goalBoxMotionState = new MotionStateController(goalBox);
 
+
         // collision shapes
         BoxShape backCollisionShape = new BoxShape(new javax.vecmath.Vector3f(0.2f,2.6f,+8.2f));
         BoxShape leftCollisionShape = new BoxShape(new javax.vecmath.Vector3f(4.0f,2.6f,+0.2f));
@@ -98,12 +100,14 @@ public class Goal extends GameEntity {
         BoxShape tRailCollisionShape = new BoxShape(new javax.vecmath.Vector3f(0.2f,0.2f,+8.2f));
         BoxShape goalBoxCollisionShape = new BoxShape(new javax.vecmath.Vector3f(0.9f,1.5f,+7.9f));
 
+
         // rigid bodies
         RigidBody backBody = createBody(mass, backMotionState, backCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
         RigidBody leftBody = createBody(mass, leftMotionState, leftCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
         RigidBody rightBody = createBody(mass, rightMotionState, rightCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
         RigidBody railBody= createBody(mass, railMotionState, tRailCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_ALL);
         RigidBody goalBoxBody= createBody(mass, goalBoxMotionState, goalBoxCollisionShape, PhysicsManager.COL_WORLD, PhysicsManager.COLLIDE_PUCK);
+
 
 
         // unregister collisions
