@@ -1,7 +1,6 @@
 package a2.GameEntities;
 
 import Networking.UDPClient;
-import a2.Contollers.HudController;
 import a2.GameState;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
@@ -21,8 +20,6 @@ import ray.rage.scene.SceneManager;
 import ray.rage.scene.SceneNode;
 import ray.rml.*;
 
-import javax.vecmath.Matrix3f;
-import javax.vecmath.Quat4f;
 import java.awt.*;
 import java.io.IOException;
 
@@ -30,7 +27,7 @@ public class Puck extends GameEntity implements Attackable {
     private Entity obj;
     private RigidBody body;
     private SceneNode angularTestNode;
-    private PuckPartical[] particals = new PuckPartical[8];
+    private PuckParticle[] particles = new PuckParticle[8];
 
     private boolean dunk = false;
     private CollisionBox dunkBox1;
@@ -64,7 +61,7 @@ public class Puck extends GameEntity implements Attackable {
         dunkBox2 = new CollisionBox(8f,2f,16f, Vector3f.createFrom(-83f,5.9f,0.0f));
         initPhysics();
         for(int i =0; i<8; i++){
-            particals[i] = new PuckPartical(i);
+            particles[i] = new PuckParticle(i);
         }
     }
 
@@ -90,8 +87,7 @@ public class Puck extends GameEntity implements Attackable {
             Particle pow = new Particle(10f, 10f, node.getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
             new LightFade(pow.getNode(), powColor, 100f, 0.01f, 300f);
             for(int i =0; i<8;i++){
-                particals[i].resetExplosion();
-                particals[i].startPhysics();
+                particles[i].startPhysics();
             }
         }
         catch (IOException e) {
