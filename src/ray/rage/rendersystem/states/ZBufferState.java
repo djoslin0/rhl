@@ -18,9 +18,9 @@ public interface ZBufferState extends RenderState {
 
     boolean isWritable();
 
-    boolean isSecondaryStage(); /* My Change: added a secondary depth stage */
+    int getSecondaryStage(); /* My Change: added a secondary depth stage */
 
-    void setSecondaryStage(boolean secondaryStage); /* My Change: added a secondary depth stage */
+    void setSecondaryStage(int secondaryStage); /* My Change: added a secondary depth stage */
 
     public static enum TestFunction {
         ALWAYS_FAIL,

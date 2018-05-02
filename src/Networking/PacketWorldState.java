@@ -19,6 +19,7 @@ public class PacketWorldState extends Packet {
 
     // read variables
     private short tick;
+    private boolean puckFrozen;
     private Vector3 puckPosition;
     private javax.vecmath.Quat4f puckOrientation = new javax.vecmath.Quat4f();
     private javax.vecmath.Vector3f puckLinearVelocity = new javax.vecmath.Vector3f();
@@ -34,7 +35,7 @@ public class PacketWorldState extends Packet {
     @Override
     public ByteBuffer writeInfo() {
         Collection<Player> players = UDPServer.getPlayers();
-        ByteBuffer buffer = ByteBuffer.allocate(29 + 20 * players.size());
+        ByteBuffer buffer = ByteBuffer.allocate(30 + 20 * players.size());
         Puck puck = EntityManager.getPuck();
         puckPosition = puck.getNode().getWorldPosition();
         puck.getBody().getOrientation(puckOrientation);
@@ -43,6 +44,9 @@ public class PacketWorldState extends Packet {
 
         // tick
         buffer.putShort(TimeManager.getTick());
+
+        // puck frozen
+        buffer.put(puck.isFrozen() ? (byte)1 : (byte)2);
 
         // position
         buffer.putShort(NetworkFloat.encode(puckPosition.x()));
@@ -91,6 +95,8 @@ public class PacketWorldState extends Packet {
     @Override
     public void readInfo(ByteBuffer buffer) {
         tick = buffer.getShort();
+
+        puckFrozen = (buffer.get() == 1);
 
         puckPosition = Vector3f.createFrom(
                 NetworkFloat.decode(buffer.getShort()),
@@ -153,6 +159,13 @@ public class PacketWorldState extends Packet {
         TimeManager.setTick(tick);
 
         Puck puck = EntityManager.getPuck();
+
+        // set frozen
+        if (!puck.isFrozen() && puckFrozen) {
+            puck.reset();
+        } else if (puck.isFrozen() && !puckFrozen) {
+            puck.unfreeze();
+        }
 
         // set position
         Transform puckTransform = new Transform();

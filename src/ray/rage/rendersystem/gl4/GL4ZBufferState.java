@@ -34,7 +34,7 @@ final class GL4ZBufferState extends GL4AbstractRenderState implements ZBufferSta
     private boolean      testEnabled    = true;
     private boolean      bufferWritable = true;
     private TestFunction testFunction   = TestFunction.LESS_OR_EQUAL;
-    private boolean secondaryStage      = false; /* My Change: added a secondary depth stage */
+    private int secondaryStage          = 0; /* My Change: added a secondary depth stage */
 
     GL4ZBufferState(GLCanvas canvas) {
         super(canvas);
@@ -124,7 +124,7 @@ final class GL4ZBufferState extends GL4AbstractRenderState implements ZBufferSta
     }
 
     @Override
-    public boolean isSecondaryStage() { return secondaryStage; } /* My Change: added a secondary depth stage */
-    public void setSecondaryStage(boolean secondaryStage) { this.secondaryStage = secondaryStage; } /* My Change: added a secondary depth stage */
+    public int getSecondaryStage() { return secondaryStage; } /* My Change: added a secondary depth stage */
+    public void setSecondaryStage(int secondaryStage) { this.secondaryStage = secondaryStage; } /* My Change: added a secondary depth stage */
 
 }

@@ -1,6 +1,8 @@
 package a2.GameEntities;
 
+import Networking.UDPClient;
 import a2.Contollers.HudController;
+import a2.GameState;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.dispatch.CollisionWorld;
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
@@ -29,11 +31,16 @@ public class Puck extends GameEntity implements Attackable {
     private RigidBody body;
     private SceneNode angularTestNode;
     private PuckPartical[] particals = new PuckPartical[8];
-    private float angularPushScale = 400f;
-    private float linearPushScale = 200f;
+
     private boolean dunk = false;
     private CollisionBox dunkBox1;
     private  CollisionBox dunkBox2;
+
+    private float angularPushScale = 400f;
+    private float linearPushScale = 200f;
+    private float mass = 1000f;
+
+    private float freezeTime = 0;
 
     public Puck(Vector3 location) throws IOException {
         super(true);
@@ -62,7 +69,6 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     private void initPhysics() {
-        float mass = 1000f;
         MotionStateController motionState = new MotionStateController(this.node);
         ConvexHullShape collisionShape = BulletConvert.entityToConvexHullShape(obj);
         collisionShape.setLocalScaling(node.getLocalScale().toJavaX());
@@ -77,31 +83,20 @@ public class Puck extends GameEntity implements Attackable {
     @Override
     public boolean shouldRegisterCollision() { return true; }
 
-    private void goalCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        System.out.println(entity.getNode().getName());
-        javax.vecmath.Vector3f point = new javax.vecmath.Vector3f();
-        contactPoint.getPositionWorldOnA(point);
-        Player.Team goalTeam = (point.x < 0) ? Player.Team.Blue : Player.Team.Orange;
-
+    public void reset() {
         try{
-            Color powColor = (goalTeam == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
-            Particle pow = new Particle(10f, 10f, EntityManager.getPuck().getNode().getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
+            Player.Team team = (node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange;
+            Color powColor = (team == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
+            Particle pow = new Particle(10f, 10f, node.getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
             new LightFade(pow.getNode(), powColor, 100f, 0.01f, 300f);
             for(int i =0; i<8;i++){
                 particals[i].resetExplosion();
                 particals[i].startPhysics();
-
             }
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-        if(dunk == false){
-            HudController.getHudController().updateScore(goalTeam,1);
-        }else{
-            HudController.getHudController().updateScore(goalTeam,3);
-        }
-
 
         body.setLinearVelocity(new javax.vecmath.Vector3f());
         body.setAngularVelocity(new javax.vecmath.Vector3f());
@@ -112,7 +107,41 @@ public class Puck extends GameEntity implements Attackable {
 
         body.setWorldTransform(t);
         body.clearForces();
-        body.destroy();
+
+        try {
+            new Particle(10f, 10f, Vector3f.createFrom(0, 25f, 0), Vector3f.createZeroVector(), "pow2.png", Color.WHITE, 300f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        freeze();
+    }
+
+    private void freeze() {
+        freezeTime = 5000f;
+        if (UDPClient.hasClient()) { freezeTime *= 2; }
+        body.setMassProps(0, new javax.vecmath.Vector3f(0, 0f, 0));
+        Transform t = new Transform();
+        body.getWorldTransform(t);
+        body.getMotionState().setWorldTransform(t);
+    }
+
+    public void unfreeze() {
+        freezeTime = 0f;
+        javax.vecmath.Vector3f localInertia = new javax.vecmath.Vector3f(0, 0f, 0);
+        body.getCollisionShape().calculateLocalInertia(mass, localInertia);
+        body.setMassProps(mass, localInertia);
+
+    }
+
+    public void goalCollision(Player.Team team) {
+        if (dunk){
+            GameState.addScore(team, 3);
+        } else {
+            GameState.addScore(team, 1);
+        }
+
+        reset();
     }
 
     public void playerCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
@@ -197,8 +226,8 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        if (entity instanceof Goal) {
-            goalCollision(entity, contactPoint, isA);
+        if (entity instanceof Goal && !UDPClient.hasClient()) {
+            goalCollision((node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange);
         } else if (entity instanceof Player) {
             playerCollision(entity, contactPoint, isA);
         }
@@ -227,21 +256,28 @@ public class Puck extends GameEntity implements Attackable {
     public String listedName() { return "puck"; }
     public SceneNode getNode() { return node; }
     public RigidBody getBody() { return body; }
+    public boolean isFrozen() { return freezeTime > 0; }
 
     @Override
     public void update(float delta) {
+        // dunk detection
         Vector2 contained = Vector2f.createFrom(node.getLocalPosition().x(),node.getLocalPosition().z());
-        if(dunkBox1.contains(node.getLocalPosition()) || dunkBox2.contains(node.getLocalPosition())){
+        if (dunkBox1.contains(node.getLocalPosition()) || dunkBox2.contains(node.getLocalPosition())) {
             dunk = true;
             System.out.println(dunk);
         }else if(dunkBox1.Contains2d(contained) || dunkBox2.Contains2d(contained)){
             System.out.println(dunk);
         }else{
             dunk = false;
-            //System.out.println(node.getLocalPosition());
+            System.out.println(dunk);
         }
 
-
+        if (freezeTime > 0) {
+            freezeTime -= delta;
+            if (freezeTime <= 0) {
+                unfreeze();
+            }
+        }
     }
 
 }

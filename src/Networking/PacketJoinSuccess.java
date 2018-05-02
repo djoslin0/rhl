@@ -1,6 +1,7 @@
 package Networking;
 
 import a2.GameEntities.Player;
+import a2.GameState;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.TimeManager;
@@ -18,6 +19,8 @@ public class PacketJoinSuccess extends Packet {
     private byte id;
     private Player.Team side;
     private Vector3 position;
+    private byte orange;
+    private byte blue;
 
     public PacketJoinSuccess() { }
 
@@ -33,7 +36,7 @@ public class PacketJoinSuccess extends Packet {
 
     @Override
     public ByteBuffer writeInfo() {
-        ByteBuffer buffer = ByteBuffer.allocate(10);
+        ByteBuffer buffer = ByteBuffer.allocate(12);
         Vector3 position = player.getNode().getWorldPosition();
         buffer.putShort(TimeManager.getTick());
         buffer.put(player.getId());
@@ -41,6 +44,8 @@ public class PacketJoinSuccess extends Packet {
         buffer.putShort(NetworkFloat.encode(position.x()));
         buffer.putShort(NetworkFloat.encode(position.y()));
         buffer.putShort(NetworkFloat.encode(position.z()));
+        buffer.put((byte) GameState.getScore(Player.Team.Orange));
+        buffer.put((byte) GameState.getScore(Player.Team.Blue));
         return buffer;
     }
 
@@ -58,6 +63,8 @@ public class PacketJoinSuccess extends Packet {
                 NetworkFloat.decode(buffer.getShort()),
                 NetworkFloat.decode(buffer.getShort())
         );
+        orange = buffer.get();
+        blue = buffer.get();
     }
 
     @Override
@@ -72,6 +79,8 @@ public class PacketJoinSuccess extends Packet {
         TimeManager.setTick(tick);
         UDPClient.setPlayerId(id);
         UDPClient.addPlayer(new Player(id, true, side, position));
+        GameState.setScore(Player.Team.Orange, orange);
+        GameState.setScore(Player.Team.Blue, blue);
         System.out.println("joined as player " + id);
     }
 }

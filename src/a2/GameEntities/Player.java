@@ -119,7 +119,7 @@ public class Player extends GameEntity implements Attackable {
 
         // create hud
         if (local) {
-            hudController = HudController.getHudController(this);
+            hudController = HudController.get(this);
         }
 
         health = 100;

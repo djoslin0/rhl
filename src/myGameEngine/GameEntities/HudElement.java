@@ -25,14 +25,11 @@ public class HudElement extends GameEntity implements Camera.Listener {
     private TextureState texState;
     private Texture tex;
     private Vector2 screenLocation;
-    private int layer;
-    public boolean fullscreen = false;
 
-    public HudElement(SceneNode parentNode, float scale, Vector2 screenLocation, Vector2 origin, int layer, String textureName, Color color) throws IOException {
+    public HudElement(SceneNode parentNode, float scale, Vector2 screenLocation, Vector2 origin, String textureName, Color color) throws IOException {
         super(false);
 
         this.screenLocation = screenLocation;
-        this.layer = layer;
 
         Engine engine = EngineManager.getEngine();
         SceneManager sm = EngineManager.getSceneManager();
@@ -96,7 +93,8 @@ public class HudElement extends GameEntity implements Camera.Listener {
 
         // set no depth testing
         ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
-        zBufferState.setSecondaryStage(true);
+        zBufferState.setSecondaryStage((int)UniqueCounter.next() + 10);
+        zBufferState.setWritable(false);
         obj.setRenderState(zBufferState);
 
         // create dummy node and attach our obj
@@ -134,12 +132,7 @@ public class HudElement extends GameEntity implements Camera.Listener {
 
         float h = 0.0577434f;
         float w = h * aspectRatio;
-        float d = layer / 100000f;
-        node.setLocalPosition((w / -2f) * screenLocation.x(), (h / 2f) * screenLocation.y(), d);
-
-        if (fullscreen) {
-            node.setLocalScale(w / 2f, h / 2f, 1);
-        }
+        node.setLocalPosition((w / -2f) * screenLocation.x(), (h / 2f) * screenLocation.y(), 0);
     }
 
     @Override
