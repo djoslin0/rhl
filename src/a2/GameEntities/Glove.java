@@ -61,10 +61,13 @@ public class Glove extends GameEntity {
             springObj.setPrimitive(Renderable.Primitive.TRIANGLES);
 
             if (player.isLocal()) {
-                ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
-                zBufferState.setSecondaryStage(true);
-                gloveObj.setRenderState(zBufferState);
-                springObj.setRenderState(zBufferState);
+                ZBufferState zBufferStateGlove = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
+                zBufferStateGlove.setSecondaryStage(1);
+                gloveObj.setRenderState(zBufferStateGlove);
+
+                ZBufferState zBufferStateSpring = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
+                zBufferStateSpring.setSecondaryStage(2);
+                springObj.setRenderState(zBufferStateSpring);
             }
 
         } catch (IOException ex) {
@@ -170,7 +173,8 @@ public class Glove extends GameEntity {
                     if (player.isLocal()) {
                         SceneManager sm = EngineManager.getSceneManager();
                         ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
-                        zBufferState.setSecondaryStage(true);
+                        zBufferState.setWritable(false);
+                        zBufferState.setSecondaryStage(3);
                         pow.getManualObject().setRenderState(zBufferState);
                     }
                 } catch (IOException e) {

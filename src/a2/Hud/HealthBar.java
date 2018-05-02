@@ -20,9 +20,9 @@ public class HealthBar implements Updatable {
     public HealthBar(Player player, SceneNode parentNode) {
         this.player = player;
         try {
-            bar = new HudElement(parentNode, 0.00185f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), "bar.png", new Color(60, 255, 60));
-            bar2 = new HudElement(parentNode, 0.001849f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), "bar.png", new Color(255, 100, 100));
             new HudElement(parentNode, 0.002f, Vector2f.createFrom(-0.9f, -0.8f), Vector2f.createFrom(-1f, 0f), "battery.png", Color.WHITE);
+            bar2 = new HudElement(parentNode, 0.001849f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), "bar.png", new Color(255, 100, 100));
+            bar = new HudElement(parentNode, 0.00185f, Vector2f.createFrom(-0.89f, -0.8f), Vector2f.createFrom(-1f, 0f), "bar.png", new Color(60, 255, 60));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -35,8 +35,15 @@ public class HealthBar implements Updatable {
         float width = player.getHealth() / 100f * 59f;
         if (width < 0.001f) { width = 0.001f; }
         if (width > bar2Width) { bar2Width = width - 0.1f; }
-        if (bar2Width > bar2Width - 0.1f) {
-            bar2Width -= delta * 0.005f;
+        if (bar2Width > width - 0.1f) {
+            if (player.isDead()) {
+                bar2Width -= delta * 0.015f;
+            } else {
+                bar2Width -= delta * 0.005f;
+            }
+            if (bar2Width < width - 0.1f) {
+                bar2Width = width - 0.1f;
+            }
         }
         bar.getNode().setLocalScale(width, 1f, 1f);
         bar2.getNode().setLocalScale(bar2Width, 0.99f, 1f);

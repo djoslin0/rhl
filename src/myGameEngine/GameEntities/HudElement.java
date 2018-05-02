@@ -93,7 +93,7 @@ public class HudElement extends GameEntity implements Camera.Listener {
 
         // set no depth testing
         ZBufferState zBufferState = (ZBufferState) sm.getRenderSystem().createRenderState(RenderState.Type.ZBUFFER);
-        zBufferState.setSecondaryStage(true);
+        zBufferState.setSecondaryStage((int)UniqueCounter.next() + 10);
         zBufferState.setWritable(false);
         obj.setRenderState(zBufferState);
 
