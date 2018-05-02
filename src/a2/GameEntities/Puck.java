@@ -94,7 +94,7 @@ public class Puck extends GameEntity implements Attackable {
             e.printStackTrace();
         }
 
-        HudController.getHudController().updateScore(goalTeam,1);
+        HudController.getHudController().addScore(goalTeam,1);
 
         body.setLinearVelocity(new javax.vecmath.Vector3f());
         body.setAngularVelocity(new javax.vecmath.Vector3f());

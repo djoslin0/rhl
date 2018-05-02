@@ -282,6 +282,7 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         }
 
         // draw secondary stage
+        gl.glDepthMask(true);
         gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
         for (Renderable r : secondStage) {
             doRender(gl, r);
