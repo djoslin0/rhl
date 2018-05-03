@@ -1,5 +1,7 @@
 package a2.Contollers;
 
+import Networking.UDPClient;
+import Networking.UDPServer;
 import a2.GameEntities.Player;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.UpdateManager;
@@ -132,6 +134,12 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
 
     private void updateAnimations(float delta) {
         SkeletalEntity robo = player.getRobo();
+
+        if (!UDPClient.hasClient() && !UDPServer.hasServer() && player.getId() == 2) {
+            // TODO: REMOVEME: DEMO FOR GORDON
+            animate("run", "run", 0.0095f, SkeletalEntity.EndType.LOOP, false);
+            return;
+        }
 
         if (controller.clearJumpQueue()) {
             animate("jump", "jump", 0.04f, SkeletalEntity.EndType.NONE, false);

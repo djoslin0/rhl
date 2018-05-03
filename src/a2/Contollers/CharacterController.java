@@ -246,6 +246,18 @@ public class CharacterController extends InternalTickCallback {
 
     @Override
     public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {
+
+        if (!UDPClient.hasClient() && !UDPServer.hasServer() && player.getId() == 2) {
+            // TODO: REMOVEME: DEMO FOR GORDON
+            linearVelocity.set(0, 0, 0);
+
+            com.bulletphysics.linearmath.Transform t = new com.bulletphysics.linearmath.Transform();
+            body.getWorldTransform(t);
+            t.origin.set(0, 2, 0);
+            body.setWorldTransform(t);
+            body.setLinearVelocity(linearVelocity);
+        }
+
         if (player.isDead()) {
             jumping = false;
             wasJumping = false;
