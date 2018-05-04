@@ -1,5 +1,7 @@
 package a2.Contollers;
 
+import Networking.UDPClient;
+import Networking.UDPServer;
 import a2.GameEntities.Player;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.UpdateManager;
@@ -143,7 +145,7 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
             return;
         }
 
-        if (controller.isOnGround() && !controller.wasOnGround()) {
+        if (controller.isOnGround() && lastAnimationTag == "falling") {
             animate("land", "land", 0.025f, SkeletalEntity.EndType.NONE, false);
             return;
         }
