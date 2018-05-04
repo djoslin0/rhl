@@ -59,11 +59,11 @@ public class CharacterController extends InternalTickCallback {
     // note: also track cameraNode orientation
 
     // constants
-    public static final float groundAcceleration = 70;
-    public static final float crouchAcceleration = 40;
-    public static final float airAcceleration = 20;
-    public static final float maxSpeed = 20;
-    public static final float maxCrouchSpeed = 10;
+    public static final float groundAcceleration = 80;
+    public static final float crouchAcceleration = 45;
+    public static final float airAcceleration = 25;
+    public static final float maxSpeed = 25;
+    public static final float maxCrouchSpeed = 15;
     public static final float groundFriction = 0.95f;
     public static final float rotationSensititvity = 1;
     public static final int jumpTickTimeout = 50;
