@@ -8,10 +8,7 @@ import com.bulletphysics.collision.shapes.CapsuleShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.PlayerMotionStateController;
-import myGameEngine.GameEntities.Billboard;
-import myGameEngine.GameEntities.GameEntity;
-import myGameEngine.GameEntities.LightFade;
-import myGameEngine.GameEntities.Particle;
+import myGameEngine.GameEntities.*;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.Settings;
@@ -493,6 +490,10 @@ public class Player extends GameEntity implements Attackable {
                 Vector3 location = matrix.column(3).toVector3();
                 Quaternion rotation = matrix.toQuaternion();
                 Debris debris = new Debris(location, rotation, getVelocity(), boneName + ".obj", textureState, duration);
+
+                // attach oil trail
+                new Trail(debris.getNode(), 1000f, 4, Color.BLACK);
+
                 return debris;
             }
         } catch (IOException e) {

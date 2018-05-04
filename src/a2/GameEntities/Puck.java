@@ -12,6 +12,7 @@ import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
+import myGameEngine.GameEntities.Spark;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.*;
 import ray.rage.rendersystem.Renderable;
@@ -193,6 +194,7 @@ public class Puck extends GameEntity implements Attackable {
             if (size > 2) { size = 2; }
             try {
                 new Particle(size, size, Vector3f.createFrom(contactPoint.positionWorldOnB), push.mult(0.000014f), "pow2.png", Color.white, 200f);
+                new Spark(Vector3f.createFrom(contactPoint.positionWorldOnB), Vector3f.createFrom(((float)Math.random() - 0.5f) * 0.6f, (float)Math.random() * 0.3f, ((float)Math.random() - 0.5f) * 0.6f), 5000f);
             } catch (IOException e) {
                 e.printStackTrace();
             }
