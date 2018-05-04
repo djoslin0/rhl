@@ -23,6 +23,7 @@ import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.InetAddress;
 
@@ -77,8 +78,7 @@ public class MyGame extends VariableFrameRateGame {
         player = new Player((byte)0, true, Player.Team.Orange);
         new Player((byte)1, false, Player.Team.Orange);
         new Player((byte)2, false, Player.Team.Blue);
-        //new AIPlayer((byte)200,false,Player.Team.Orange);
-        goalSize = GoalSize.GetGoalSize();
+        new AIPlayer((byte)200,false,Player.Team.Orange);
     }
 
     @Override
@@ -117,7 +117,6 @@ public class MyGame extends VariableFrameRateGame {
 
         //goalSize = GoalSize.GetGoalSize();
 
-
         // set up lights
         sm.getAmbientLight().setIntensity(new Color(.1f, .1f, .1f));
 
@@ -145,9 +144,21 @@ public class MyGame extends VariableFrameRateGame {
         im = new GenericInputManager();
         InputSetup.setupKeyboard(im, player);
         InputSetup.setupMouse(im, player);
+        initMouseMode();
         //InputSetup.listenToControllers(im, player, healthText);
     }
 
+    private void initMouseMode() {
+        // create the cursor
+        Toolkit t = Toolkit.getDefaultToolkit();
+        Image i = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Cursor noCursor = t.createCustomCursor(i, new Point(0, 0), "none");
+        
+        // hide the cursor
+        Canvas canvas = EngineManager.getEngine().getRenderSystem().getCanvas();
+        canvas.setCursor(noCursor);
+    }
+    
     @Override
     protected void update(Engine engine) {
         //goalSize.update();
