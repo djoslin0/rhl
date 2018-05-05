@@ -94,6 +94,7 @@ public class Player extends GameEntity implements Attackable {
             Camera camera = EngineManager.getSceneManager().getCamera("MainCamera");
             cameraNode.attachObject(camera);
             camera.setMode('n');
+            EntityManager.setLocalPlayer(this);
         }
 
         // store tick

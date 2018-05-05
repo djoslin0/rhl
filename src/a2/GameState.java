@@ -4,6 +4,9 @@ import Networking.PacketScore;
 import Networking.UDPServer;
 import a2.Contollers.HudController;
 import a2.GameEntities.Player;
+import myGameEngine.Helpers.SoundGroup;
+import myGameEngine.Singletons.AudioManager;
+import myGameEngine.Singletons.EntityManager;
 
 public class GameState {
     private static GameState instance = new GameState();
@@ -26,6 +29,15 @@ public class GameState {
         }
         HudController.updateScore(team);
         if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketScore()); }
+
+        if (amount > 0) {
+            Player localPlayer = EntityManager.getLocalPlayer();
+            if (localPlayer.getSide() == team) {
+                AudioManager.get().goalWon.play();
+            } else {
+                AudioManager.get().goalLost.play();
+            }
+        }
     }
 
     public static void setScore(Player.Team team, int amount) {
@@ -41,5 +53,14 @@ public class GameState {
             }
         }
         if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketScore()); }
+
+        if (amount > 0) {
+            Player localPlayer = EntityManager.getLocalPlayer();
+            if (localPlayer.getSide() == team) {
+                AudioManager.get().goalWon.play();
+            } else {
+                AudioManager.get().goalLost.play();
+            }
+        }
     }
 }

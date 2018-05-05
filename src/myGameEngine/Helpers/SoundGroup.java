@@ -68,14 +68,18 @@ public class SoundGroup implements Updatable {
     public void play(int volume) {
         UpdateManager.remove(this);
         sounds[index].stop();
-        index = (index + (int)(Math.random() * 2) + 1) % sounds.length;
-        float dist = (float)Math.pow(1 - node.getWorldPosition().sub(AudioManager.getEar().getWorldPosition()).length() / maxDistance, rollOff);
+        int increment = (int)(Math.random() * (sounds.length - 1) * 0.6f) + 1;
+        index = (index + increment) % sounds.length;
+
+        float dist = 1;
+        if (node != null) {
+            dist = (float)Math.pow(1 - node.getWorldPosition().sub(AudioManager.getEar().getWorldPosition()).length() / maxDistance, rollOff);
+        }
         if (dist < 0) { dist = 0; }
         if (dist > 1) { dist = 1; }
         int vol = (int)(volume * dist);
-        System.out.println(node.getName() + ", " + AudioManager.getEar().getName() + ": " + vol);
-        System.out.println(node.getWorldPosition() + ", " + AudioManager.getEar().getWorldPosition());
         sounds[index].setVolume(vol);
+        sounds[index].setPitch(1 + (float)Math.random() * 0.2f - 0.1f);
         sounds[index].play();
 
         if (!looping) {
@@ -115,7 +119,7 @@ public class SoundGroup implements Updatable {
 
     @Override
     public void update(float delta) {
-        if (sounds[index].getProgress() >= lengths[index] * 0.95) {
+        if (sounds[index].getProgress() >= lengths[index] * 0.9) {
             stop();
         }
     }

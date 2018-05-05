@@ -1,5 +1,6 @@
 package myGameEngine.Singletons;
 
+import a2.GameEntities.Player;
 import a2.GameEntities.Puck;
 import ray.rage.Engine;
 import ray.rage.scene.SceneManager;
@@ -12,6 +13,7 @@ public class EntityManager {
     private static final EntityManager instance = new EntityManager();
     private HashMap<String, ArrayList<Object>> list = new HashMap<String, ArrayList<Object>>();
     private Puck puck;
+    private Player localPlayer;
 
     public static void add(String key, Object object) {
         if (instance.list.get(key) == null) {
@@ -36,4 +38,6 @@ public class EntityManager {
     }
 
     public static Puck getPuck() { return instance.puck; }
+    public static Player getLocalPlayer() { return instance.localPlayer; }
+    public static void setLocalPlayer(Player player) { instance.localPlayer = player; }
 }

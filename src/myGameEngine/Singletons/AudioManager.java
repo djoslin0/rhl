@@ -30,6 +30,9 @@ public class AudioManager /*implements Updatable*/ {
     public SoundGroup death;
     public SoundGroup respawn;
     public SoundGroup glitch;
+    public SoundGroup explosion;
+    public SoundGroup goalWon;
+    public SoundGroup goalLost;
 
     public AudioManager() {
         audio = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
@@ -47,7 +50,7 @@ public class AudioManager /*implements Updatable*/ {
 
         instance.miss = new SoundGroup(instance.audio,
                 new String[] { "miss1.wav", "miss2.wav", "miss3.wav", "miss4.wav" },
-                70, false, 300, 5f
+                100, false, 300, 5f
         );
 
         instance.punch = new SoundGroup(instance.audio,
@@ -77,6 +80,21 @@ public class AudioManager /*implements Updatable*/ {
 
         instance.glitch = new SoundGroup(instance.audio,
                 new String[] { "glitch1.wav", "glitch2.wav", "glitch3.wav", "glitch4.wav" },
+                100, false, 200, 5f
+        );
+
+        instance.explosion = new SoundGroup(instance.audio,
+                new String[] { "explosion1.wav", "explosion2.wav" },
+                100, false, 500, 5f
+        );
+
+        instance.goalWon = new SoundGroup(instance.audio,
+                new String[] { "goalwon.wav" },
+                100, false, 200, 5f
+        );
+
+        instance.goalLost = new SoundGroup(instance.audio,
+                new String[] { "goallost.wav" },
                 100, false, 200, 5f
         );
 

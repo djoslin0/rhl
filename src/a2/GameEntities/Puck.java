@@ -13,6 +13,7 @@ import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
+import myGameEngine.Helpers.SoundGroup;
 import myGameEngine.Singletons.*;
 import ray.rage.rendersystem.Renderable;
 import ray.rage.scene.Entity;
@@ -40,6 +41,8 @@ public class Puck extends GameEntity implements Attackable {
 
     private float freezeTime = 0;
 
+    private SoundGroup explosionSound;
+
     public Puck(Vector3 location) throws IOException {
         super(true);
         SceneManager sm = EngineManager.getSceneManager();
@@ -64,6 +67,9 @@ public class Puck extends GameEntity implements Attackable {
         for(int i =0; i<8; i++){
             particles[i] = new PuckParticle(i);
         }
+
+        explosionSound = AudioManager.get().explosion.clone(node);
+        addResponsibility(explosionSound);
     }
 
     private void initPhysics() {
@@ -112,6 +118,8 @@ public class Puck extends GameEntity implements Attackable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        explosionSound.play();
 
         freeze();
     }

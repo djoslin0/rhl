@@ -6,6 +6,7 @@ import a2.Hud.HealthBar;
 import a2.Hud.Peripheral;
 import a2.Hud.ScoreBoard;
 import myGameEngine.GameEntities.HudElement;
+import myGameEngine.Helpers.SoundGroup;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.Settings;
