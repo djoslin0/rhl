@@ -26,8 +26,10 @@ public class AudioManager /*implements Updatable*/ {
     public SoundGroup miss;
     public SoundGroup punch;
     public SoundGroup step;
+    public SoundGroup nearDeath;
     public SoundGroup death;
     public SoundGroup respawn;
+    public SoundGroup glitch;
 
     public AudioManager() {
         audio = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
@@ -45,7 +47,7 @@ public class AudioManager /*implements Updatable*/ {
 
         instance.miss = new SoundGroup(instance.audio,
                 new String[] { "miss1.wav", "miss2.wav", "miss3.wav", "miss4.wav" },
-                100, false, 300, 5f
+                70, false, 300, 5f
         );
 
         instance.punch = new SoundGroup(instance.audio,
@@ -63,9 +65,19 @@ public class AudioManager /*implements Updatable*/ {
                 100, false, 300, 5f
         );
 
+        instance.nearDeath = new SoundGroup(instance.audio,
+                new String[] { "neardeath.wav" },
+                100, false, 200, 5f
+        );
+
         instance.respawn = new SoundGroup(instance.audio,
                 new String[] { "respawn.wav" },
-                100, false, 300, 5f
+                100, false, 100, 5f
+        );
+
+        instance.glitch = new SoundGroup(instance.audio,
+                new String[] { "glitch1.wav", "glitch2.wav", "glitch3.wav", "glitch4.wav" },
+                100, false, 200, 5f
         );
 
     }

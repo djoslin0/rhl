@@ -61,7 +61,9 @@ public class Player extends GameEntity implements Attackable {
     private float nextStepTime;
     private SoundGroup stepSound;
     private SoundGroup deathSound;
+    private SoundGroup nearDeathSound;
     private SoundGroup respawnSound;
+    private SoundGroup glitchSound;
 
     // side definition
     public static enum Team{
@@ -131,9 +133,12 @@ public class Player extends GameEntity implements Attackable {
         addResponsibility(stepSound);
         deathSound = AudioManager.get().death.clone(node);
         addResponsibility(deathSound);
+        nearDeathSound = AudioManager.get().nearDeath.clone(node);
+        addResponsibility(nearDeathSound);
         respawnSound = AudioManager.get().respawn.clone(node);
         addResponsibility(respawnSound);
-
+        glitchSound = AudioManager.get().glitch.clone(node);
+        addResponsibility(glitchSound);
 
 
         health = 100;
@@ -406,7 +411,7 @@ public class Player extends GameEntity implements Attackable {
         }
     }
 
-    public boolean willhurt(int value) {
+    public boolean willHurt(int value) {
         return (value > absorbHurt && invulnerability <= 0);
     }
 
@@ -415,12 +420,22 @@ public class Player extends GameEntity implements Attackable {
         if (invulnerability > 0) { return; }
         if (value <= absorbHurt) { return; }
         int applyHurt = (int)(value - absorbHurt);
+        int oldHealth = health;
         absorbHurt = value;
         health -= applyHurt;
         if (health <= 0) {
             health = 0;
             die();
         }
+
+        // play sounds
+        if (value > 5) {
+            glitchSound.play();
+        }
+        if (oldHealth >= 20 && health < 20) {
+            nearDeathSound.play();
+        }
+
         if (local) {
             if (!dead) {
                 float alpha = value / 20f + 0.1f;

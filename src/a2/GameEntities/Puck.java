@@ -9,7 +9,6 @@ import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.MotionStateController;
-import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
@@ -192,7 +191,7 @@ public class Puck extends GameEntity implements Attackable {
         int hurtAmount = (int)(linearDot + angularVelocity.length() * 2f);
 
         // create small pow particle
-        if (hurtAmount > 5 && player.willhurt(hurtAmount)) {
+        if (hurtAmount > 5 && player.willHurt(hurtAmount)) {
             float size = 1 + hurtAmount / 15f;
             if (size > 2) { size = 2; }
             try {
