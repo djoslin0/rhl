@@ -20,6 +20,7 @@ public class PacketWorldState extends Packet {
     // read variables
     private short tick;
     private boolean puckFrozen;
+    private boolean puckDunked;
     private Vector3 puckPosition;
     private javax.vecmath.Quat4f puckOrientation = new javax.vecmath.Quat4f();
     private javax.vecmath.Vector3f puckLinearVelocity = new javax.vecmath.Vector3f();
@@ -46,7 +47,11 @@ public class PacketWorldState extends Packet {
         buffer.putShort(TimeManager.getTick());
 
         // puck frozen
-        buffer.put(puck.isFrozen() ? (byte)1 : (byte)2);
+        if (puck.isFrozen()) {
+            buffer.put(puck.wasDunked() ? (byte) 2 : (byte) 1);
+        } else {
+            buffer.put((byte)0);
+        }
 
         // position
         buffer.putShort(NetworkFloat.encode(puckPosition.x()));
@@ -96,7 +101,9 @@ public class PacketWorldState extends Packet {
     public void readInfo(ByteBuffer buffer) {
         tick = buffer.getShort();
 
-        puckFrozen = (buffer.get() == 1);
+        byte puckState = buffer.get();
+        puckFrozen = (puckState > 0);
+        puckDunked = (puckState == 2);
 
         puckPosition = Vector3f.createFrom(
                 NetworkFloat.decode(buffer.getShort()),
@@ -162,7 +169,7 @@ public class PacketWorldState extends Packet {
 
         // set frozen
         if (!puck.isFrozen() && puckFrozen) {
-            puck.reset();
+            puck.reset(puckDunked);
         } else if (puck.isFrozen() && !puckFrozen) {
             puck.unfreeze();
         }

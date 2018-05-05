@@ -9,6 +9,7 @@ import com.bulletphysics.collision.shapes.ConvexHullShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.MotionStateController;
+import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
@@ -32,6 +33,7 @@ public class Puck extends GameEntity implements Attackable {
     private boolean dunk = false;
     private CollisionBox dunkBox1;
     private  CollisionBox dunkBox2;
+    private boolean dunked = false;
 
     private float angularPushScale = 400f;
     private float linearPushScale = 200f;
@@ -80,11 +82,13 @@ public class Puck extends GameEntity implements Attackable {
     @Override
     public boolean shouldRegisterCollision() { return true; }
 
-    public void reset() {
+    public void reset(boolean dunk) {
+        dunked = dunk;
         try{
             Player.Team team = (node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange;
             Color powColor = (team == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
             Particle pow = new Particle(10f, 10f, node.getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
+            new GoalText(team, dunk);
             new LightFade(pow.getNode(), powColor, 100f, 0.01f, 300f);
             for(int i =0; i<8;i++){
                 particles[i].startPhysics();
@@ -137,7 +141,7 @@ public class Puck extends GameEntity implements Attackable {
             GameState.addScore(team, 1);
         }
 
-        reset();
+        reset(dunk);
     }
 
     public void playerCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
@@ -235,6 +239,7 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
+        if (isFrozen()) { return; }
         if (entity instanceof Goal && !UDPClient.hasClient()) {
             goalCollision((node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange);
         } else if (entity instanceof Player) {
@@ -266,6 +271,7 @@ public class Puck extends GameEntity implements Attackable {
     public SceneNode getNode() { return node; }
     public RigidBody getBody() { return body; }
     public boolean isFrozen() { return freezeTime > 0; }
+    public boolean wasDunked() { return dunked; }
 
     @Override
     public void update(float delta) {
