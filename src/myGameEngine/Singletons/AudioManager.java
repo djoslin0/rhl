@@ -33,6 +33,7 @@ public class AudioManager /*implements Updatable*/ {
     public SoundGroup explosion;
     public SoundGroup goalWon;
     public SoundGroup goalLost;
+    public SoundGroup cheer;
 
     public AudioManager() {
         audio = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
@@ -95,6 +96,11 @@ public class AudioManager /*implements Updatable*/ {
 
         instance.goalLost = new SoundGroup(instance.audio,
                 new String[] { "goallost.wav" },
+                100, false, 200, 5f
+        );
+
+        instance.cheer = new SoundGroup(instance.audio,
+                new String[] { "cheer1.wav", "cheer2.wav" },
                 100, false, 200, 5f
         );
 

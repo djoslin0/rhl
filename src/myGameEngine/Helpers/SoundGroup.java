@@ -65,6 +65,10 @@ public class SoundGroup implements Updatable {
         this.volume = volume;
     }
 
+    public void setPitch(float pitch) {
+        sounds[index].setPitch(pitch);
+    }
+
     public void play(int volume) {
         UpdateManager.remove(this);
         sounds[index].stop();

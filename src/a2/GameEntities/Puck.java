@@ -42,6 +42,7 @@ public class Puck extends GameEntity implements Attackable {
     private float freezeTime = 0;
 
     private SoundGroup explosionSound;
+    private SoundGroup cheerSound;
 
     public Puck(Vector3 location) throws IOException {
         super(true);
@@ -70,6 +71,9 @@ public class Puck extends GameEntity implements Attackable {
 
         explosionSound = AudioManager.get().explosion.clone(node);
         addResponsibility(explosionSound);
+
+        cheerSound = AudioManager.get().cheer.clone(node);
+        addResponsibility(cheerSound);
     }
 
     private void initPhysics() {
@@ -89,8 +93,8 @@ public class Puck extends GameEntity implements Attackable {
 
     public void reset(boolean dunk) {
         dunked = dunk;
+        Player.Team team = (node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange;
         try{
-            Player.Team team = (node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange;
             Color powColor = (team == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
             Particle pow = new Particle(10f, 10f, node.getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
             new GoalText(team, dunk);
@@ -120,6 +124,10 @@ public class Puck extends GameEntity implements Attackable {
         }
 
         explosionSound.play();
+        if (dunk) {
+            cheerSound.play();
+            cheerSound.setPitch(EntityManager.getLocalPlayer().getSide() == team ? 1 : 0.7f);
+        }
 
         freeze();
     }
