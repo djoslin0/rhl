@@ -25,6 +25,7 @@ public class AudioManager /*implements Updatable*/ {
     public SoundGroup impact;
     public SoundGroup miss;
     public SoundGroup punch;
+    public SoundGroup step;
 
     public AudioManager() {
         audio = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
@@ -48,6 +49,11 @@ public class AudioManager /*implements Updatable*/ {
         instance.punch = new SoundGroup(instance.audio,
                 new String[] { "punch1.wav", "punch2.wav", "punch3.wav", "punch4.wav" },
                 100, false, 300, 5f
+        );
+
+        instance.step = new SoundGroup(instance.audio,
+                new String[] { "step1.wav", "step2.wav", "step3.wav", "step4.wav" },
+                60, false, 200, 5f
         );
     }
 

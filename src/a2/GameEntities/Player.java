@@ -12,6 +12,7 @@ import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
+import myGameEngine.Helpers.SoundGroup;
 import myGameEngine.Singletons.*;
 import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.states.RenderState;
@@ -56,6 +57,9 @@ public class Player extends GameEntity implements Attackable {
     public static float cameraCrouchHeight = -0.45f;
     public static float absorbHurtFalloff = 0.015f;
     public static float respawnSeconds = 5f;
+
+    private float nextStepTime;
+    private SoundGroup step;
 
     // side definition
     public static enum Team{
@@ -119,6 +123,10 @@ public class Player extends GameEntity implements Attackable {
             hudController = HudController.get(this);
             AudioManager.setEar(cameraNode);
         }
+
+        // footstep sounds
+        step = AudioManager.get().step.clone(node);
+        addResponsibility(step);
 
         health = 100;
         absorbHurt = 0;
@@ -360,6 +368,18 @@ public class Player extends GameEntity implements Attackable {
         if (invulnerability > 0) {
             invulnerability -= delta;
             if (invulnerability < 0) { invulnerability = 0; }
+        }
+
+        if (controller.isMoving() & controller.isOnGround()) {
+            nextStepTime -= delta;
+            if (nextStepTime <= 0) {
+                int volume = local ? 40 : 60;
+                if (controller.isCrouching()) { volume /= 2; }
+                step.play(volume);
+                nextStepTime = 400;
+            }
+        } else {
+            nextStepTime = 200;
         }
 
         if (robo != null) {

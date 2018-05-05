@@ -65,7 +65,7 @@ public class SoundGroup implements Updatable {
         this.volume = volume;
     }
 
-    public void play() {
+    public void play(int volume) {
         UpdateManager.remove(this);
         sounds[index].stop();
         index = (index + (int)(Math.random() * 2) + 1) % sounds.length;
@@ -82,6 +82,10 @@ public class SoundGroup implements Updatable {
             UpdateManager.add(this);
         }
         System.out.println(soundFiles[index]);
+    }
+
+    public void play() {
+        play(this.volume);
     }
 
     public void setLocation(Vector3 location) {

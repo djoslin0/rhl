@@ -527,4 +527,7 @@ public class CharacterController extends InternalTickCallback {
         this.body = player.createBody(crouching);
     }
 
+    public boolean isMoving() {
+        return moveBackward || moveForward || moveRight || moveLeft;
+    }
 }
