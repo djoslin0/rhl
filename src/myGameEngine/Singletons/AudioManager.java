@@ -26,6 +26,8 @@ public class AudioManager /*implements Updatable*/ {
     public SoundGroup miss;
     public SoundGroup punch;
     public SoundGroup step;
+    public SoundGroup death;
+    public SoundGroup respawn;
 
     public AudioManager() {
         audio = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
@@ -55,6 +57,17 @@ public class AudioManager /*implements Updatable*/ {
                 new String[] { "step1.wav", "step2.wav", "step3.wav", "step4.wav" },
                 60, false, 200, 5f
         );
+
+        instance.death = new SoundGroup(instance.audio,
+                new String[] { "death.wav" },
+                100, false, 300, 5f
+        );
+
+        instance.respawn = new SoundGroup(instance.audio,
+                new String[] { "respawn.wav" },
+                100, false, 300, 5f
+        );
+
     }
 
     public static AudioManager get() { return instance; }

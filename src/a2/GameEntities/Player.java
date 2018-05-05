@@ -59,7 +59,9 @@ public class Player extends GameEntity implements Attackable {
     public static float respawnSeconds = 5f;
 
     private float nextStepTime;
-    private SoundGroup step;
+    private SoundGroup stepSound;
+    private SoundGroup deathSound;
+    private SoundGroup respawnSound;
 
     // side definition
     public static enum Team{
@@ -124,9 +126,15 @@ public class Player extends GameEntity implements Attackable {
             AudioManager.setEar(cameraNode);
         }
 
-        // footstep sounds
-        step = AudioManager.get().step.clone(node);
-        addResponsibility(step);
+        // sounds
+        stepSound = AudioManager.get().step.clone(node);
+        addResponsibility(stepSound);
+        deathSound = AudioManager.get().death.clone(node);
+        addResponsibility(deathSound);
+        respawnSound = AudioManager.get().respawn.clone(node);
+        addResponsibility(respawnSound);
+
+
 
         health = 100;
         absorbHurt = 0;
@@ -375,7 +383,7 @@ public class Player extends GameEntity implements Attackable {
             if (nextStepTime <= 0) {
                 int volume = local ? 40 : 60;
                 if (controller.isCrouching()) { volume /= 2; }
-                step.play(volume);
+                stepSound.play(volume);
                 nextStepTime = 400;
             }
         } else {
@@ -463,6 +471,8 @@ public class Player extends GameEntity implements Attackable {
         }
 
         dead = true;
+
+        deathSound.play();
     }
 
     private Vector3 getSpawnPosition() {
@@ -499,6 +509,8 @@ public class Player extends GameEntity implements Attackable {
             leftEyeNode.setLocalScale(1f, 1f, 1f);
             rightEyeNode.setLocalScale(1f, 1f, 1f);
         }
+
+        respawnSound.play();
     }
 
     private Debris createDebrisPart(String boneName) {
