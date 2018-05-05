@@ -12,10 +12,7 @@ import myGameEngine.GameEntities.Billboard;
 import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
-import myGameEngine.Singletons.EngineManager;
-import myGameEngine.Singletons.PhysicsManager;
-import myGameEngine.Singletons.Settings;
-import myGameEngine.Singletons.TimeManager;
+import myGameEngine.Singletons.*;
 import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
@@ -120,6 +117,7 @@ public class Player extends GameEntity implements Attackable {
         // create hud
         if (local) {
             hudController = HudController.get(this);
+            AudioManager.setEar(cameraNode);
         }
 
         health = 100;

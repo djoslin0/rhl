@@ -5,6 +5,7 @@ import com.bulletphysics.collision.shapes.CollisionShape;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
 import com.bulletphysics.linearmath.MotionState;
+import myGameEngine.Helpers.SoundGroup;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.EntityManager;
@@ -27,6 +28,7 @@ public class GameEntity implements Updatable {
     protected ArrayList<GameEntity> gameEntityResponsibility = new ArrayList<>();
     protected ArrayList<Light> lightResponsibility = new ArrayList<>();
     protected ArrayList<RigidBody> bodyResponsibility = new ArrayList<>();
+    protected ArrayList<SoundGroup> soundResponsibility = new ArrayList<>();
 
     public GameEntity(boolean updatable) {
         if (updatable) {
@@ -49,6 +51,7 @@ public class GameEntity implements Updatable {
     public void addResponsibility(GameEntity gameEntity) { gameEntityResponsibility.add(gameEntity); }
     public void addResponsibility(Light light) { lightResponsibility.add(light); }
     public void addResponsibility(RigidBody body) { bodyResponsibility.add(body); }
+    public void addResponsibility(SoundGroup sound) { soundResponsibility.add(sound); }
 
     public boolean isDestroyed() { return destroyed; }
 
@@ -112,6 +115,12 @@ public class GameEntity implements Updatable {
             sm.destroySceneNode(node);
         }
         nodeResponsibility.clear();
+
+        // sounds
+        for (SoundGroup sound : soundResponsibility) {
+            sound.destroy();
+        }
+        soundResponsibility.clear();
 
         // have entitiy manager forget about this entity
         if (listedName() != null) {

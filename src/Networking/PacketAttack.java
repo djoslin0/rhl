@@ -67,13 +67,13 @@ public class PacketAttack extends Packet {
         Player attacker = UDPServer.getPlayer(cli);
         Puck puck = EntityManager.getPuck();
         if (attackedId == (byte)-1) {
-            attacker.getGlove().attack(false, relative);
+            attacker.getGlove().attack(null, relative);
         } else if (attackedId == puck.getId()) {
-            attacker.getGlove().attack(true, puck.getNode().getWorldPosition().add(relative));
+            attacker.getGlove().attack(puck, puck.getNode().getWorldPosition().add(relative));
             puck.attacked(aim, relative);
         } else {
             Player attacked = UDPServer.getPlayer(attackedId);
-            attacker.getGlove().attack(true, attacked.getNode().getWorldPosition().add(relative));
+            attacker.getGlove().attack(attacked, attacked.getNode().getWorldPosition().add(relative));
             attacked.attacked(aim, relative);
         }
 
@@ -88,12 +88,12 @@ public class PacketAttack extends Packet {
         Player attacker = UDPClient.getPlayer(attackerId);
         Puck puck = EntityManager.getPuck();
         if (attackedId == (byte)-1) {
-            attacker.getGlove().attack(false, relative);
+            attacker.getGlove().attack(null, relative);
         } else if (attackedId == puck.getId()) {
-            attacker.getGlove().attack(true, puck.getNode().getWorldPosition().add(relative));
+            attacker.getGlove().attack(puck, puck.getNode().getWorldPosition().add(relative));
         } else {
             Player attacked = UDPClient.getPlayer(attackedId);
-            attacker.getGlove().attack(true, attacked.getNode().getWorldPosition().add(relative));
+            attacker.getGlove().attack(attacked, attacked.getNode().getWorldPosition().add(relative));
             attacked.attacked(aim, relative);
         }
     }

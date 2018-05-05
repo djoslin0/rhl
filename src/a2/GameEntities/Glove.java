@@ -10,6 +10,8 @@ import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Helpers.MathHelper;
+import myGameEngine.Helpers.SoundGroup;
+import myGameEngine.Singletons.AudioManager;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.UniqueCounter;
@@ -42,6 +44,9 @@ public class Glove extends GameEntity {
     private boolean hit;
     private boolean createPow;
     private boolean wasDead;
+    private SoundGroup impact;
+    private SoundGroup miss;
+    private SoundGroup punch;
 
     private static float speed = 0.003f;
 
@@ -82,6 +87,18 @@ public class Glove extends GameEntity {
         springNode.attachObject(springObj);
         springNode.setLocalScale(0.001f, 0.001f, 0.001f); // hide spring
 
+        impact = AudioManager.get().impact.clone(player.getCameraNode());
+        addResponsibility(impact);
+        impact.setVolume(player.isLocal() ? 100 : 60);
+
+        miss = AudioManager.get().miss.clone(player.getCameraNode());
+        addResponsibility(miss);
+        miss.setVolume(player.isLocal() ? 100 : 60);
+
+        punch = AudioManager.get().punch.clone(player.getCameraNode());
+        addResponsibility(punch);
+        punch.setVolume(player.isLocal() ? 100 : 60);
+
         this.player = player;
         this.handNode = handNode;
         handNode.attachObject(gloveObj);
@@ -90,9 +107,17 @@ public class Glove extends GameEntity {
     public boolean hasTarget() { return target != null; }
     public float getTime() { return time; }
 
-    public void attack(boolean hit, Vector3 target) {
+    public void attack(Attackable attackable, Vector3 target) {
         if (player.isDead()) { return; }
         boolean hadTarget = (this.target != null);
+
+        if (attackable instanceof Player) {
+            punch.play();
+        } else if (attackable != null) {
+            impact.play();
+        } else {
+            miss.play();
+        }
 
         this.hit = hit;
 
