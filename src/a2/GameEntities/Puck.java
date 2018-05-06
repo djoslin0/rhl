@@ -344,6 +344,9 @@ public class Puck extends GameEntity implements Attackable {
         if (dunkBox1.contains(node.getLocalPosition()) || dunkBox2.contains(node.getLocalPosition())) {
             dunk = true;
         } else if (dunkBox1.Contains2d(contained) || dunkBox2.Contains2d(contained)){
+            if (dunkBox1.below(node.getWorldPosition()) || dunkBox2.below(node.getWorldPosition())) {
+                goalCollision((node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange);
+            }
         } else {
             dunk = false;
         }

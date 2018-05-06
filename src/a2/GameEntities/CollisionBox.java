@@ -34,4 +34,8 @@ public class CollisionBox {
         }
         return false;
     }
+
+    public boolean below(Vector3 position) {
+        return position.y() < y1Pos && position.y() < y2Pos;
+    }
 }
