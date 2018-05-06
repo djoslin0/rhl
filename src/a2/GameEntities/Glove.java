@@ -119,7 +119,7 @@ public class Glove extends GameEntity {
             miss.play();
         }
 
-        this.hit = hit;
+        this.hit = (attackable != null);
 
         this.target = target;
         this.offset = target.sub(player.getCameraNode().getWorldPosition());
