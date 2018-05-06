@@ -41,20 +41,23 @@ public class GameState {
     }
 
     public static void setScore(Player.Team team, int amount) {
+        boolean update = false;
         if (team == Player.Team.Orange) {
             if (instance.orangeScore != amount) {
                 instance.orangeScore = amount;
                 HudController.updateScore(team);
+                update = true;
             }
         } else {
             if (instance.blueScore != amount) {
                 instance.blueScore = amount;
                 HudController.updateScore(team);
+                update = true;
             }
         }
         if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketScore()); }
 
-        if (amount > 0) {
+        if (update && amount > 0) {
             Player localPlayer = EntityManager.getLocalPlayer();
             if (localPlayer.getSide() == team) {
                 AudioManager.get().goalWon.play();
