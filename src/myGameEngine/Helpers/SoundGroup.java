@@ -1,24 +1,13 @@
 package myGameEngine.Helpers;
 
-import a2.Actions.ActionMove;
-import com.jogamp.openal.AL;
 import myGameEngine.Singletons.AudioManager;
-import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.UpdateManager;
-import ray.audio.*;
-import ray.audio.joal.JOALAudioManager;
-import ray.audio.joal.JOALAudioPlayer;
-import ray.audio.joal.JOALAudioResource;
+import ray.audio.AudioResource;
+import ray.audio.IAudioManager;
+import ray.audio.Sound;
+import ray.audio.SoundType;
 import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
-import ray.rml.Vector3f;
-
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.File;
-import java.io.IOException;
 
 public class SoundGroup implements Updatable {
     private IAudioManager audioMgr;
@@ -78,6 +67,7 @@ public class SoundGroup implements Updatable {
         int increment = (int)(Math.random() * (sounds.length - 1) * 0.6f) + 1;
         index = (index + increment) % sounds.length;
 
+        this.volume = volume;
         updateVolume();
         pitch = 1 + (float)Math.random() * 0.2f - 0.1f;
         sounds[index].setPitch(pitch);
