@@ -64,6 +64,8 @@ public class Player extends GameEntity implements Attackable {
     private SoundGroup nearDeathSound;
     private SoundGroup respawnSound;
     private SoundGroup glitchSound;
+    private SoundGroup jumpSound;
+    private SoundGroup landSound;
 
     // side definition
     public static enum Team{
@@ -140,11 +142,17 @@ public class Player extends GameEntity implements Attackable {
         addResponsibility(respawnSound);
         glitchSound = AudioManager.get().glitch.clone(node);
         addResponsibility(glitchSound);
-
+        jumpSound = AudioManager.get().jump.clone(node);
+        addResponsibility(jumpSound);
+        landSound = AudioManager.get().land.clone(node);
+        addResponsibility(landSound);
 
         health = 100;
         absorbHurt = 0;
     }
+
+    public void playJumpSound() { jumpSound.play(); }
+    public void playLandSound() { landSound.play(); }
 
     private void loadLocalCharacter(String name) {
         // right hand

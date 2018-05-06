@@ -34,6 +34,8 @@ public class AudioManager /*implements Updatable*/ {
     public SoundGroup goalWon;
     public SoundGroup goalLost;
     public SoundGroup cheer;
+    public SoundGroup jump;
+    public SoundGroup land;
 
     public AudioManager() {
         audio = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
@@ -102,6 +104,16 @@ public class AudioManager /*implements Updatable*/ {
         instance.cheer = new SoundGroup(instance.audio,
                 new String[] { "cheer1.wav", "cheer2.wav" },
                 100, false, 200, 5f
+        );
+
+        instance.jump = new SoundGroup(instance.audio,
+                new String[] { "jump1.wav", "jump2.wav" },
+                60, false, 200, 5f
+        );
+
+        instance.land = new SoundGroup(instance.audio,
+                new String[] { "land1.wav", "land2.wav" },
+                60, false, 200, 5f
         );
 
     }

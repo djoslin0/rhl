@@ -285,6 +285,10 @@ public class CharacterController extends InternalTickCallback {
         // keep linearVelocity up to date
         body.setLinearVelocity(linearVelocity);
 
+        if (!wasOnGround && onGround) {
+            player.playLandSound();
+        }
+
         wasOnGround = onGround;
     }
 
@@ -470,6 +474,7 @@ public class CharacterController extends InternalTickCallback {
         if (!player.isLocal() && !wasJumping && jumping) {
             // queue up a jump animation event
             jumpQueued = true;
+            player.playJumpSound();
         }
 
         // remember last jumping state
@@ -503,6 +508,7 @@ public class CharacterController extends InternalTickCallback {
             onGround = false;
             normal = Vector3f.createUnitVectorY();
             jumpTicks = jumpTickTimeout;
+            player.playJumpSound();
         }
     }
 
