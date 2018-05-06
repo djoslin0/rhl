@@ -74,7 +74,6 @@ public class SoundGroup implements Updatable {
         sounds[index].play();
 
         UpdateManager.add(this);
-        System.out.println(soundFiles[index]);
     }
 
     private void updateVolume() {

@@ -82,7 +82,7 @@ public class UDPServer extends GameConnectionServer<Byte> {
 
     public static Player getPlayer(ClientInfo cli) { return instance.clientPlayers.get(cli.info()); }
     public static Player getPlayer(byte id) { return instance.players.get(id); }
-    public static Collection<Player> getPlayers() { return clientPlayers.values(); }
+    public static Collection<Player> getPlayers() { return instance.players.values(); }
 
     public static void sendTo(ClientInfo cli, Packet packet) {
         try {
@@ -147,5 +147,9 @@ public class UDPServer extends GameConnectionServer<Byte> {
             sendToAll(new PacketWorldState());
         }
         Packet.resendUnackedPackets();
+    }
+
+    public static void addPlayer(Player player) {
+        players.put(player.getId(), player);
     }
 }

@@ -168,7 +168,7 @@ public class CharacterController extends InternalTickCallback {
             player.getAnimationController().knock(vec, relative);
         }
 
-        if (player.isLocal() || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
+        if (player.isLocal() || player.isAi() || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
             javax.vecmath.Vector3f finalVec = vec.toJavaX();
             finalVec.y *= 0.8f;
             body.applyCentralImpulse(finalVec);
@@ -425,7 +425,7 @@ public class CharacterController extends InternalTickCallback {
 
         attackTicks = attackTickTimeout;
 
-        if (!player.isLocal() && !(player instanceof AIPlayer)) { return; }
+        if (!player.isLocal() && !player.isAi()) { return; }
 
         Vector3 toPosition = cameraNode.getWorldPosition().add(cameraNode.getWorldForwardAxis().mult(6f));
         javax.vecmath.Vector3f from = cameraNode.getWorldPosition().toJavaX();
@@ -450,6 +450,8 @@ public class CharacterController extends InternalTickCallback {
             || attackable == null) {
             if (UDPClient.hasClient()) {
                 UDPClient.send(new PacketAttack(player.getId(), (byte) -1, cameraNode.getWorldForwardAxis(), rayEnd));
+            } else if (UDPServer.hasServer() && player.isAi()) {
+                UDPServer.sendToAll(new PacketAttack(player.getId(), (byte) -1, cameraNode.getWorldForwardAxis(), rayEnd));
             }
             return;
         }
@@ -467,6 +469,8 @@ public class CharacterController extends InternalTickCallback {
 
         if (UDPClient.hasClient()) {
             UDPClient.send(new PacketAttack(player.getId(), attackable.getId(), aim, relative));
+        } else if (UDPServer.hasServer() && player.isAi()) {
+            UDPServer.sendToAll(new PacketAttack(player.getId(), attackable.getId(), aim, relative));
         }
     }
 

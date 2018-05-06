@@ -274,6 +274,7 @@ public class Player extends GameEntity implements Attackable {
     public CharacterAnimationController getAnimationController() { return animationController; }
     public SceneNode getHandNode() { return handNode; }
     public boolean isDead() { return dead; }
+    public boolean isAi() { return (this instanceof AIPlayer); }
 
     public byte getHealth() { return health; }
 
@@ -377,7 +378,7 @@ public class Player extends GameEntity implements Attackable {
     public void update(float delta) {
         super.update(delta);
 
-        if (dead && (local || (!UDPServer.hasServer() && !UDPClient.hasClient()))) {
+        if (dead && (local || (!UDPServer.hasServer() && !UDPClient.hasClient()) || isAi())) {
             lookAt(headDebris.getNode().getWorldPosition());
             if (respawnTimeout > 0) {
                 respawnTimeout -= delta;
@@ -431,7 +432,7 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public void hurt(int value) {
-        if (!local && (UDPServer.hasServer() || UDPClient.hasClient())) { return; }
+        if (!local && (UDPServer.hasServer() || UDPClient.hasClient()) && !isAi()) { return; }
         if (invulnerability > 0) { return; }
         if (value <= absorbHurt) { return; }
         int applyHurt = (int)(value - absorbHurt);
@@ -518,7 +519,7 @@ public class Player extends GameEntity implements Attackable {
         respawnTimeout = 0;
         absorbHurt = 0;
 
-        if (local || (!UDPClient.hasClient() && !UDPServer.hasServer())) {
+        if (local || (!UDPClient.hasClient() && !UDPServer.hasServer()) || isAi()) {
             health = 100;
             invulnerability = 3000;
             setPosition(getSpawnPosition());

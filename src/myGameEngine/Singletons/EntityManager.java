@@ -1,5 +1,6 @@
 package myGameEngine.Singletons;
 
+import Networking.UDPServer;
 import a2.GameEntities.Player;
 import a2.GameEntities.Puck;
 import ray.rage.Engine;
