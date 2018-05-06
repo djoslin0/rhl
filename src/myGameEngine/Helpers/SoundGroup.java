@@ -76,21 +76,23 @@ public class SoundGroup implements Updatable {
         int increment = (int)(Math.random() * (sounds.length - 1) * 0.6f) + 1;
         index = (index + increment) % sounds.length;
 
+        updateVolume();
+        sounds[index].setPitch(1 + (float)Math.random() * 0.2f - 0.1f);
+        sounds[index].play();
+
+        UpdateManager.add(this);
+        System.out.println(soundFiles[index]);
+    }
+
+    private void updateVolume() {
         float dist = 1;
-        if (node != null) {
+        if (node != null && AudioManager.getEar() != null) {
             dist = (float)Math.pow(1 - node.getWorldPosition().sub(AudioManager.getEar().getWorldPosition()).length() / maxDistance, rollOff);
         }
         if (dist < 0) { dist = 0; }
         if (dist > 1) { dist = 1; }
         int vol = (int)(volume * dist);
         sounds[index].setVolume(vol);
-        sounds[index].setPitch(1 + (float)Math.random() * 0.2f - 0.1f);
-        sounds[index].play();
-
-        if (!looping) {
-            UpdateManager.add(this);
-        }
-        System.out.println(soundFiles[index]);
     }
 
     public void play() {
@@ -124,8 +126,12 @@ public class SoundGroup implements Updatable {
 
     @Override
     public void update(float delta) {
+        updateVolume();
         if (sounds[index].getProgress() >= lengths[index] * 0.9) {
             stop();
+            if (looping) {
+                play();
+            }
         }
     }
 

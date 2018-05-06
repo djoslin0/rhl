@@ -81,6 +81,9 @@ public class Rink extends GameEntity {
         addCollision(Vector3f.createFrom(0f, 50f, 50.2f), Vector3f.createFrom(2f, 50f, 0.25f), Vector3f.createZeroVector(), PhysicsManager.COLLIDE_PUCK);
     }
 
+    @Override
+    public boolean shouldRegisterCollision() { return true; }
+
     private void addSymmetricCollision(Vector3 location, Vector3 scale) {
         addCollision(location, scale, Vector3f.createZeroVector());
         addCollision(location.sub(location.x() * 2, 0, 0), scale, Vector3f.createZeroVector());

@@ -40,9 +40,12 @@ public class Puck extends GameEntity implements Attackable {
     private float mass = 1000f;
 
     private float freezeTime = 0;
+    private float rinkTouchTimeout = 0;
 
     private SoundGroup explosionSound;
     private SoundGroup cheerSound;
+    private SoundGroup slideSound;
+    private SoundGroup spinSound;
 
     public Puck(Vector3 location) throws IOException {
         super(true);
@@ -74,6 +77,14 @@ public class Puck extends GameEntity implements Attackable {
 
         cheerSound = AudioManager.get().cheer.clone(node);
         addResponsibility(cheerSound);
+
+        slideSound = AudioManager.get().slide.clone(node);
+        addResponsibility(slideSound);
+        slideSound.play();
+
+        spinSound = AudioManager.get().spin.clone(node);
+        addResponsibility(spinSound);
+        spinSound.play();
     }
 
     private void initPhysics() {
@@ -253,12 +264,18 @@ public class Puck extends GameEntity implements Attackable {
         }
     }
 
+    private void rinkCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
+        rinkTouchTimeout = 50;
+    }
+
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
         if (isFrozen()) { return; }
         if (entity instanceof Goal && !UDPClient.hasClient()) {
             goalCollision((node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange);
         } else if (entity instanceof Player) {
             playerCollision(entity, contactPoint, isA);
+        } else if (entity instanceof Rink) {
+            rinkCollision(entity, contactPoint, isA);
         }
     }
 
@@ -299,12 +316,39 @@ public class Puck extends GameEntity implements Attackable {
             dunk = false;
         }
 
+        // freeze puck
         if (freezeTime > 0) {
             freezeTime -= delta;
             if (freezeTime <= 0) {
                 unfreeze();
             }
         }
+
+        // slide sound
+        javax.vecmath.Vector3f linearVelocity = new javax.vecmath.Vector3f();
+        body.getLinearVelocity(linearVelocity);
+        int slideVolume = (int)((linearVelocity.length() / 30f - 0.1f) * 60);
+        if (slideVolume < 0) { slideVolume = 0; }
+        if (slideVolume > 60) { slideVolume = 60; }
+        if (rinkTouchTimeout <= 0) {
+            rinkTouchTimeout = 0;
+            slideVolume = 0;
+        } else {
+            rinkTouchTimeout -= delta;
+        }
+        slideSound.setVolume(slideVolume);
+
+        // spin sound
+        javax.vecmath.Vector3f angularVelocity = new javax.vecmath.Vector3f();
+        body.getAngularVelocity(angularVelocity);
+        int spinVolume = (int)((angularVelocity.length() / 10f - 0.2f) * 40);
+        if (spinVolume < 0) { spinVolume = 0; }
+        if (spinVolume > 20) { spinVolume = 20; }
+        float spinPitch = 1 + angularVelocity.length() / 15f;
+        if (spinPitch > 5f) { spinPitch = 5f; }
+        spinSound.setVolume(spinVolume);
+        spinSound.setPitch(spinPitch);
+        System.out.println(angularVelocity.length() + " : " + spinVolume);
     }
 
 }

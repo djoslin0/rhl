@@ -36,6 +36,8 @@ public class AudioManager /*implements Updatable*/ {
     public SoundGroup cheer;
     public SoundGroup jump;
     public SoundGroup land;
+    public SoundGroup slide;
+    public SoundGroup spin;
 
     public AudioManager() {
         audio = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
@@ -114,6 +116,16 @@ public class AudioManager /*implements Updatable*/ {
         instance.land = new SoundGroup(instance.audio,
                 new String[] { "land1.wav", "land2.wav" },
                 60, false, 200, 5f
+        );
+
+        instance.slide = new SoundGroup(instance.audio,
+                new String[] { "slide.wav" },
+                0, true, 200, 7f
+        );
+
+        instance.spin = new SoundGroup(instance.audio,
+                new String[] { "spin.wav" },
+                0, true, 200, 7f
         );
 
     }
