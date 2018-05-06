@@ -40,10 +40,14 @@ public class Puck extends GameEntity implements Attackable {
     private float mass = 1000f;
 
     private float freezeTime = 0;
-    private float rinkTouchTimeout = 0;
+    private float rinkSlideTimeout = 0;
+    private float iceImpactTimeout = 0;
+    private float rinkImpactTimeout = 0;
 
     private SoundGroup explosionSound;
     private SoundGroup cheerSound;
+    private SoundGroup iceSound;
+    private SoundGroup rinkSound;
     private SoundGroup slideSound;
     private SoundGroup spinSound;
 
@@ -75,8 +79,14 @@ public class Puck extends GameEntity implements Attackable {
         explosionSound = AudioManager.get().explosion.clone(node);
         addResponsibility(explosionSound);
 
-        cheerSound = AudioManager.get().cheer.clone(node);
+        cheerSound = AudioManager.get().cheer.clone(null);
         addResponsibility(cheerSound);
+
+        iceSound = AudioManager.get().ice.clone(node);
+        addResponsibility(iceSound);
+
+        rinkSound = AudioManager.get().rink.clone(node);
+        addResponsibility(rinkSound);
 
         slideSound = AudioManager.get().slide.clone(node);
         addResponsibility(slideSound);
@@ -265,7 +275,23 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     private void rinkCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        rinkTouchTimeout = 50;
+        Vector3 linearVelocity = getLinearVelocity();
+        Vector3 rinkPoint = isA ? Vector3f.createFrom(contactPoint.positionWorldOnB) : Vector3f.createFrom(contactPoint.positionWorldOnA);
+        if (rinkPoint.y() <= 1f) {
+            if (iceImpactTimeout <= 0) {
+                int volume = (int) (linearVelocity.length() / 10f) * 100;
+                iceSound.play(volume);
+            }
+            iceImpactTimeout = 500;
+        } else {
+            if (rinkImpactTimeout <= 0) {
+                int volume = (int) (linearVelocity.length() / 10f) * 100;
+                rinkSound.play(volume);
+            }
+            rinkImpactTimeout = 500;
+        }
+
+        rinkSlideTimeout = 50;
     }
 
     public void collision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
@@ -305,6 +331,12 @@ public class Puck extends GameEntity implements Attackable {
     public boolean isFrozen() { return freezeTime > 0; }
     public boolean wasDunked() { return dunked; }
 
+    public Vector3 getLinearVelocity() {
+        javax.vecmath.Vector3f linearVelocity = new javax.vecmath.Vector3f();
+        body.getLinearVelocity(linearVelocity);
+        return Vector3f.createFrom(linearVelocity);
+    }
+
     @Override
     public void update(float delta) {
         // dunk detection
@@ -325,30 +357,40 @@ public class Puck extends GameEntity implements Attackable {
         }
 
         // slide sound
-        javax.vecmath.Vector3f linearVelocity = new javax.vecmath.Vector3f();
-        body.getLinearVelocity(linearVelocity);
+        Vector3 linearVelocity = getLinearVelocity();
         int slideVolume = (int)((linearVelocity.length() / 30f - 0.1f) * 60);
         if (slideVolume < 0) { slideVolume = 0; }
         if (slideVolume > 60) { slideVolume = 60; }
-        if (rinkTouchTimeout <= 0) {
-            rinkTouchTimeout = 0;
+        if (rinkSlideTimeout <= 0) {
+            rinkSlideTimeout = 0;
             slideVolume = 0;
         } else {
-            rinkTouchTimeout -= delta;
+            rinkSlideTimeout -= delta;
         }
         slideSound.setVolume(slideVolume);
 
         // spin sound
         javax.vecmath.Vector3f angularVelocity = new javax.vecmath.Vector3f();
         body.getAngularVelocity(angularVelocity);
-        int spinVolume = (int)((angularVelocity.length() / 10f - 0.2f) * 40);
+        int spinVolume = (int)(Math.abs(angularVelocity.y) + Math.abs(angularVelocity.x) * 2f + Math.abs(angularVelocity.z) * 2f - 0.2f);
         if (spinVolume < 0) { spinVolume = 0; }
         if (spinVolume > 20) { spinVolume = 20; }
-        float spinPitch = 1 + angularVelocity.length() / 15f;
-        if (spinPitch > 5f) { spinPitch = 5f; }
+        float spinPitch = 0.5f + Math.abs(angularVelocity.y) / 20f + Math.abs(angularVelocity.x) / 150f + Math.abs(angularVelocity.z) / 150f;
+        if (spinPitch > 10f) { spinPitch = 10f; }
         spinSound.setVolume(spinVolume);
         spinSound.setPitch(spinPitch);
-        System.out.println(angularVelocity.length() + " : " + spinVolume);
+
+        if (iceImpactTimeout <= 0) {
+            iceImpactTimeout = 0;
+        } else {
+            iceImpactTimeout -= delta;
+        }
+
+        if (rinkImpactTimeout <= 0) {
+            rinkImpactTimeout = 0;
+        } else {
+            rinkImpactTimeout -= delta;
+        }
     }
 
 }

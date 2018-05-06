@@ -32,6 +32,7 @@ public class SoundGroup implements Updatable {
     private float maxDistance;
     private float rollOff;
     private SceneNode node;
+    private float pitch;
 
     public SoundGroup(IAudioManager audioMgr, String[] soundFiles, int volume, boolean looping, float maxDistance, float rollOff) {
         this.audioMgr = audioMgr;
@@ -67,6 +68,7 @@ public class SoundGroup implements Updatable {
     }
 
     public void setPitch(float pitch) {
+        this.pitch = pitch;
         sounds[index].setPitch(pitch);
     }
 
@@ -77,7 +79,8 @@ public class SoundGroup implements Updatable {
         index = (index + increment) % sounds.length;
 
         updateVolume();
-        sounds[index].setPitch(1 + (float)Math.random() * 0.2f - 0.1f);
+        pitch = 1 + (float)Math.random() * 0.2f - 0.1f;
+        sounds[index].setPitch(pitch);
         sounds[index].play();
 
         UpdateManager.add(this);
@@ -119,6 +122,10 @@ public class SoundGroup implements Updatable {
         return sounds[index].getProgress();
     }
 
+    public boolean getIsPlaying() {
+        return sounds[index].getIsPlaying();
+    }
+
     public void stop() {
         sounds[index].stop();
         UpdateManager.remove(this);
@@ -127,7 +134,7 @@ public class SoundGroup implements Updatable {
     @Override
     public void update(float delta) {
         updateVolume();
-        if (sounds[index].getProgress() >= lengths[index] * 0.9) {
+        if (sounds[index].getProgress() >= lengths[index] * 0.8) {
             stop();
             if (looping) {
                 play();

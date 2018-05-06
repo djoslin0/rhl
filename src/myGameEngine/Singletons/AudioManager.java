@@ -38,6 +38,8 @@ public class AudioManager /*implements Updatable*/ {
     public SoundGroup land;
     public SoundGroup slide;
     public SoundGroup spin;
+    public SoundGroup ice;
+    public SoundGroup rink;
 
     public AudioManager() {
         audio = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
@@ -70,7 +72,7 @@ public class AudioManager /*implements Updatable*/ {
 
         instance.death = new SoundGroup(instance.audio,
                 new String[] { "death.wav" },
-                100, false, 300, 5f
+                80, false, 300, 5f
         );
 
         instance.nearDeath = new SoundGroup(instance.audio,
@@ -126,6 +128,16 @@ public class AudioManager /*implements Updatable*/ {
         instance.spin = new SoundGroup(instance.audio,
                 new String[] { "spin.wav" },
                 0, true, 200, 7f
+        );
+
+        instance.ice = new SoundGroup(instance.audio,
+                new String[] { "ice1.wav", "ice2.wav", "ice3.wav" },
+                50, false, 200, 5f
+        );
+
+        instance.rink = new SoundGroup(instance.audio,
+                new String[] { "rink1.wav", "rink2.wav", "rink3.wav" },
+                50, false, 200, 5f
         );
 
     }
