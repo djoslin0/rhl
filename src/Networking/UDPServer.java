@@ -128,6 +128,7 @@ public class UDPServer extends GameConnectionServer<Byte> {
     private synchronized void processUnreadPackets() {
         for (ClientInfo cli : clientInfos.values()) {
             ArrayList<Object> packets = unreadPackets.get(cli.info());
+            if (packets == null) { continue; }
             for (Object o : packets) {
                 ByteBuffer buffer = ByteBuffer.wrap((byte[]) o);
                 Packet packet = Packet.read(cli, buffer);

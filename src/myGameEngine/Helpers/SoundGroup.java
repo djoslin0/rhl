@@ -3,6 +3,7 @@ package myGameEngine.Helpers;
 import a2.Actions.ActionMove;
 import com.jogamp.openal.AL;
 import myGameEngine.Singletons.AudioManager;
+import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.UpdateManager;
 import ray.audio.*;
 import ray.audio.joal.JOALAudioManager;

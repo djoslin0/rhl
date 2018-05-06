@@ -272,6 +272,12 @@ public class Player extends GameEntity implements Attackable {
     public void setHealth(byte health) {
         if (!dead && health <= 0) { die(); }
         else if (dead && health > 0) { respawn(); }
+        if (health - this.health <= -5) {
+            glitchSound.play();
+        }
+        if (this.health >= 20 && health < 20) {
+            nearDeathSound.play();
+        }
         this.health = health;
     }
 
