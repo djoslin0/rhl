@@ -25,6 +25,7 @@ public class HudController {
     private HealthBar healthBar;
     private ScoreBoard scoreBoard;
     private HudElement crosshair;
+    private HudElement winLose;
     private SceneNode hudNode;
     private static HudController instance = null;
 
@@ -46,6 +47,8 @@ public class HudController {
             healthBar = new HealthBar(player, hudNode);
             scoreBoard = new ScoreBoard(hudNode);
             crosshair = new HudElement(hudNode, 0.0007f, Vector2f.createZeroVector(), Vector2f.createZeroVector(), "flare2.png", Color.RED);
+            winLose = new HudElement(hudNode, 0.003f, Vector2f.createFrom(0, 0.6f), Vector2f.createZeroVector(), "win.png", Color.WHITE);
+            winLose.hide();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -53,6 +56,15 @@ public class HudController {
 
     public void showPeripheral(Color color, float duration) {
         peripheral.show(color, duration);
+    }
+
+    public static void showWinLose(boolean win) {
+        instance.winLose.updateTexture(win ? "win.png" : "lose.png");
+        instance.winLose.show();
+    }
+
+    public static void hideWinLose() {
+        instance.winLose.hide();
     }
 
     public void hideLivingHud() {

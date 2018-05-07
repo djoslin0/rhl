@@ -91,6 +91,8 @@ public class GameState implements Updatable {
             EntityManager.getPuck().reset(false, false);
         }
         if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketMatch()); }
+
+        HudController.showWinLose(EntityManager.getLocalPlayer().getSide() == winningTeam);
     }
 
     public static void resetMatch() {
@@ -109,6 +111,7 @@ public class GameState implements Updatable {
 
         setScore(Player.Team.Orange, 0);
         setScore(Player.Team.Blue, 0);
+        HudController.hideWinLose();
     }
 
     @Override
