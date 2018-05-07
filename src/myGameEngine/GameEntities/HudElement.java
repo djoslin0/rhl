@@ -25,11 +25,14 @@ public class HudElement extends GameEntity implements Camera.Listener {
     private TextureState texState;
     private Texture tex;
     private Vector2 screenLocation;
+    private Color color;
+    private Color invisible = new Color(0, 0, 0, 0);
 
     public HudElement(SceneNode parentNode, float scale, Vector2 screenLocation, Vector2 origin, String textureName, Color color) throws IOException {
         super(false);
 
         this.screenLocation = screenLocation;
+        this.color = color;
 
         Engine engine = EngineManager.getEngine();
         SceneManager sm = EngineManager.getSceneManager();
@@ -137,4 +140,7 @@ public class HudElement extends GameEntity implements Camera.Listener {
 
     @Override
     public void onCameraPostRenderScene(Camera camera) { }
+
+    public void hide() { mat.setAmbient(invisible); }
+    public void show() { mat.setAmbient(color); }
 }

@@ -112,19 +112,24 @@ public class Puck extends GameEntity implements Attackable {
     @Override
     public boolean shouldRegisterCollision() { return true; }
 
-    public void reset(boolean dunk) {
-        dunked = dunk;
+    public void reset(boolean scored, boolean dunk) {
         Player.Team team = (node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange;
-        try{
+
+        dunked = dunk;
+        try {
             Color powColor = (team == Player.Team.Blue) ? new Color(255, 230, 170) : new Color(170, 170, 255);
+            if (!scored) { powColor = Color.WHITE; }
+
             Particle pow = new Particle(10f, 10f, node.getWorldPosition(), Vector3f.createZeroVector(), "pow2.png", powColor, 300f);
-            new GoalText(team, dunk);
+            if (scored) { new GoalText(team, dunk); }
+
             new LightFade(pow.getNode(), powColor, 100f, 0.01f, 300f);
-            for(int i =0; i<8;i++){
-                particles[i].startPhysics();
+            if (!isFrozen()) {
+                for (int i = 0; i < 8; i++) {
+                    particles[i].startPhysics();
+                }
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -145,7 +150,7 @@ public class Puck extends GameEntity implements Attackable {
         }
 
         explosionSound.play();
-        if (dunk) {
+        if (scored && dunk) {
             cheerSound.play();
             cheerSound.setPitch(EntityManager.getLocalPlayer().getSide() == team ? 1 : 0.7f);
         }
@@ -171,13 +176,15 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     public void goalCollision(Player.Team team) {
-        if (dunk){
-            GameState.addScore(team, 3);
-        } else {
-            GameState.addScore(team, 1);
+        if (!UDPClient.hasClient() && !isFrozen() && !GameState.isMatchOver()) {
+            if (dunk) {
+                GameState.addScore(team, 3);
+            } else {
+                GameState.addScore(team, 1);
+            }
         }
 
-        reset(dunk);
+        reset(true, dunk);
     }
 
     public void playerCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
@@ -352,7 +359,7 @@ public class Puck extends GameEntity implements Attackable {
         }
 
         // freeze puck
-        if (freezeTime > 0) {
+        if (!GameState.isMatchOver() && freezeTime > 0) {
             freezeTime -= delta;
             if (freezeTime <= 0) {
                 unfreeze();

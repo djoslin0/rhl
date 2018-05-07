@@ -16,6 +16,10 @@ import java.io.IOException;
 public class ScoreBoard implements Updatable {
     private HudNumber orange;
     private HudNumber blue;
+    private HudNumber minutes;
+    private HudNumber seconds;
+    private HudElement colon;
+    private HudElement overtime;
     private HudElement container;
 
     private float orangeChangeTime = 0;
@@ -28,12 +32,28 @@ public class ScoreBoard implements Updatable {
             // orange side score board
             SceneNode orangeNode = parentNode.createChildSceneNode("orangeNode");
             orangeNode.setLocalPosition(0.0059f, 0, 0);
-            orange = new HudNumber(orangeNode, 2, 0.0015f, Vector2f.createFrom(0f,.90f), Color.WHITE);
+            orange = new HudNumber(orangeNode, 2, 0.0015f, Vector2f.createFrom(0f,.90f), Color.WHITE, false);
 
             // blue side score board
             SceneNode blueNode = parentNode.createChildSceneNode("blueNode");
             blueNode.setLocalPosition(-0.0059f, 0, 0);
-            blue = new HudNumber(blueNode, 2, 0.0015f, Vector2f.createFrom(0f,.90f), Color.WHITE);
+            blue = new HudNumber(blueNode, 2, 0.0015f, Vector2f.createFrom(0f,.90f), Color.WHITE, false);
+
+            // minutes
+            SceneNode minutesNode = parentNode.createChildSceneNode("minutesNode");
+            minutesNode.setLocalPosition(0.0015f, 0, 0);
+            minutes = new HudNumber(minutesNode, 2, 0.0008f, Vector2f.createFrom(0f,.90f), Color.WHITE, true);
+
+            // seconds
+            SceneNode secondsNode = parentNode.createChildSceneNode("secondsNode");
+            secondsNode.setLocalPosition(-0.0015f, 0, 0);
+            seconds = new HudNumber(secondsNode, 2, 0.0008f, Vector2f.createFrom(0f,.90f), Color.WHITE, true);
+
+            // colon
+            colon = new HudElement(parentNode, 0.0008f, Vector2f.createFrom(0f,.90f), Vector2f.createZeroVector(), "colon.png", Color.WHITE);
+
+            // overtime
+            overtime = new HudElement(parentNode, 0.0008f, Vector2f.createFrom(0f,.90f), Vector2f.createZeroVector(), "overtime.png", Color.WHITE);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -73,6 +93,21 @@ public class ScoreBoard implements Updatable {
             blue.setScale(1 + strength * 1.75f);
             float c = 1f - Math.abs((float)Math.sin(blueChangeTime / 60f) * 0.3f * strength);
             blue.setColor(new Color(c, c, 1f));
+        }
+
+        // update time
+        if (GameState.getSecondsLeft() >= 0) {
+            overtime.hide();
+            seconds.update((int)GameState.getSecondsLeft() % 60);
+            seconds.show();
+            minutes.update((int)(GameState.getSecondsLeft() / 60));
+            minutes.show();
+            colon.show();
+        } else {
+            overtime.show();
+            seconds.hide();
+            minutes.hide();
+            colon.hide();
         }
     }
 

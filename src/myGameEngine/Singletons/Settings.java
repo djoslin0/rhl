@@ -30,6 +30,9 @@ public class Settings {
 
     public Double goalDistance;
 
+    public Integer matchSeconds;
+    public Integer intermissionSeconds;
+
     public Double debug1;
     public Double debug2;
     public Double debug3;
@@ -38,6 +41,7 @@ public class Settings {
     public Vector3 debugPosition;
     public Vector3 debugScale;
     public Vector3 debugRotation;
+
 
     public static void initScript() {
         ScriptEngineManager factory = new ScriptEngineManager();
@@ -64,6 +68,9 @@ public class Settings {
             instance.terrainSpecular = (Color)(instance.jsEngine.eval("terrainSpecular"));
 
             instance.goalDistance = (Double)(instance.jsEngine.eval("goalDistance"));
+
+            instance.matchSeconds = (Integer) (instance.jsEngine.eval("matchSeconds"));
+            instance.intermissionSeconds = (Integer) (instance.jsEngine.eval("intermissionSeconds"));
 
             instance.debug1 = (Double)(instance.jsEngine.eval("debug1"));
             instance.debug2 = (Double)(instance.jsEngine.eval("debug2"));

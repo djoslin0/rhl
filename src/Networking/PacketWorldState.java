@@ -2,6 +2,7 @@ package Networking;
 
 import a2.GameEntities.Player;
 import a2.GameEntities.Puck;
+import a2.GameState;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
@@ -19,8 +20,10 @@ public class PacketWorldState extends Packet {
 
     // read variables
     private short tick;
+    private short secondsLeft;
     private boolean puckFrozen;
     private boolean puckDunked;
+    private boolean puckResetting;
     private Vector3 puckPosition;
     private javax.vecmath.Quat4f puckOrientation = new javax.vecmath.Quat4f();
     private javax.vecmath.Vector3f puckLinearVelocity = new javax.vecmath.Vector3f();
@@ -36,7 +39,7 @@ public class PacketWorldState extends Packet {
     @Override
     public ByteBuffer writeInfo() {
         Collection<Player> players = UDPServer.getPlayers();
-        ByteBuffer buffer = ByteBuffer.allocate(30 + 20 * players.size());
+        ByteBuffer buffer = ByteBuffer.allocate(32 + 20 * players.size());
         Puck puck = EntityManager.getPuck();
         puckPosition = puck.getNode().getWorldPosition();
         puck.getBody().getOrientation(puckOrientation);
@@ -46,8 +49,13 @@ public class PacketWorldState extends Packet {
         // tick
         buffer.putShort(TimeManager.getTick());
 
+        // secondsLeft
+        buffer.putShort((short)GameState.getSecondsLeft());
+
         // puck frozen
-        if (puck.isFrozen()) {
+        if (puck.isFrozen() && GameState.isMatchOver()) {
+            buffer.put((byte) 3);
+        } else if (puck.isFrozen()) {
             buffer.put(puck.wasDunked() ? (byte) 2 : (byte) 1);
         } else {
             buffer.put((byte)0);
@@ -101,9 +109,12 @@ public class PacketWorldState extends Packet {
     public void readInfo(ByteBuffer buffer) {
         tick = buffer.getShort();
 
+        secondsLeft = buffer.getShort();
+
         byte puckState = buffer.get();
         puckFrozen = (puckState > 0);
         puckDunked = (puckState == 2);
+        puckResetting = (puckState == 3);
 
         puckPosition = Vector3f.createFrom(
                 NetworkFloat.decode(buffer.getShort()),
@@ -165,11 +176,15 @@ public class PacketWorldState extends Packet {
 
         TimeManager.setTick(tick);
 
+        GameState.setSecondsLeft(secondsLeft + 0.999f);
+
         Puck puck = EntityManager.getPuck();
 
         // set frozen
-        if (!puck.isFrozen() && puckFrozen) {
-            puck.reset(puckDunked);
+        if (!puck.isFrozen() && puckResetting) {
+            puck.reset(false, false);
+        } else if (!puck.isFrozen() && puckFrozen) {
+            puck.reset(true, puckDunked);
         } else if (puck.isFrozen() && !puckFrozen) {
             puck.unfreeze();
         }

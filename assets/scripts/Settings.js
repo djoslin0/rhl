@@ -12,11 +12,13 @@ with (JavaPackages) {
 	var spawnPoint = Vector3f.createFrom(-40, 1.9, -53.5);
 	var puckSpawnPoint = Vector3f.createFrom(0, 5, -10);
 	
-
 	var terrainEmissive = new Color(.2, .2, .2);
 	var terrainSpecular = new Color(.5, .5, .5);
 
 	var goalDistance = 85.0;
+
+	var matchSeconds = 5 * 60;
+	var intermissionSeconds = 5;
 
 	var debug1 = 0.5;
 	var debug2 = 1.0;
