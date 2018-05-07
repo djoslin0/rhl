@@ -1,5 +1,4 @@
 package myGameEngine.Helpers;
-
 import myGameEngine.Singletons.AudioManager;
 import myGameEngine.Singletons.UpdateManager;
 import ray.audio.AudioResource;

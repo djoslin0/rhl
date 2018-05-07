@@ -19,15 +19,6 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/javagaming/rage165/rage165/ray.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
           <root url="jar://C:/javagaming/jinput/jinput.jar!/" />
         </CLASSES>
         <JAVADOC />
@@ -69,6 +60,33 @@
       <library>
         <CLASSES>
           <root url="jar://C:/javagaming/jogl/jogamp-all-platforms/jar/jogl-all.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://C:/javagaming/rage165/ray.jar!/ray/audio" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://C:/javagaming/rage165/ray.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://C:/javagaming/jogl/jogamp-all-platforms/jar/joal.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

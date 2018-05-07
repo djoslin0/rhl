@@ -83,10 +83,7 @@ public class MyGame extends VariableFrameRateGame {
         }
 
         System.out.println("continuing without networking");
-        player = new Player((byte)1, true, Player.Team.Orange);
-        new Player((byte)2, false, Player.Team.Orange);
-        new Player((byte)3, false, Player.Team.Blue);
-        //new AIPlayer((byte)4,false,Player.Team.Orange);
+        player = new Player((byte)0, true, Player.Team.Orange);
     }
 
     @Override
