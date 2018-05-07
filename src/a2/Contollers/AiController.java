@@ -13,30 +13,40 @@ import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
 public class AiController {
+    private AIPlayer aiPlayer;
+
     private States currentState = States.InSpawn;
-    private boolean attacking;
+
     private float accuracy;
+
     private Vector3 goalPosition;
     private Vector3 enemyGoalPosition;
     private Vector3 desiredLocation;
     private Vector3 target;
-    private AIPlayer aiPlayer;
+
+    private boolean attacking;
     private boolean freindlyclosest = true;
     private boolean stateChanged = false;
+    private boolean dunnking = false;
+
     private static int numBots = 0;
     private int botNum;
     private int dunkTicks = 0;
-    private boolean dunnking = false;
+
+
     private static  CollisionBox blueBox = new CollisionBox(8f,16f,16f, Vector3f.createFrom(83f,5.9f,0.0f));;
     private static CollisionBox orangeBox = new CollisionBox(8f,16f,16f, Vector3f.createFrom(-83f,3.9f,0.0f));
     private static CollisionBox inSpawn = new CollisionBox(150f,14f,4f,Vector3f.createFrom(0f,7f,-54f));
 
     public AiController(AIPlayer aiPlayer){
+
         numBots++;
         botNum = numBots;
         this.aiPlayer = aiPlayer;
         target = Vector3f.createFrom(0f,0f,0f);
         desiredLocation = Vector3f.createFrom(0f,0f,0f);
+
+        //get players goal size
         if(aiPlayer.getSide() == Player.Team.Orange){
             goalPosition = EngineManager.getSceneManager().getSceneNode("Goalbox0").getWorldPosition();
             enemyGoalPosition = EngineManager.getSceneManager().getSceneNode("Goalbox1").getWorldPosition();
@@ -189,7 +199,7 @@ public class AiController {
                         desiredLocation = Vector3f.createFrom(70f,aiPlayer.getPosition().y(),14.0f);
                     }
                 }
-                if(aiPlayer.getPosition().sub(desiredLocation).length() < accuracy || aiPlayer.getPosition().sub(puckPos).length()<5f){
+                if(aiPlayer.getPosition().sub(desiredLocation).length() < accuracy || aiPlayer.getPosition().sub(puckPos).length()<5f || aiPlayer.isDead()){
                     currentState = States.Thinking;
                 }
                break;
