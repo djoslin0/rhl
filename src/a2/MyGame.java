@@ -11,6 +11,7 @@ import myGameEngine.Helpers.HudText;
 import myGameEngine.Singletons.*;
 import ray.input.GenericInputManager;
 import ray.rage.Engine;
+import ray.rage.game.Game;
 import ray.rage.game.VariableFrameRateGame;
 import ray.rage.rendersystem.RenderSystem;
 import ray.rage.rendersystem.RenderWindow;
@@ -46,9 +47,15 @@ public class MyGame extends VariableFrameRateGame {
         } catch (Exception e) {
             e.printStackTrace(System.err);
         } finally {
-            game.shutdown();
-            game.exit();
+            shutdown(game);
         }
+    }
+
+    private static void shutdown(Game game) {
+        try {
+            game.shutdown();
+        } catch (Exception ex) {}
+        game.exit();
     }
 
     public MyGame(String[] args) {
