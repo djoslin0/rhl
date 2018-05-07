@@ -176,6 +176,7 @@ public class UDPServer extends GameConnectionServer<Byte> {
             clientPlayers.remove(strInfo);
             clientInfos.remove(strInfo);
             unreadPackets.remove(strInfo);
+            Packet.unackedPackets.remove(strInfo);
         }
         System.out.println("Removed due to inactivity: " + player.getId());
         player.destroy();
