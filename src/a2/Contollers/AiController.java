@@ -120,7 +120,7 @@ public class AiController {
                    if(puckPos.x() > 0f){
                        currentState = States.Shooting;
                    }else {
-                       if(aiPlayer.getPosition().sub(puckPos).length() > getClosestEnemy().length() ){
+                       if(getClosestEnemy() !=null && aiPlayer.getPosition().sub(puckPos).length() > getClosestEnemy().length() ){
                            currentState = States.Defending;
                        }else{
                            currentState = States.Shooting;
@@ -231,7 +231,6 @@ public class AiController {
 
     }
     public void executeCurrentAction(){
-        System.out.println(currentState);
         Vector3 puckPos = EntityManager.getPuck().getNode().getWorldPosition();
         desiredLocation = Vector3f.createFrom(desiredLocation.x(),aiPlayer.getPosition().y(),desiredLocation.z());
         if(aiPlayer.getPosition().sub(desiredLocation).length()>accuracy){
@@ -297,7 +296,7 @@ public class AiController {
 
     }
 
-    private Vector3 getClosestFreindly(){
+    /*private Vector3 getClosestFreindly(){
         Vector3 closestsFreindly = null;
         for(Object o : EntityManager.get("player")){
             Player player = (Player)o;
@@ -307,6 +306,7 @@ public class AiController {
         }
         return closestsFreindly;
     }
+    */
     private Vector3 getClosestEnemy(){
         Vector3 closestEnemy = null;
         for(Object o : EntityManager.get("player")){
