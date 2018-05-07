@@ -26,7 +26,6 @@ public class UDPServer extends GameConnectionServer<Byte> {
 
     private long nextWorldState;
     private byte nextId = 1;
-    private Player.Team nextSide = Player.Team.Orange;
     private static ConcurrentHashMap<Byte, Player> players = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, Player> clientPlayers = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, ClientInfo> clientInfos = new ConcurrentHashMap<>();
@@ -43,11 +42,30 @@ public class UDPServer extends GameConnectionServer<Byte> {
 
     public static boolean hasServer() { return instance != null; }
 
+    private static Player.Team getTeamWithFewer() {
+        // check how many players on each side
+        int blueSide = 0;
+        int orangeSide = 0;
+
+        for (Player playerItr: players.values()) {
+            if (playerItr.getSide() == Player.Team.Orange) {
+                orangeSide++;
+            } else {
+                blueSide++;
+            }
+        }
+        if (orangeSide > blueSide) {
+            return Player.Team.Blue;
+        } else {
+            return Player.Team.Orange;
+        }
+    }
+
     public static Player createPlayer(ClientInfo cli) {
         if (instance.clientPlayers.contains(cli.info())) {
             return instance.clientPlayers.get(cli.info());
         } else {
-            Player player = new Player(instance.nextId, false, instance.nextSide);
+            Player player = new Player(instance.nextId, false, getTeamWithFewer());
             instance.clientPlayers.put(cli.info(), player);
             instance.players.put(player.getId(), player);
             try {
@@ -64,20 +82,6 @@ public class UDPServer extends GameConnectionServer<Byte> {
                 }
             }
 
-            // check how many players on each side
-            int blueSide = 0;
-            int orangeSide = 0;
-            for(Player playerItr: players.values()){
-                if(playerItr.getSide() == Player.Team.Orange){
-                    orangeSide++;
-                }else{
-                    blueSide++;
-                }
-            }
-            if(orangeSide > blueSide){
-                instance.nextSide = Player.Team.Blue;
-            }else
-                instance.nextSide = Player.Team.Orange;
             return player;
         }
     }
