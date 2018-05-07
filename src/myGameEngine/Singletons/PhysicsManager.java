@@ -124,14 +124,16 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
         }
     }
 
+    public static int getCallbackCount() { return instance.callbacks.size(); }
     public static void addCallback(InternalTickCallback callback) {
         instance.callbacks.add(callback);
     }
+    public static void removeCallback(InternalTickCallback callback) { instance.callbacks.remove(callback); }
 
+    public static int getRegisteredCollisionCount() { return instance.registeredCollisions.size(); }
     public static void registerCollision(RigidBody body) {
         instance.registeredCollisions.add(body);
     }
-
     public static void unregisterCollision(RigidBody body) {
         instance.registeredCollisions.remove(body);
     }

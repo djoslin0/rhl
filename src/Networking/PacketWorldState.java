@@ -188,6 +188,9 @@ public class PacketWorldState extends Packet {
         puck.getBody().setAngularVelocity(puckAngularVelocity);
 
         // players
+        for (Player player : UDPClient.getPlayers()) {
+            player.lastMessageReceived = 0;
+        }
         for (PlayerState playerState : playerStates) {
             playerState.apply();
         }
@@ -231,6 +234,7 @@ public class PacketWorldState extends Packet {
             player.setPosition(position);
             player.setVelocity(velocity);
             player.setHealth(health);
+            player.lastMessageReceived = 1;
         }
     }
 }

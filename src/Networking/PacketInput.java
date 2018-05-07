@@ -78,6 +78,7 @@ public class PacketInput extends Packet {
     @Override
     public void receivedOnServer(ClientInfo cli) {
         Player player = UDPServer.getPlayer(cli);
+        if (player == null) { return; }
 
         // ignore past packets
         if (TimeManager.difference(tick, player.lastReceivedTick) <= 0) { return; }

@@ -37,4 +37,5 @@ public class UpdateManager {
     public static void clear() {
         instance.updateList.clear();
     }
+    public static int getUpdateCount() { return instance.updateList.size(); }
 }

@@ -5,6 +5,7 @@ import Networking.UDPServer;
 import a2.Contollers.*;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.CapsuleShape;
+import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Controllers.PlayerMotionStateController;
@@ -13,6 +14,7 @@ import myGameEngine.GameEntities.GameEntity;
 import myGameEngine.GameEntities.LightFade;
 import myGameEngine.GameEntities.Particle;
 import myGameEngine.Helpers.SoundGroup;
+import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.*;
 import ray.rage.asset.texture.Texture;
 import ray.rage.rendersystem.states.RenderState;
@@ -67,10 +69,13 @@ public class Player extends GameEntity implements Attackable {
     private SoundGroup jumpSound;
     private SoundGroup landSound;
 
+    public long lastMessageReceived = java.lang.System.currentTimeMillis();
+
     // side definition
     public static enum Team{
         Orange,Blue
     }
+
     public Player(byte playerId, boolean local, Player.Team side) {
         super(true);
         System.out.println("CREATE PLAYER " + playerId);
@@ -124,6 +129,7 @@ public class Player extends GameEntity implements Attackable {
 
         // attach glove to hands
         glove = new Glove(this, name, textureState, handNode);
+        addResponsibility(glove);
 
         // create hud
         if (local) {
@@ -159,9 +165,11 @@ public class Player extends GameEntity implements Attackable {
         handNode = cameraNode.createChildSceneNode(name + "HandNode");
         handNode.setLocalPosition(0.2f, -0.1f, 0f);
         handNode.pitch(Degreef.createFrom(70f));
+        addResponsibility(handNode);
 
         // animation controller
         animationController = new LocalCharacterAnimationController(this, controller);
+        addResponsibility((Updatable)animationController);
     }
 
     private void loadRemoteCharacter(String name) {
@@ -170,6 +178,7 @@ public class Player extends GameEntity implements Attackable {
 
             // load skeletal model
             robo = sm.createSkeletalEntity("robo" + name, "robo.rkm", "robo.rks");
+            addResponsibility(robo);
 
             // load animations
             robo.loadAnimation("idle", "idle.rka");
@@ -219,6 +228,7 @@ public class Player extends GameEntity implements Attackable {
 
             // animation controller
             animationController = new RemoteCharacterAnimationController(this, controller);
+            addResponsibility((Updatable)animationController);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -227,6 +237,7 @@ public class Player extends GameEntity implements Attackable {
     private void initPhysics() {
         createBody(false);
         controller = new CharacterController(this);
+        addResponsibility(controller);
     }
 
     public RigidBody createBody(boolean crouching) {

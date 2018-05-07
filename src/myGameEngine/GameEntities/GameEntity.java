@@ -2,6 +2,7 @@ package myGameEngine.GameEntities;
 
 import com.bulletphysics.collision.narrowphase.ManifoldPoint;
 import com.bulletphysics.collision.shapes.CollisionShape;
+import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
 import com.bulletphysics.linearmath.MotionState;
@@ -29,6 +30,8 @@ public class GameEntity implements Updatable {
     protected ArrayList<Light> lightResponsibility = new ArrayList<>();
     protected ArrayList<RigidBody> bodyResponsibility = new ArrayList<>();
     protected ArrayList<SoundGroup> soundResponsibility = new ArrayList<>();
+    protected ArrayList<Updatable> updatableResponsibility = new ArrayList<>();
+    protected ArrayList<InternalTickCallback> tickResponsibility = new ArrayList<>();
 
     public GameEntity(boolean updatable) {
         if (updatable) {
@@ -52,6 +55,8 @@ public class GameEntity implements Updatable {
     public void addResponsibility(Light light) { lightResponsibility.add(light); }
     public void addResponsibility(RigidBody body) { bodyResponsibility.add(body); }
     public void addResponsibility(SoundGroup sound) { soundResponsibility.add(sound); }
+    public void addResponsibility(Updatable updatable) { updatableResponsibility.add(updatable); }
+    public void addResponsibility(InternalTickCallback updatable) { tickResponsibility.add(updatable); }
 
     public boolean isDestroyed() { return destroyed; }
 
@@ -62,6 +67,14 @@ public class GameEntity implements Updatable {
 
         // disable update calls
         UpdateManager.remove(this);
+
+        for (Updatable updatable : updatableResponsibility) {
+            UpdateManager.remove(updatable);
+        }
+
+        for (InternalTickCallback c : tickResponsibility) {
+            PhysicsManager.removeCallback(c);
+        }
 
         // clean up responsibilities
         SceneManager sm = EngineManager.getSceneManager();
@@ -85,7 +98,9 @@ public class GameEntity implements Updatable {
                 sm.destroyManualObject((ManualObject)object);
                 sm.getMeshManager().removeAssetByName(object.getName() + Mesh.class.getSimpleName());
             } else if (object instanceof Entity) {
-                sm.destroyEntity((Entity)object);
+                try {
+                    sm.destroyEntity((Entity) object);
+                } catch (Exception ex) {}
             } else {
                 System.out.println("UNSUPPORTED SCENEOBJECT!");
             }

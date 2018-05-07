@@ -15,10 +15,7 @@ import ray.rage.game.VariableFrameRateGame;
 import ray.rage.rendersystem.RenderSystem;
 import ray.rage.rendersystem.RenderWindow;
 import ray.rage.rendersystem.gl4.GL4RenderSystem;
-import ray.rage.scene.Camera;
-import ray.rage.scene.Light;
-import ray.rage.scene.SceneManager;
-import ray.rage.scene.SceneNode;
+import ray.rage.scene.*;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
@@ -26,6 +23,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class MyGame extends VariableFrameRateGame {
 
@@ -160,7 +160,30 @@ public class MyGame extends VariableFrameRateGame {
         Canvas canvas = EngineManager.getEngine().getRenderSystem().getCanvas();
         canvas.setCursor(noCursor);
     }
-    
+
+    private long nodeCount(Node node) {
+        int count = node.getChildCount();
+        for (Node n : node.getChildNodes()) {
+           count += nodeCount(n);
+        }
+        return count;
+    }
+
+    private void debugCounts() {
+        System.out.println("------------------------");
+        if (UDPServer.hasServer()) {
+            System.out.println("Players: " + UDPServer.getPlayers().size());
+        } else if (UDPClient.hasClient()) {
+            System.out.println("Players: " + UDPClient.getPlayers().size());
+        }
+        System.out.println("Entities: " +  EngineManager.getSceneManager().getEntities().spliterator().getExactSizeIfKnown());
+        System.out.println("RigidBodies: " +  PhysicsManager.getRigidBodies().size());
+        System.out.println("Physics Callbacks: " +  PhysicsManager.getCallbackCount());
+        System.out.println("Registered Collisions: " +  PhysicsManager.getRegisteredCollisionCount());
+        System.out.println("Updates: " +  UpdateManager.getUpdateCount());
+        System.out.println("Nodes: " +  nodeCount(EngineManager.getSceneManager().getRootSceneNode()));
+    }
+
     @Override
     protected void update(Engine engine) {
         //goalSize.update();
@@ -175,6 +198,8 @@ public class MyGame extends VariableFrameRateGame {
         im.update(delta);
         UpdateManager.update(delta);
         fpsText.text = "FPS: " + TimeManager.getFps();
+
+        //debugCounts();
     }
 }
 

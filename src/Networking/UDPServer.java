@@ -12,8 +12,10 @@ import ray.rml.Vector3f;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -123,6 +125,9 @@ public class UDPServer extends GameConnectionServer<Byte> {
             unreadPackets.put(cli.info(), packets);
         }
         packets.add(o);
+
+        Player player = clientPlayers.get(cli.info());
+        if (player != null) { player.lastMessageReceived = java.lang.System.currentTimeMillis(); }
     }
 
     private synchronized void processUnreadPackets() {
@@ -139,8 +144,42 @@ public class UDPServer extends GameConnectionServer<Byte> {
         }
     }
 
+    private static void removeInactivePlayers() {
+        long now = java.lang.System.currentTimeMillis();
+        ArrayList<Player> removePlayers = new ArrayList<>();
+        for (Player player : players.values()) {
+            if (player.isAi()) { continue; }
+            if (now - player.lastMessageReceived > 5000) {
+                removePlayers.add(player);
+            }
+        }
+
+        for (Player player : removePlayers) {
+            removeInactivePlayer(player);
+        }
+    }
+
+    private static void removeInactivePlayer(Player player) {
+        players.remove(player.getId());
+        String strInfo = null;
+        for (String clientInfo : Collections.list(clientPlayers.keys())) {
+            if (clientPlayers.get(clientInfo) == player) {
+                strInfo = clientInfo;
+                break;
+            }
+        }
+        if (strInfo != null) {
+            clientPlayers.remove(strInfo);
+            clientInfos.remove(strInfo);
+            unreadPackets.remove(strInfo);
+        }
+        System.out.println("Removed due to inactivity: " + player.getId());
+        player.destroy();
+    }
+
     public static void update() {
         instance.processUnreadPackets();
+        removeInactivePlayers();
         long currentTime = java.lang.System.currentTimeMillis();
         if (currentTime >= instance.nextWorldState) {
             instance.nextWorldState = java.lang.System.currentTimeMillis() + 1000 / updateRate;
