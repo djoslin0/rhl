@@ -61,9 +61,7 @@ public class SoundGroup implements Updatable {
     }
 
     public void play(int volume) {
-
-        return;
-        /*UpdateManager.remove(this);
+        UpdateManager.remove(this);
         sounds[index].stop();
         int increment = (int)(Math.random() * (sounds.length - 1) * 0.6f) + 1;
         index = (index + increment) % sounds.length;
@@ -71,10 +69,10 @@ public class SoundGroup implements Updatable {
         this.volume = volume;
         updateVolume();
         pitch = 1 + (float)Math.random() * 0.2f - 0.1f;
-        sounds[index].setPitch(pitch);
+        try { sounds[index].setPitch(pitch); } catch (NullPointerException ex) {}
         sounds[index].play();
 
-        UpdateManager.add(this);*/
+        UpdateManager.add(this);
     }
 
     private void updateVolume() {
