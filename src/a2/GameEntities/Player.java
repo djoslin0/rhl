@@ -17,12 +17,10 @@ import myGameEngine.Helpers.SoundGroup;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.*;
 import ray.rage.asset.texture.Texture;
+import ray.rage.rendersystem.Renderable;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.TextureState;
-import ray.rage.scene.Camera;
-import ray.rage.scene.SceneManager;
-import ray.rage.scene.SceneNode;
-import ray.rage.scene.SkeletalEntity;
+import ray.rage.scene.*;
 import ray.rml.*;
 
 import java.awt.*;
@@ -35,14 +33,22 @@ public class Player extends GameEntity implements Attackable {
     private SceneNode leftEyeNode;
     private SceneNode rightEyeNode;
     private SceneNode roboNode;
+
     private RigidBody body;
-    private TextureState textureState;
+
     private CharacterController controller;
     private CharacterAnimationController animationController;
     private HudController hudController;
+
     private SkeletalEntity robo;
+    private Entity headObj;
     private Glove glove;
+
+    private TextureState textureState;
+    private TextureState headState;
+
     private byte playerId;
+    private byte headId;
     private Player.Team playerSide;
     private boolean local;
     public short lastReceivedTick;
@@ -82,6 +88,7 @@ public class Player extends GameEntity implements Attackable {
         this.playerId = playerId;
         this.local = local;
         playerSide = side;
+        headId = (byte)((Math.abs(playerId) % 2) + 1);
 
         SceneManager sm = EngineManager.getSceneManager();
         String name = "Player" + playerId;
@@ -116,6 +123,15 @@ public class Player extends GameEntity implements Attackable {
             Texture texture = sm.getTextureManager().getAssetByPath(textureName);
             textureState = (TextureState)sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
             textureState.setTexture(texture);
+
+            if (headId == 2) {
+                String headTextureName = (side == Team.Orange) ? "head2_orange.png" : "head2_blue.png";
+                Texture headTexture = sm.getTextureManager().getAssetByPath(headTextureName);
+                headState = (TextureState) sm.getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
+                headState.setTexture(headTexture);
+            } else {
+                headState = textureState;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -206,6 +222,13 @@ public class Player extends GameEntity implements Attackable {
             // track head for glowing eyes
             headNode = roboNode.createChildSceneNode(name + "HeadNode");
 
+            // create head
+            headObj = sm.createEntity(name + "Head", (headId == 2) ? "head2.obj" : "head.obj");
+            addResponsibility(headObj);
+            headObj.setPrimitive(Renderable.Primitive.TRIANGLES);
+            headObj.setRenderState(headState);
+            headNode.attachObject(headObj);
+
             // create eyes
             float eyeSpacing = 0.225f;
             float distFromHead = 0.74f;
@@ -214,6 +237,12 @@ public class Player extends GameEntity implements Attackable {
 
             Color eyeColor = (playerSide == Team.Orange) ? Color.YELLOW : new Color(200, 150, 255);
 
+            if (headId == 2) {
+                eyeSpacing = 0;
+                eyeHeight = 0.55f;
+                distFromHead = 0.73f;
+            }
+
             // left eye
             leftEyeNode = headNode.createChildSceneNode(name + "EyeLNode");
             leftEyeNode.setLocalPosition(eyeSpacing, eyeHeight, distFromHead);
@@ -221,10 +250,12 @@ public class Player extends GameEntity implements Attackable {
             addResponsibility(leftEyeFlare);
 
             // right eye
-            rightEyeNode = headNode.createChildSceneNode(name + "EyeRNode");
-            rightEyeNode.setLocalPosition(-eyeSpacing, eyeHeight, distFromHead);
-            Billboard rightEyeFlare = new Billboard(rightEyeNode, eyeSize, eyeSize, "flare1.png", eyeColor);
-            addResponsibility(rightEyeFlare);
+            if (headId != 2) {
+                rightEyeNode = headNode.createChildSceneNode(name + "EyeRNode");
+                rightEyeNode.setLocalPosition(-eyeSpacing, eyeHeight, distFromHead);
+                Billboard rightEyeFlare = new Billboard(rightEyeNode, eyeSize, eyeSize, "flare1.png", eyeColor);
+                addResponsibility(rightEyeFlare);
+            }
 
             // animation controller
             animationController = new RemoteCharacterAnimationController(this, controller);
@@ -510,7 +541,7 @@ public class Player extends GameEntity implements Attackable {
         if (roboNode != null) {
             node.detachChild(roboNode);
             leftEyeNode.setLocalScale(0.001f, 0.001f, 0.001f);
-            rightEyeNode.setLocalScale(0.001f, 0.001f, 0.001f);
+            if (rightEyeNode != null) { rightEyeNode.setLocalScale(0.001f, 0.001f, 0.001f); }
         }
 
         dead = true;
@@ -550,7 +581,7 @@ public class Player extends GameEntity implements Attackable {
         if (roboNode != null) {
             node.attachChild(roboNode);
             leftEyeNode.setLocalScale(1f, 1f, 1f);
-            rightEyeNode.setLocalScale(1f, 1f, 1f);
+            if (rightEyeNode != null) { rightEyeNode.setLocalScale(1f, 1f, 1f); }
         }
 
         respawnSound.play();
@@ -559,13 +590,19 @@ public class Player extends GameEntity implements Attackable {
     private Debris createDebrisPart(String boneName) {
         float duration = 10000f;
         try {
+            String modelName = boneName + ".obj";
+            TextureState textureState = this.textureState;
+            if (boneName == "head" && headId == 2) {
+                modelName = "head2.obj";
+                textureState = this.headState;
+            }
             if (local) {
-                return new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), boneName + ".obj", textureState, duration);
+                return new Debris(node.getWorldPosition(), cameraNode.getWorldRotation().toQuaternion(), getVelocity(), modelName, textureState, duration);
             } else {
                 Matrix4 matrix = roboNode.getWorldTransform().mult(robo.getBoneModelTransform(boneName));
                 Vector3 location = matrix.column(3).toVector3();
                 Quaternion rotation = matrix.toQuaternion();
-                Debris debris = new Debris(location, rotation, getVelocity(), boneName + ".obj", textureState, duration);
+                Debris debris = new Debris(location, rotation, getVelocity(), modelName, textureState, duration);
                 return debris;
             }
         } catch (IOException e) {

@@ -210,8 +210,9 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         gl.glEnable(GL4.GL_SCISSOR_TEST);
         gl.glEnable(GL4.GL_PROGRAM_POINT_SIZE);
         gl.glEnable(GL4.GL_TEXTURE_CUBE_MAP_SEAMLESS);
-        gl.glEnable(GL.GL_BLEND);
+        gl.glEnable(GL.GL_BLEND);  /* MyChange: ADDED LINE */
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA); /* MyChange: ADDED LINE */
+        gl.setSwapInterval(0); /* MyChange: disables VSync */
 
         int[] vaos = new int[1];
         gl.glGenVertexArrays(vaos.length, vaos, 0);

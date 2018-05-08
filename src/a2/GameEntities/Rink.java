@@ -2,15 +2,9 @@ package a2.GameEntities;
 
 import com.bulletphysics.collision.shapes.BoxShape;
 import com.bulletphysics.collision.shapes.CollisionShape;
-import com.bulletphysics.collision.shapes.ConvexHullShape;
-import com.bulletphysics.dynamics.RigidBody;
-
-import a2.MyGame;
 import com.bulletphysics.linearmath.DefaultMotionState;
 import com.bulletphysics.linearmath.Transform;
-import myGameEngine.Controllers.MotionStateController;
 import myGameEngine.GameEntities.GameEntity;
-import myGameEngine.Helpers.BulletConvert;
 import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.PhysicsManager;
 import myGameEngine.Singletons.UniqueCounter;
