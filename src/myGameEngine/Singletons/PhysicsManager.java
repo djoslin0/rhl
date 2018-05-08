@@ -116,7 +116,7 @@ public class PhysicsManager extends InternalTickCallback implements Updatable {
 
             for (int j = 0; j < manifold.getNumContacts(); j++) {
                 ManifoldPoint contactPoint = manifold.getContactPoint(j);
-                if (contactPoint.getDistance() < 0) {
+                if (contactPoint.getDistance() <= 0) {
                     ((GameEntity)object1.getUserPointer()).collision((GameEntity) object2.getUserPointer(), contactPoint, true);
                     ((GameEntity)object2.getUserPointer()).collision((GameEntity) object1.getUserPointer(), contactPoint, false);
                 }

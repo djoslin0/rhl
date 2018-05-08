@@ -43,6 +43,7 @@ public class Puck extends GameEntity implements Attackable {
     private float rinkSlideTimeout = 0;
     private float iceImpactTimeout = 0;
     private float rinkImpactTimeout = 0;
+    private int blockGoal = 0;
 
     private SoundGroup explosionSound;
     private SoundGroup cheerSound;
@@ -139,6 +140,7 @@ public class Puck extends GameEntity implements Attackable {
         t.origin.x = 0f;
         t.origin.y = 25f;
         t.origin.z = 0;
+        node.setLocalPosition(0, 25, 0);
 
         body.setWorldTransform(t);
         body.clearForces();
@@ -176,12 +178,13 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     public void goalCollision(Player.Team team) {
-        if (!UDPClient.hasClient() && !isFrozen() && !GameState.isMatchOver()) {
+        if (!UDPClient.hasClient() && !isFrozen() && !GameState.isMatchOver() && blockGoal == 0) {
             if (dunk) {
                 GameState.addScore(team, 3);
             } else {
                 GameState.addScore(team, 1);
             }
+            blockGoal = 10;
         }
 
         reset(true, dunk);
@@ -351,7 +354,7 @@ public class Puck extends GameEntity implements Attackable {
         if (dunkBox1.contains(node.getLocalPosition()) || dunkBox2.contains(node.getLocalPosition())) {
             dunk = true;
         } else if (dunkBox1.Contains2d(contained) || dunkBox2.Contains2d(contained)){
-            if (dunkBox1.below(node.getWorldPosition()) || dunkBox2.below(node.getWorldPosition())) {
+            if (dunk && (dunkBox1.below(node.getWorldPosition()) || dunkBox2.below(node.getWorldPosition()))) {
                 goalCollision((node.getWorldPosition().x() < 0) ? Player.Team.Blue : Player.Team.Orange);
             }
         } else {
@@ -401,6 +404,8 @@ public class Puck extends GameEntity implements Attackable {
         } else {
             rinkImpactTimeout -= delta;
         }
+
+        if (blockGoal > 0) { blockGoal--; }
     }
 
 }

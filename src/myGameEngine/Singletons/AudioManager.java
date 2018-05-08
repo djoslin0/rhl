@@ -40,6 +40,7 @@ public class AudioManager /*implements Updatable*/ {
     public SoundGroup spin;
     public SoundGroup ice;
     public SoundGroup rink;
+    public SoundGroup matchOver;
 
     public AudioManager() {
         audio = AudioManagerFactory.createAudioManager("ray.audio.joal.JOALAudioManager");
@@ -140,6 +141,10 @@ public class AudioManager /*implements Updatable*/ {
                 50, false, 200, 5f
         );
 
+        instance.matchOver = new SoundGroup(instance.audio,
+                new String[] { "matchover.wav" },
+                100, false, 200, 5f
+        );
     }
 
     public static AudioManager get() { return instance; }

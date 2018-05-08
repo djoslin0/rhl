@@ -68,7 +68,8 @@ public class MyGame extends VariableFrameRateGame {
             if (args[0].equals("s")) {
                 UDPServer.createServer(8800);
                 player = new Player((byte)0, true, Player.Team.Orange);
-                //UDPServer.addPlayer(new AIPlayer((byte)200,false,Player.Team.Orange));
+                //new AIPlayer((byte)200,false, Player.Team.Orange);
+                //new AIPlayer((byte)201,false, Player.Team.Blue);
                 return;
             } else if (args[0].equals("c")) {
                 UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
@@ -88,7 +89,6 @@ public class MyGame extends VariableFrameRateGame {
         //new AIPlayer((byte)201,false, Player.Team.Blue);
         //new AIPlayer((byte)202,false, Player.Team.Orange);
         //new AIPlayer((byte)203,false, Player.Team.Blue);
-
     }
 
     @Override

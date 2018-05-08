@@ -23,7 +23,10 @@ public class GameState implements Updatable {
     private float matchOverSecondsLeft = 0;
     private boolean matchOver = false;
 
+    private SoundGroup matchOverSound;
+
     public GameState() {
+        matchOverSound = AudioManager.get().matchOver.clone(EntityManager.getLocalPlayer().getCameraNode());
         UpdateManager.add(this);
     }
 
@@ -93,6 +96,7 @@ public class GameState implements Updatable {
         if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketMatch()); }
 
         HudController.showWinLose(EntityManager.getLocalPlayer().getSide() == winningTeam);
+        instance.matchOverSound.play();
     }
 
     public static void resetMatch() {
