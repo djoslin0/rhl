@@ -141,13 +141,15 @@ public class AiController {
                break;
                //dunk
            case Dunking:
-               accuracy = 1f;
-               target = Vector3f.createFrom(puckPos.x(),puckPos.y() + 2.5f, puckPos.z());
-               optPos = puckPos.sub(goalPosition).normalize().mult(4.5f);
+               accuracy = 0.5f;
+               target = Vector3f.createFrom(puckPos.x(),puckPos.y() + 2.3f, puckPos.z());
+               optPos = puckPos.sub(goalPosition).normalize().mult(4.3f);
                desiredLocation = puckPos.add(Vector3f.createFrom(optPos.x(),aiPlayer.getPosition().y(),optPos.z()));
                if(aiPlayer.getPosition().sub(desiredLocation).length() < 2f)
                {
                    aiPlayer.getController().setCrouching(true);
+               }else {
+                   aiPlayer.getController().setCrouching(false);
                }
                if(dunnking == true || !behindGoal() || Math.abs(aiPlayer.getPosition().x())< (Math.abs(goalPosition.x())-3f)){
                    dunnking = false;
@@ -233,7 +235,7 @@ public class AiController {
                    desiredLocation = enemyGoalPosition .add(Vector3f.createFrom(-65f,0f,pos * 5f));
                }
 
-               if(!EntityManager.getPuck().isFrozen()){
+               if(!EntityManager.getPuck().isFrozen() || aiPlayer.isDead() || !EngineManager.isGameActive()){
                    currentState = States.Thinking;
                }
                break;
@@ -260,7 +262,7 @@ public class AiController {
             if(currentState == States.Dunking)
             {
                 dunkTicks++;
-                if(dunkTicks >= 20){
+                if(dunkTicks >= 10 || aiPlayer.getPosition().sub(desiredLocation).length() > 2f){
                     dunnking = true;
                     dunkTicks = 0;
                 }
