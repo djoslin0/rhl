@@ -27,12 +27,14 @@ public class HudElement extends GameEntity implements Camera.Listener {
     private Vector2 screenLocation;
     private Color color;
     private Color invisible = new Color(0, 0, 0, 0);
+    private String textureName;
 
     public HudElement(SceneNode parentNode, float scale, Vector2 screenLocation, Vector2 origin, String textureName, Color color) throws IOException {
         super(false);
 
         this.screenLocation = screenLocation;
         this.color = color;
+        this.textureName = textureName;
 
         Engine engine = EngineManager.getEngine();
         SceneManager sm = EngineManager.getSceneManager();
@@ -115,15 +117,17 @@ public class HudElement extends GameEntity implements Camera.Listener {
     public Material getMaterial() { return mat; }
 
     public void updateTexture(String textureName){
-        Texture texture = null;
+        if (textureName == this.textureName) { return; }
+        this.textureName = textureName;
+
         try {
-            texture = EngineManager.getSceneManager().getTextureManager().getAssetByPath(textureName);
+            Texture texture = EngineManager.getSceneManager().getTextureManager().getAssetByPath(textureName);
+            TextureState textureState = (TextureState)EngineManager.getSceneManager().getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
+            textureState.setTexture(texture);
+            obj.setRenderState(textureState);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        TextureState textureState = (TextureState)EngineManager.getSceneManager().getRenderSystem().createRenderState(RenderState.Type.TEXTURE);
-        textureState.setTexture(texture);
-        obj.setRenderState(textureState);
     }
 
     @Override
