@@ -78,17 +78,15 @@ public class Player extends GameEntity implements Attackable {
     public long lastMessageReceived = java.lang.System.currentTimeMillis();
 
     // side definition
-    public static enum Team{
-        Orange,Blue
-    }
+    public static enum Team{ Orange, Blue }
 
-    public Player(byte playerId, boolean local, Player.Team side) {
+    public Player(byte playerId, boolean local, Player.Team side, byte headId) {
         super(true);
         System.out.println("CREATE PLAYER " + playerId);
         this.playerId = playerId;
         this.local = local;
-        playerSide = side;
-        headId = (byte)((Math.abs(playerId) % 2) + 1);
+        this.playerSide = side;
+        this.headId = headId;
 
         SceneManager sm = EngineManager.getSceneManager();
         String name = "Player" + playerId;
@@ -173,6 +171,7 @@ public class Player extends GameEntity implements Attackable {
         absorbHurt = 0;
     }
 
+    public byte getHeadId() { return headId; }
     public void playJumpSound() { jumpSound.play(); }
     public void playLandSound() { landSound.play(); }
 

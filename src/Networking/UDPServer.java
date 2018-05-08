@@ -61,11 +61,11 @@ public class UDPServer extends GameConnectionServer<Byte> {
         }
     }
 
-    public static Player createPlayer(ClientInfo cli) {
+    public static Player createPlayer(ClientInfo cli, byte headId) {
         if (instance.clientPlayers.contains(cli.info())) {
             return instance.clientPlayers.get(cli.info());
         } else {
-            Player player = new Player(instance.nextId, false, getTeamWithFewer());
+            Player player = new Player(instance.nextId, false, getTeamWithFewer(), headId);
             instance.clientPlayers.put(cli.info(), player);
             instance.players.put(player.getId(), player);
             try {

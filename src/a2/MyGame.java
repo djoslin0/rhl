@@ -67,13 +67,19 @@ public class MyGame extends VariableFrameRateGame {
         if (args.length > 0) {
             if (args[0].equals("s")) {
                 UDPServer.createServer(8800);
-                player = new Player((byte)0, true, Player.Team.Orange);
-                //new AIPlayer((byte)200,false, Player.Team.Orange);
-                //new AIPlayer((byte)201,false, Player.Team.Blue);
+                player = new Player((byte)0, true, Player.Team.Orange, (byte)1);
+                //new AIPlayer((byte)200,false, Player.Team.Orange, (byte)1);
+                //new AIPlayer((byte)201,false, Player.Team.Blue, (byte)1);
                 return;
             } else if (args[0].equals("c")) {
                 UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
-                UDPClient.send(new PacketJoin());
+                byte headId = 1;
+                for (String arg : args) {
+                    if (arg.toLowerCase().equals("head2")) {
+                        headId = 2;
+                    }
+                }
+                UDPClient.send(new PacketJoin(headId));
 
                 while (player == null) {
                     player = UDPClient.getPlayer(UDPClient.getPlayerId());
@@ -84,13 +90,13 @@ public class MyGame extends VariableFrameRateGame {
         }
 
         System.out.println("continuing without networking");
-        player = new Player((byte)1, true, Player.Team.Orange);
-        new Player((byte)2, false, Player.Team.Orange);
-        new Player((byte)3, false, Player.Team.Blue);
-        //new AIPlayer((byte)200,false, Player.Team.Orange);
-        //new AIPlayer((byte)201,false, Player.Team.Blue);
-        //new AIPlayer((byte)202,false, Player.Team.Orange);
-        //new AIPlayer((byte)203,false, Player.Team.Blue);
+        player = new Player((byte)1, true, Player.Team.Orange, (byte)1);
+        new Player((byte)2, false, Player.Team.Orange, (byte)1);
+        new Player((byte)3, false, Player.Team.Blue, (byte)2);
+        //new AIPlayer((byte)200,false, Player.Team.Orange, (byte)1);
+        //new AIPlayer((byte)201,false, Player.Team.Blue, (byte)2);
+        //new AIPlayer((byte)202,false, Player.Team.Orange, (byte)2);
+        //new AIPlayer((byte)203,false, Player.Team.Blue, (byte)1);
     }
 
     @Override

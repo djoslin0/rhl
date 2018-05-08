@@ -21,6 +21,7 @@ public class PacketJoinSuccess extends Packet {
     private Vector3 position;
     private byte orange;
     private byte blue;
+    private byte headId;
 
     public PacketJoinSuccess() { }
 
@@ -36,7 +37,7 @@ public class PacketJoinSuccess extends Packet {
 
     @Override
     public ByteBuffer writeInfo() {
-        ByteBuffer buffer = ByteBuffer.allocate(12);
+        ByteBuffer buffer = ByteBuffer.allocate(13);
         Vector3 position = player.getNode().getWorldPosition();
         buffer.putShort(TimeManager.getTick());
         buffer.put(player.getId());
@@ -46,6 +47,7 @@ public class PacketJoinSuccess extends Packet {
         buffer.putShort(NetworkFloat.encode(position.z()));
         buffer.put((byte) GameState.getScore(Player.Team.Orange));
         buffer.put((byte) GameState.getScore(Player.Team.Blue));
+        buffer.put(player.getHeadId());
         return buffer;
     }
 
@@ -65,6 +67,7 @@ public class PacketJoinSuccess extends Packet {
         );
         orange = buffer.get();
         blue = buffer.get();
+        headId = buffer.get();
     }
 
     @Override
@@ -78,7 +81,7 @@ public class PacketJoinSuccess extends Packet {
         UDPClient.setLastReceivedTick(tick);
         TimeManager.setTick(tick);
         UDPClient.setPlayerId(id);
-        Player player = new Player(id, true, side);
+        Player player = new Player(id, true, side, headId);
         UDPClient.addPlayer(player);
         player.setPosition(position);
         GameState.setScore(Player.Team.Orange, orange);

@@ -39,7 +39,7 @@ public class PacketWorldState extends Packet {
     @Override
     public ByteBuffer writeInfo() {
         Collection<Player> players = UDPServer.getPlayers();
-        ByteBuffer buffer = ByteBuffer.allocate(32 + 20 * players.size());
+        ByteBuffer buffer = ByteBuffer.allocate(32 + 21 * players.size());
         Puck puck = EntityManager.getPuck();
         puckPosition = puck.getNode().getWorldPosition();
         puck.getBody().getOrientation(puckOrientation);
@@ -86,7 +86,8 @@ public class PacketWorldState extends Packet {
         buffer.put((byte)players.size());
         for (Player player : players) {
             buffer.put(player.getId());
-            buffer.put((byte)player.getSide().ordinal());
+            buffer.put((byte)player.getSide().ordinal());  /* TODO: can condense this and headID into one byte */
+            buffer.put(player.getHeadId()); /* TODO: can condense this and side into one byte */
             buffer.put(player.getHealth());
             buffer.put(player.getController().getControls());
             buffer.putShort(NetworkFloat.encode(player.getPitch() * 100f));
@@ -140,6 +141,7 @@ public class PacketWorldState extends Packet {
         while(playerCount-- > 0) {
             byte id = buffer.get();
             byte side = buffer.get();
+            byte headId = buffer.get();
             byte health = buffer.get();
             byte controls = buffer.get();
             float pitch = NetworkFloat.decode(buffer.getShort()) / 100f;
@@ -156,7 +158,7 @@ public class PacketWorldState extends Packet {
                     NetworkFloat.decode(buffer.getShort()));
 
             if (id != UDPClient.getPlayerId()) {
-                playerStates.add(new PlayerState(id, side, health, controls, pitch, yaw, position, velocity));
+                playerStates.add(new PlayerState(id, side, headId, health, controls, pitch, yaw, position, velocity));
             }
         }
     }
@@ -214,6 +216,7 @@ public class PacketWorldState extends Packet {
     private class PlayerState {
         private byte id;
         private byte side;
+        private byte headId;
         private byte health;
         private byte controls;
         private float pitch;
@@ -221,9 +224,10 @@ public class PacketWorldState extends Packet {
         private Vector3 position;
         private Vector3 velocity;
 
-        public PlayerState(byte id, byte side, byte health, byte controls, float pitch, float yaw, Vector3 position, Vector3 velocity) {
+        public PlayerState(byte id, byte side, byte headId, byte health, byte controls, float pitch, float yaw, Vector3 position, Vector3 velocity) {
             this.id = id;
             this.side = side;
+            this.headId = headId;
             this.health = health;
             this.controls = controls;
             this.pitch = pitch;
@@ -236,7 +240,7 @@ public class PacketWorldState extends Packet {
             Player player = UDPClient.getPlayer(id);
 
             if (player == null) {
-                player = new Player(id, false, Player.Team.values()[side]);
+                player = new Player(id, false, Player.Team.values()[side], headId);
                 player.setPosition(position);
                 UDPClient.addPlayer(player);
                 System.out.println("NEW PLAYER: " + id);
