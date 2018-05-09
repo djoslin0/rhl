@@ -261,7 +261,9 @@ public class Puck extends GameEntity implements Attackable {
             }
 
             // create collision direction vector
-            Vector3 diff2 = Vector3f.createFrom(contactPoint.positionWorldOnA).sub(Vector3f.createFrom(contactPoint.positionWorldOnB)).normalize().mult(2.5f);
+            Vector3 diff2 = Vector3f.createFrom(contactPoint.positionWorldOnA).sub(Vector3f.createFrom(contactPoint.positionWorldOnB));
+            if (diff2.length() < 0.01) { diff2 = node.getWorldPosition().sub(player.getNode().getWorldPosition()); }
+            diff2 = diff2.normalize().mult(2.5f);
             if (!isA) { diff2 = diff2.mult(-1f); }
             diff2 = Vector3f.createFrom(diff2.x(), diff2.y() * yScalar, diff2.z());
 
