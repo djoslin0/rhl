@@ -1,6 +1,6 @@
 package Networking;
 
-import a2.GameEntities.Player;
+import a3.GameEntities.Player;
 import myGameEngine.NetworkHelpers.ClientInfo;
 
 import java.io.IOException;

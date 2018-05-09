@@ -6,7 +6,7 @@ import myGameEngine.Singletons.Settings;
 import ray.networking.IGameConnection;
 import ray.networking.server.GameConnectionServer;
 import ray.networking.server.IClientInfo;
-import a2.GameEntities.Player;
+import a3.GameEntities.Player;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 

@@ -1,6 +1,6 @@
 package myGameEngine.Controllers;
 
-import a2.GameEntities.Player;
+import a3.GameEntities.Player;
 import com.bulletphysics.linearmath.DefaultMotionState;
 import com.bulletphysics.linearmath.Transform;
 import myGameEngine.Helpers.BulletConvert;

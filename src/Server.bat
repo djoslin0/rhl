@@ -1,1 +1,1 @@
-java a2.MyGame s 8800
+java a3.MyGame s 8800

@@ -1,6 +1,6 @@
 package Networking;
 
-import a2.GameEntities.Player;
+import a3.GameEntities.Player;
 import myGameEngine.Singletons.EntityManager;
 import ray.networking.IGameConnection;
 import ray.networking.client.GameConnectionClient;

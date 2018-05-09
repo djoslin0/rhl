@@ -1,7 +1,7 @@
 package Networking;
 
-import a2.Contollers.CharacterController;
-import a2.GameEntities.Player;
+import a3.Contollers.CharacterController;
+import a3.GameEntities.Player;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.NetworkHelpers.NetworkFloat;
 import myGameEngine.Singletons.TimeManager;
