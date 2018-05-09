@@ -94,7 +94,7 @@ public class MyGame extends VariableFrameRateGame {
         //new Player((byte)2, false, Player.Team.Orange, (byte)1);
         //new Player((byte)3, false, Player.Team.Blue, (byte)2);new AIPlayer((byte)200,false, Player.Team.Orange, (byte)1);
         new AIPlayer((byte)201,false, Player.Team.Blue, (byte)2);
-        //new AIPlayer((byte)202,false, Player.Team.Orange, (byte)2);
+        new AIPlayer((byte)202,false, Player.Team.Orange, (byte)2);
         //new AIPlayer((byte)203,false, Player.Team.Blue, (byte)1);
     }
 
