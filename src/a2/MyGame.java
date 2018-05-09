@@ -63,13 +63,22 @@ public class MyGame extends VariableFrameRateGame {
         this.args = args;
     }
 
+    private void spawnBots() {
+        int botCount = UDPServer.hasServer() ? Settings.get().serverBotCount.intValue() : Settings.get().localBotCount.intValue();
+        for (int i = 0; i < botCount; i++) {
+            byte id = (byte) (i + 2);
+            Player.Team team = (i % 2) == 0 ? Player.Team.Orange : Player.Team.Blue;
+            byte headId = (byte) (Math.random() * 2 + 1);
+            AIPlayer bot = new AIPlayer(id, false, team, headId);
+            if (UDPServer.hasServer()) { UDPServer.addPlayer(bot); }
+        }
+    }
+
     private void setupNetworking() throws IOException {
         if (args.length > 0) {
             if (args[0].equals("s")) {
                 UDPServer.createServer(8800);
                 player = new Player((byte)0, true, Player.Team.Orange, (byte)1);
-                //new AIPlayer((byte)200,false, Player.Team.Orange, (byte)1);
-                //new AIPlayer((byte)201,false, Player.Team.Blue, (byte)1);
                 return;
             } else if (args[0].equals("c")) {
                 UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
@@ -91,12 +100,6 @@ public class MyGame extends VariableFrameRateGame {
 
         System.out.println("continuing without networking");
         player = new Player((byte)1, true, Player.Team.Orange, (byte)1);
-        new Player((byte)2, false, Player.Team.Orange, (byte)1);
-        new Player((byte)3, false, Player.Team.Blue, (byte)2);
-        //new AIPlayer((byte)200,false, Player.Team.Orange, (byte)1);
-        //new AIPlayer((byte)201,false, Player.Team.Blue, (byte)2);
-        //new AIPlayer((byte)202,false, Player.Team.Orange, (byte)2);
-        //new AIPlayer((byte)203,false, Player.Team.Blue, (byte)1);
     }
 
     @Override
@@ -156,6 +159,7 @@ public class MyGame extends VariableFrameRateGame {
         rs.addHud(fpsText);
 
         setupNetworking();
+        spawnBots();
         setupInputs();
     }
 

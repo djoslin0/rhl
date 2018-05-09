@@ -30,6 +30,9 @@ public class Settings {
 
     public Double goalDistance;
 
+    public Integer serverBotCount;
+    public Integer localBotCount;
+
     public Integer matchSeconds;
     public Integer intermissionSeconds;
 
@@ -66,6 +69,9 @@ public class Settings {
 
             instance.terrainEmissive = (Color)(instance.jsEngine.eval("terrainEmissive"));
             instance.terrainSpecular = (Color)(instance.jsEngine.eval("terrainSpecular"));
+
+            instance.serverBotCount = (Integer) (instance.jsEngine.eval("serverBotCount"));
+            instance.localBotCount = (Integer) (instance.jsEngine.eval("localBotCount"));
 
             instance.goalDistance = (Double)(instance.jsEngine.eval("goalDistance"));
 
