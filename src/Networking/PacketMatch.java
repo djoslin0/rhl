@@ -1,7 +1,7 @@
 package Networking;
 
-import a2.GameEntities.Player;
-import a2.GameState;
+import a3.GameEntities.Player;
+import a3.GameState;
 import myGameEngine.NetworkHelpers.ClientInfo;
 import myGameEngine.Singletons.TimeManager;
 

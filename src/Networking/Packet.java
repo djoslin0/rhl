@@ -1,10 +1,11 @@
 package Networking;
 
-import a2.GameEntities.Player;
+import a3.GameEntities.Player;
 import myGameEngine.NetworkHelpers.ClientInfo;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -26,6 +27,7 @@ public abstract class Packet {
     private Byte number = null;
     private ClientInfo clientInfo;
     private long nextSendTime;
+    private int attempts = 0;
     private long sendTimeout = 250;
 
     public Byte getNumber() { return number; }
@@ -119,9 +121,14 @@ public abstract class Packet {
 
     public static void resendUnackedPackets() {
         long currentTime = java.lang.System.currentTimeMillis();
+        ArrayList<Byte> removePackets = new ArrayList();
         for (HashMap<Byte, Packet> map : unackedPackets.values()) {
             for (Packet packet : map.values()) {
                 if (packet.nextSendTime > currentTime) { continue; }
+                if (packet.attempts++ > 10) {
+                    removePackets.add(packet.getNumber());
+                    continue;
+                }
                 System.out.println("resending packet #" + packet.getNumber());
                 if (UDPClient.hasClient()) {
                     UDPClient.send(packet);
@@ -129,6 +136,9 @@ public abstract class Packet {
                     UDPServer.sendTo(packet.clientInfo, packet);
                 }
             }
+        }
+        for (Byte number : removePackets) {
+            unackedPackets.remove(number);
         }
     }
 

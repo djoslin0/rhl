@@ -6,7 +6,7 @@ import myGameEngine.Singletons.Settings;
 import ray.networking.IGameConnection;
 import ray.networking.server.GameConnectionServer;
 import ray.networking.server.IClientInfo;
-import a2.GameEntities.Player;
+import a3.GameEntities.Player;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
@@ -65,6 +65,12 @@ public class UDPServer extends GameConnectionServer<Byte> {
         if (instance.clientPlayers.contains(cli.info())) {
             return instance.clientPlayers.get(cli.info());
         } else {
+            while (instance.players.containsKey(instance.nextId)) {
+                instance.nextId++;
+                if (instance.nextId == 0 || instance.nextId == -1) {
+                    instance.nextId = 2;
+                }
+            }
             Player player = new Player(instance.nextId, false, getTeamWithFewer(), headId);
             instance.clientPlayers.put(cli.info(), player);
             instance.players.put(player.getId(), player);
@@ -74,14 +80,6 @@ public class UDPServer extends GameConnectionServer<Byte> {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            while (instance.players.containsKey(instance.nextId)) {
-                instance.nextId++;
-                if (instance.nextId == 0 || instance.nextId == -1) {
-                    instance.nextId = 2;
-                }
-            }
-
             return player;
         }
     }

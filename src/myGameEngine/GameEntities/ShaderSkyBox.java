@@ -1,6 +1,6 @@
 package myGameEngine.GameEntities;
 
-import a2.MyGame;
+import a3.MyGame;
 import ray.rage.Engine;
 import ray.rage.asset.texture.Texture;
 import ray.rage.asset.texture.TextureManager;
