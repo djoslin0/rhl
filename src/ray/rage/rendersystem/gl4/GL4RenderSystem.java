@@ -17,6 +17,7 @@
 
 package ray.rage.rendersystem.gl4;
 
+import a3.CommandLine;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.gl2.GLUT;
@@ -212,7 +213,9 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         gl.glEnable(GL4.GL_TEXTURE_CUBE_MAP_SEAMLESS);
         gl.glEnable(GL.GL_BLEND);  /* MyChange: ADDED LINE */
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA); /* MyChange: ADDED LINE */
-        gl.setSwapInterval(0); /* MyChange: disables VSync */
+        if (CommandLine.getDisplaySettings() != null && !CommandLine.getDisplaySettings().vsync) {
+            gl.setSwapInterval(0); /* MyChange: disables VSync */
+        }
 
         int[] vaos = new int[1];
         gl.glGenVertexArrays(vaos.length, vaos, 0);

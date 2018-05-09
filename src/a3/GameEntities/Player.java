@@ -591,7 +591,7 @@ public class Player extends GameEntity implements Attackable {
         try {
             String modelName = boneName + ".obj";
             TextureState textureState = this.textureState;
-            if (boneName == "head" && headId == 2) {
+            if (boneName.equals("head") && headId == 2) {
                 modelName = "head2.obj";
                 textureState = this.headState;
             }

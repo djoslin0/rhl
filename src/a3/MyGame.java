@@ -30,9 +30,6 @@ import java.util.List;
 
 public class MyGame extends VariableFrameRateGame {
 
-    //Networking arguments
-    private String args[];
-
     private GenericInputManager im;
     private Camera camera;
     private Player player;
@@ -40,7 +37,8 @@ public class MyGame extends VariableFrameRateGame {
     private HudText fpsText = new HudText(-80, -30, Color.white, GLUT.BITMAP_8_BY_13);
 
     public static void main(String[] args) throws IOException {
-        MyGame game = new MyGame(args);
+        CommandLine.read(args);
+        MyGame game = new MyGame();
         try {
             game.startup();
             game.run();
@@ -58,16 +56,14 @@ public class MyGame extends VariableFrameRateGame {
         game.exit();
     }
 
-    public MyGame(String[] args) {
-        super();
-        this.args = args;
-    }
-
     private void spawnBots() {
+        if (UDPClient.hasClient()) { return; }
         int botCount = UDPServer.hasServer() ? Settings.get().serverBotCount.intValue() : Settings.get().localBotCount.intValue();
+        if (CommandLine.getBots() > -1) { botCount = CommandLine.getBots(); }
+
         for (int i = 0; i < botCount; i++) {
             byte id = (byte) (i + 2);
-            Player.Team team = (i % 2) == 0 ? Player.Team.Orange : Player.Team.Blue;
+            Player.Team team = (i % 2) == 0 ? Player.Team.Blue : Player.Team.Orange;
             byte headId = (byte) (Math.random() * 2 + 1);
             AIPlayer bot = new AIPlayer(id, false, team, headId);
             if (UDPServer.hasServer()) { UDPServer.addPlayer(bot); }
@@ -75,27 +71,21 @@ public class MyGame extends VariableFrameRateGame {
     }
 
     private void setupNetworking() throws IOException {
-        if (args.length > 0) {
-            if (args[0].equals("s")) {
-                UDPServer.createServer(8800);
-                player = new Player((byte)0, true, Player.Team.Orange, (byte)1);
-                return;
-            } else if (args[0].equals("c")) {
-                UDPClient.createClient(InetAddress.getByName(args[1]), Integer.parseInt(args[2]));
-                byte headId = 1;
-                for (String arg : args) {
-                    if (arg.toLowerCase().equals("head2")) {
-                        headId = 2;
-                    }
-                }
-                UDPClient.send(new PacketJoin(headId));
+        if (CommandLine.isServer()) {
+            UDPServer.createServer(CommandLine.getPort());
+            player = new Player((byte)0, true, Player.Team.Orange, (byte)1);
+            return;
+        }
 
-                while (player == null) {
-                    player = UDPClient.getPlayer(UDPClient.getPlayerId());
-                    UDPClient.update();
-                }
-                return;
+        if (CommandLine.isClient()) {
+            UDPClient.createClient(CommandLine.getIp(), CommandLine.getPort());
+            UDPClient.send(new PacketJoin(CommandLine.getHeadId()));
+
+            while (player == null) {
+                player = UDPClient.getPlayer(UDPClient.getPlayerId());
+                UDPClient.update();
             }
+            return;
         }
 
         System.out.println("continuing without networking");
@@ -110,7 +100,12 @@ public class MyGame extends VariableFrameRateGame {
 
     @Override
     protected void setupWindow(RenderSystem rs, GraphicsEnvironment ge) {
-        rs.createRenderWindow(new DisplayMode(1000, 700, 24, 60), false);
+        CommandLine.DisplaySettings ds = CommandLine.getDisplaySettings();
+        if (ds != null) {
+            rs.createRenderWindow(new DisplayMode(ds.width, ds.height, ds.bitDepth, ds.refreshRate), ds.fullscreen);
+        } else {
+            rs.createRenderWindow(new DisplayMode(1000, 700, 24, 60), false);
+        }
     }
 
     @Override
