@@ -60,7 +60,6 @@ public class MyGame extends VariableFrameRateGame {
         if (UDPClient.hasClient()) { return; }
         int botCount = UDPServer.hasServer() ? Settings.get().serverBotCount.intValue() : Settings.get().localBotCount.intValue();
         if (CommandLine.getBots() > -1) { botCount = CommandLine.getBots(); }
-
         for (int i = 0; i < botCount; i++) {
             byte id = (byte) (i + 2);
             Player.Team team = (i % 2) == 0 ? Player.Team.Blue : Player.Team.Orange;
@@ -89,9 +88,7 @@ public class MyGame extends VariableFrameRateGame {
         }
 
         System.out.println("continuing without networking");
-        player = new Player((byte)1, true, Player.Team.Orange, (byte)1);
-        new AIPlayer((byte)201,false, Player.Team.Blue, (byte)2);
-        new AIPlayer((byte)202,false, Player.Team.Orange, (byte)2);
+        player = new Player((byte)1, true, Player.Team.Blue, (byte)1);
 
 
     }
