@@ -1,3 +1,5 @@
+package Launcher;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -5,15 +7,15 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 public class Launcher extends JFrame {
     public static Color bgColor = new Color(200, 221, 242);
     public static String[] headStrings = { "Jaw", "Helmet" };
+    private static boolean classMode = false;
 
-    public Launcher() {
+    public Launcher(boolean classMode) {
+        Launcher.classMode = classMode;
         setTitle("Robo Hockey League");
         setSize( 400, 400 );
         setLocationRelativeTo(null);
@@ -124,9 +126,12 @@ public class Launcher extends JFrame {
     }
 
     public static void launchGame(String params) {
-        String[] arr = ("java -jar RoboHockeyLeague.jar " + params).split(" ");
+        String javaParams = classMode ? "a3.MyGame" : "-jar RoboHockeyLeague.jar";
+        String[] arr = ("java " + javaParams + " " + params).split(" ");
         ProcessBuilder pb = new ProcessBuilder(arr);
-        pb.directory(new File(System.getProperty("user.dir") + "/game/"));
+        if (!classMode) {
+            pb.directory(new File(System.getProperty("user.dir") + "/game/"));
+        }
 
         try {
             pb.start();
@@ -139,7 +144,7 @@ public class Launcher extends JFrame {
     }
 
     public static void main(String[] args) throws IOException {
-        new Launcher();
+        new Launcher(args.length > 0 && args[0].equals("class"));
     }
 
 }
