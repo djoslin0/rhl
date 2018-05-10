@@ -145,7 +145,7 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
             return;
         }
 
-        if (controller.isOnGround() && lastAnimationTag.equals("falling")) {
+        if (controller.isOnGround() && lastAnimationTag != null && lastAnimationTag.equals("falling")) {
             animate("land", "land", 0.025f, SkeletalEntity.EndType.NONE, false);
             return;
         }

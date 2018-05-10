@@ -89,10 +89,13 @@ public class AiController {
                    }else{
                        desiredLocation = Vector3f.createFrom(109f,aiPlayer.getPosition().y(),desiredLocation.z());
                    }
-                   accuracy = 1f;
+                   break;
                }
-               if( Math.abs(desiredLocation.x()) > 90f && Math.abs(desiredLocation.z()) > 29f && currentState != States.InSpawn){
-                   accuracy = 1f;
+               if( Math.abs(desiredLocation.x()) > 94f && Math.abs(desiredLocation.z()) > 32f && currentState != States.InSpawn){
+                   accuracy = 5f;
+                   desiredLocation = Vector3f.createFrom(puckPos.x(),aiPlayer.getPosition().y(),puckPos.z());
+                   target = puckPos;
+                   break;
                }
                if(inGoal(aiPlayer.getPosition())){
                    currentState = States.InGaol;
@@ -120,7 +123,7 @@ public class AiController {
                    if(puckPos.x() < 0){
                        currentState = States.Shooting;
                    }else if(puckPos.x() >= 0f){
-                       if(aiPlayer.getPosition().sub(puckPos).length() > getClosestEnemy().length() ){
+                       if(getClosestEnemy()!= null && aiPlayer.getPosition().sub(puckPos).length() > getClosestEnemy().length() ){
                            currentState = States.Defending;
                        }else{
                            currentState = States.Shooting;
@@ -235,7 +238,7 @@ public class AiController {
                    desiredLocation = enemyGoalPosition .add(Vector3f.createFrom(-65f,0f,pos * 5f));
                }
 
-               if(!EntityManager.getPuck().isFrozen() || aiPlayer.isDead() || !EngineManager.isGameActive()){
+               if(!EntityManager.getPuck().isFrozen() || aiPlayer.isDead() || inSpawn(aiPlayer.getPosition())){
                    currentState = States.Thinking;
                }
                break;
