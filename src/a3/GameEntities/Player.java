@@ -218,9 +218,11 @@ public class Player extends GameEntity implements Attackable {
 
             // track right hand
             handNode = roboNode.createChildSceneNode(name + "HandNode");
+            addResponsibility(handNode);
 
             // track head for glowing eyes
             headNode = roboNode.createChildSceneNode(name + "HeadNode");
+            addResponsibility(headNode);
 
             // create head
             headObj = sm.createEntity(name + "Head", (headId == 2) ? "head2.obj" : "head.obj");
@@ -245,6 +247,7 @@ public class Player extends GameEntity implements Attackable {
 
             // left eye
             leftEyeNode = headNode.createChildSceneNode(name + "EyeLNode");
+            addResponsibility(leftEyeNode);
             leftEyeNode.setLocalPosition(eyeSpacing, eyeHeight, distFromHead);
             Billboard leftEyeFlare = new Billboard(leftEyeNode, eyeSize, eyeSize, "flare1.png", eyeColor);
             addResponsibility(leftEyeFlare);
@@ -252,6 +255,7 @@ public class Player extends GameEntity implements Attackable {
             // right eye
             if (headId != 2) {
                 rightEyeNode = headNode.createChildSceneNode(name + "EyeRNode");
+                addResponsibility(rightEyeNode);
                 rightEyeNode.setLocalPosition(-eyeSpacing, eyeHeight, distFromHead);
                 Billboard rightEyeFlare = new Billboard(rightEyeNode, eyeSize, eyeSize, "flare1.png", eyeColor);
                 addResponsibility(rightEyeFlare);

@@ -22,6 +22,7 @@ with (JavaPackages) {
 
 	var serverBotCount = 4;
 	var localBotCount = 1;
+
 	var matchSeconds = 5 * 60;
 	var intermissionSeconds = 5;
 
@@ -31,7 +32,6 @@ with (JavaPackages) {
 	var debug4 = 0.3;
 	var debug5 = 0.0;
 
-	// goal size
 	var debugPosition = Vector3f.createFrom(70.0, 1.0, -14.0);
 	var debugScale = Vector3f.createFrom(1.0, 1.0, 1.0);
 	var debugRotation = Vector3f.createFrom(0.0, 0.0, 0.0);

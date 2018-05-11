@@ -24,6 +24,7 @@ import ray.rml.Vector3f;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,6 +47,9 @@ public class MyGame extends VariableFrameRateGame {
             game.run();
         } catch (Exception e) {
             e.printStackTrace(System.err);
+            PrintWriter writer = new PrintWriter("crashlog.txt", "UTF-8");
+            e.printStackTrace(writer);
+            writer.close();
         } finally {
             shutdown(game);
         }

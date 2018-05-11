@@ -38,8 +38,10 @@ public class SoundGroup implements Updatable {
             lengths[i] = AudioManager.getResourceLength(soundFiles[i]);
             sounds[i] = new Sound(resources[i], SoundType.SOUND_EFFECT, volume, looping);
             sounds[i].initialize(audioMgr);
-            sounds[i].setMaxDistance(maxDistance);
-            sounds[i].setRollOff(rollOff);
+            try {
+                sound.setMaxDistance(maxDistance);
+                sound.setRollOff(rollOff);
+            } catch (Exception ex) {}
         }
     }
 
@@ -74,8 +76,23 @@ public class SoundGroup implements Updatable {
         sound = sounds[index];
 
         pitch = 1 + (float)Math.random() * 0.2f - 0.1f;
-        setPitch(pitch);
+
         setVolume(volume);
+
+        // check initialization
+        if (sound.getVolume() != volume) {
+            if (sound == null) {
+                sounds[index] = new Sound(resources[index], SoundType.SOUND_EFFECT, volume, looping);
+                sound = sounds[index];
+            }
+            sound.initialize(audioMgr);
+            try {
+                sound.setMaxDistance(maxDistance);
+                sound.setRollOff(rollOff);
+            } catch (Exception ex) {}
+        }
+
+        setPitch(pitch);
         sound.setLocation(node.getWorldPosition());
         sound.play();
 
@@ -88,7 +105,7 @@ public class SoundGroup implements Updatable {
 
     public void destroy() {
         for (Sound sound : sounds) {
-            sound.release(audioMgr);
+            try { sound.release(audioMgr); } catch (Exception ex) {}
         }
     }
 
