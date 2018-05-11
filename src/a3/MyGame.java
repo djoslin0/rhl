@@ -17,12 +17,14 @@ import ray.rage.rendersystem.RenderSystem;
 import ray.rage.rendersystem.RenderWindow;
 import ray.rage.rendersystem.gl4.GL4RenderSystem;
 import ray.rage.scene.*;
+import ray.rml.Degreef;
 import ray.rml.Vector3;
 import ray.rml.Vector3f;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,12 +40,16 @@ public class MyGame extends VariableFrameRateGame {
 
     public static void main(String[] args) throws IOException {
         CommandLine.read(args);
+        Settings.initScript();
         MyGame game = new MyGame();
         try {
             game.startup();
             game.run();
         } catch (Exception e) {
             e.printStackTrace(System.err);
+            PrintWriter writer = new PrintWriter("crashlog.txt", "UTF-8");
+            e.printStackTrace(writer);
+            writer.close();
         } finally {
             shutdown(game);
         }
@@ -90,7 +96,6 @@ public class MyGame extends VariableFrameRateGame {
         System.out.println("continuing without networking");
         player = new Player((byte)1, true, Player.Team.Orange, (byte)1);
 
-
     }
 
     @Override
@@ -112,6 +117,17 @@ public class MyGame extends VariableFrameRateGame {
     @Override
     protected void setupCameras(SceneManager sm, RenderWindow rw) {
         camera = sm.createCamera("MainCamera", Camera.Frustum.Projection.PERSPECTIVE);
+
+        // set FOV
+        GraphicsEnvironment g = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        DisplayMode displayMode = g.getDefaultScreenDevice().getDisplayMode();
+
+        float hfov = CommandLine.getFov();
+        float hfovRad = hfov * (float)Math.PI / 180f;
+        float vfovRad = (float)(2 * Math.atan(Math.tan(hfovRad/2) * displayMode.getHeight() / displayMode.getWidth()));
+        int vfov = (int)Math.ceil(vfovRad * 180f / Math.PI);
+        camera.getFrustum().setFieldOfViewY(Degreef.createFrom(vfov));
+
         rw.getViewport(0).setCamera(camera);
     }
 
@@ -119,7 +135,6 @@ public class MyGame extends VariableFrameRateGame {
     protected void setupScene(Engine engine, SceneManager sm) throws IOException {
         EngineManager.init(engine);
         PhysicsManager.initPhysics();
-        Settings.initScript();
         AudioManager.initialize();
 
         new StaticSkyBox(sm.getRootSceneNode(),camera);

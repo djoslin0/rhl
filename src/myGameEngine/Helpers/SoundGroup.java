@@ -1,10 +1,8 @@
 package myGameEngine.Helpers;
 import myGameEngine.Singletons.AudioManager;
+import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.UpdateManager;
-import ray.audio.AudioResource;
-import ray.audio.IAudioManager;
-import ray.audio.Sound;
-import ray.audio.SoundType;
+import ray.audio.*;
 import ray.rage.scene.SceneNode;
 import ray.rml.Vector3;
 
@@ -20,7 +18,9 @@ public class SoundGroup implements Updatable {
     private float maxDistance;
     private float rollOff;
     private SceneNode node;
-    private float pitch;
+    private float pitch = 1;
+
+    private Sound sound;
 
     public SoundGroup(IAudioManager audioMgr, String[] soundFiles, int volume, boolean looping, float maxDistance, float rollOff) {
         this.audioMgr = audioMgr;
@@ -38,11 +38,10 @@ public class SoundGroup implements Updatable {
             lengths[i] = AudioManager.getResourceLength(soundFiles[i]);
             sounds[i] = new Sound(resources[i], SoundType.SOUND_EFFECT, volume, looping);
             sounds[i].initialize(audioMgr);
-            /*sounds[i].setMaxDistance(maxDistance);
-            sounds[i].setRollOff(rollOff);
-            sounds[i].setLocation(Vector3f.createFrom(100f, 0, 0));
-            sounds[i].setVelocity(Vector3f.createZeroVector());
-            sounds[index].setEmitDirection(Vector3f.createUnitVectorZ(), 1f);*/
+            try {
+                sound.setMaxDistance(maxDistance);
+                sound.setRollOff(rollOff);
+            } catch (Exception ex) {}
         }
     }
 
@@ -53,52 +52,60 @@ public class SoundGroup implements Updatable {
 
     public void setVolume(int volume) {
         this.volume = volume;
+        if (sound != null) { sound.setVolume(volume); }
     }
 
     public void setPitch(float pitch) {
         this.pitch = pitch;
-        sounds[index].setPitch(pitch);
+        if (sound != null) {
+            try {
+                sound.setPitch(pitch);
+            } catch (Exception ex) {}
+        }
     }
 
     public void play(int volume) {
         UpdateManager.remove(this);
-        sounds[index].stop();
+
+        if (sound != null) { sound.stop(); }
+        if (node == null) { node = EntityManager.getLocalPlayer().getCameraNode(); }
+
         int increment = (int)(Math.random() * (sounds.length - 1) * 0.6f) + 1;
         index = (index + increment) % sounds.length;
 
-        this.volume = volume;
-        updateVolume();
+        sound = sounds[index];
+
         pitch = 1 + (float)Math.random() * 0.2f - 0.1f;
-        try { sounds[index].setPitch(pitch); } catch (NullPointerException ex) {}
-        sounds[index].play();
+
+        setVolume(volume);
+
+        // check initialization
+        if (sound.getVolume() != volume) {
+            if (sound == null) {
+                sounds[index] = new Sound(resources[index], SoundType.SOUND_EFFECT, volume, looping);
+                sound = sounds[index];
+            }
+            sound.initialize(audioMgr);
+            try {
+                sound.setMaxDistance(maxDistance);
+                sound.setRollOff(rollOff);
+            } catch (Exception ex) {}
+        }
+
+        setPitch(pitch);
+        sound.setLocation(node.getWorldPosition());
+        sound.play();
 
         UpdateManager.add(this);
-    }
-
-    private void updateVolume() {
-        float dist = 1;
-        if (node != null && AudioManager.getEar() != null) {
-            dist = (float)Math.pow(1 - node.getWorldPosition().sub(AudioManager.getEar().getWorldPosition()).length() / maxDistance, rollOff);
-        }
-        if (dist < 0) { dist = 0; }
-        if (dist > 1) { dist = 1; }
-        int vol = (int)(volume * dist);
-        sounds[index].setVolume(vol);
     }
 
     public void play() {
         play(this.volume);
     }
 
-    public void setLocation(Vector3 location) {
-        for (Sound sound : sounds) {
-            sound.setLocation(location);
-        }
-    }
-
     public void destroy() {
         for (Sound sound : sounds) {
-            sound.release(audioMgr);
+            try { sound.release(audioMgr); } catch (Exception ex) {}
         }
     }
 
@@ -106,23 +113,17 @@ public class SoundGroup implements Updatable {
         return new SoundGroup(audioMgr, soundFiles, volume, looping, maxDistance, rollOff, node);
     }
 
-    public float getProgress() {
-        return sounds[index].getProgress();
-    }
-
-    public boolean getIsPlaying() {
-        return sounds[index].getIsPlaying();
-    }
-
     public void stop() {
-        sounds[index].stop();
+        if (sound != null) { sound.stop(); }
         UpdateManager.remove(this);
     }
 
     @Override
     public void update(float delta) {
-        updateVolume();
-        if (sounds[index].getProgress() >= lengths[index] * 0.8) {
+        if (sound == null) { return; }
+        sound.setLocation(node.getWorldPosition());
+
+        if (sound.getProgress() >= lengths[index] * 0.8) {
             stop();
             if (looping) {
                 play();

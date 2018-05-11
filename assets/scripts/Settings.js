@@ -4,6 +4,9 @@ var JavaPackages = new JavaImporter(
 	);
 
 with (JavaPackages) {
+	var verticalSync = true;
+	var fov = 100;
+
 	var ambientColor = new Color(.3, .3, .3);
 	var diffuseColor = new Color(.75, .75, .75);
 	var specularColor = new Color(.75, .7, 1.0);
@@ -28,7 +31,6 @@ with (JavaPackages) {
 	var debug4 = 0.3;
 	var debug5 = 0.0;
 
-	// goal size
 	var debugPosition = Vector3f.createFrom(70.0, 1.0, -14.0);
 	var debugScale = Vector3f.createFrom(1.0, 1.0, 1.0);
 	var debugRotation = Vector3f.createFrom(0.0, 0.0, 0.0);

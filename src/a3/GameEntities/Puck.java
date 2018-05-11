@@ -23,12 +23,15 @@ import ray.rml.*;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Puck extends GameEntity implements Attackable {
     private Entity obj;
     private RigidBody body;
     private SceneNode angularTestNode;
     private PuckParticle[] particles = new PuckParticle[8];
+    private Vector3 averageLinearVelocity = Vector3f.createZeroVector();
+    private int blockGoal = 0;
 
     private boolean dunk = false;
     private CollisionBox dunkBox1;
@@ -43,7 +46,8 @@ public class Puck extends GameEntity implements Attackable {
     private float rinkSlideTimeout = 0;
     private float iceImpactTimeout = 0;
     private float rinkImpactTimeout = 0;
-    private int blockGoal = 0;
+    private ArrayList<Player> playerImpact = new ArrayList();
+    private ArrayList<Float> playerImpactTimeout = new ArrayList();
 
     private SoundGroup explosionSound;
     private SoundGroup cheerSound;
@@ -190,6 +194,14 @@ public class Puck extends GameEntity implements Attackable {
         reset(true, dunk);
     }
 
+    private void showImpactParticle(Vector3 point, Vector3 velocity, float size) {
+        try {
+            new Particle(size, size, point, velocity, "pow2.png", Color.white, 200f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void playerCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
 
         Player player = (Player) entity;
@@ -238,14 +250,12 @@ public class Puck extends GameEntity implements Attackable {
         int hurtAmount = (int)(linearDot + angularVelocity.length() * 2f);
 
         // create small pow particle
-        if (hurtAmount > 5 && player.willHurt(hurtAmount)) {
+        if (!playerImpact.contains(player) && hurtAmount > 5 && player.willHurt(hurtAmount)) {
+            playerImpact.add(player);
+            playerImpactTimeout.add(250f);
             float size = 1 + hurtAmount / 15f;
             if (size > 2) { size = 2; }
-            try {
-                new Particle(size, size, Vector3f.createFrom(contactPoint.positionWorldOnB), push.mult(0.000014f), "pow2.png", Color.white, 200f);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            showImpactParticle(Vector3f.createFrom(contactPoint.positionWorldOnB), push.mult(0.000014f), size);
         }
 
         if (hurtAmount > 0) {
@@ -287,18 +297,21 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     private void rinkCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        Vector3 linearVelocity = getLinearVelocity();
         Vector3 rinkPoint = isA ? Vector3f.createFrom(contactPoint.positionWorldOnB) : Vector3f.createFrom(contactPoint.positionWorldOnA);
         if (rinkPoint.y() <= 1f) {
             if (iceImpactTimeout <= 0) {
-                int volume = (int) (linearVelocity.length() / 10f) * 100;
+                int volume = (int) ((averageLinearVelocity.length() / 30f) * 100f);
+                if (volume > 100) { volume = 100; }
                 iceSound.play(volume);
+                showImpactParticle(rinkPoint, Vector3f.createZeroVector(), volume / 110f + 0.15f);
             }
             iceImpactTimeout = 500;
         } else {
             if (rinkImpactTimeout <= 0) {
-                int volume = (int) (linearVelocity.length() / 10f) * 100;
+                int volume = (int) ((averageLinearVelocity.length() / 60f) * 100f);
+                if (volume > 100) { volume = 100; }
                 rinkSound.play(volume);
+                showImpactParticle(rinkPoint, Vector3f.createZeroVector(), volume / 70f + 0.15f);
             }
             rinkImpactTimeout = 500;
         }
@@ -382,19 +395,23 @@ public class Puck extends GameEntity implements Attackable {
         } else {
             rinkSlideTimeout -= delta;
         }
+        float slidePitch = Math.min(linearVelocity.length() / 30f + 0.5f, 1f);
+        slidePitch += (float)Math.sin(TimeManager.getElapsed() / 100f) * 0.1f;
         slideSound.setVolume(slideVolume);
+        slideSound.setPitch(slidePitch);
 
         // spin sound
         javax.vecmath.Vector3f angularVelocity = new javax.vecmath.Vector3f();
         body.getAngularVelocity(angularVelocity);
-        int spinVolume = (int)(Math.abs(angularVelocity.y) + Math.abs(angularVelocity.x) * 2f + Math.abs(angularVelocity.z) * 2f - 0.2f);
+        int spinVolume = (int)(Math.abs(angularVelocity.y) * 1f + Math.abs(angularVelocity.x) * 2.5f + Math.abs(angularVelocity.z) * 2.5f - 3f);
         if (spinVolume < 0) { spinVolume = 0; }
-        if (spinVolume > 20) { spinVolume = 20; }
-        float spinPitch = 0.5f + Math.abs(angularVelocity.y) / 20f + Math.abs(angularVelocity.x) / 150f + Math.abs(angularVelocity.z) / 150f;
-        if (spinPitch > 10f) { spinPitch = 10f; }
+        if (spinVolume > 30) { spinVolume = 30; }
+        float spinPitch = 0.25f + Math.abs(angularVelocity.y) / 20f + Math.abs(angularVelocity.x) / 20f + Math.abs(angularVelocity.z) / 20f;
+        if (spinPitch > 20f) { spinPitch = 20f; }
         spinSound.setVolume(spinVolume);
         spinSound.setPitch(spinPitch);
 
+        // deal with timeouts
         if (iceImpactTimeout <= 0) {
             iceImpactTimeout = 0;
         } else {
@@ -408,6 +425,21 @@ public class Puck extends GameEntity implements Attackable {
         }
 
         if (blockGoal > 0) { blockGoal--; }
+
+        ArrayList<Integer> removePlayerImpact = new ArrayList<>();
+        for (int i = 0; i < playerImpact.size(); i++) {
+            float timeout = playerImpactTimeout.get(i) - delta;
+            playerImpactTimeout.set(i, timeout);
+            if (timeout <= 0) { removePlayerImpact.add(i); }
+        }
+        for (int i = removePlayerImpact.size() - 1; i >= 0; i--) {
+            int index = removePlayerImpact.get(i);
+            playerImpact.remove(index);
+            playerImpactTimeout.remove(index);
+        }
+
+        // update average velocity
+        averageLinearVelocity = averageLinearVelocity.lerp(linearVelocity, 0.2f);
     }
 
 }

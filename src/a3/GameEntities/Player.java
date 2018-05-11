@@ -67,6 +67,7 @@ public class Player extends GameEntity implements Attackable {
     public static float respawnSeconds = 5f;
 
     private float nextStepTime;
+    private float hurtSoundTimeout;
     private SoundGroup stepSound;
     private SoundGroup deathSound;
     private SoundGroup nearDeathSound;
@@ -217,9 +218,11 @@ public class Player extends GameEntity implements Attackable {
 
             // track right hand
             handNode = roboNode.createChildSceneNode(name + "HandNode");
+            addResponsibility(handNode);
 
             // track head for glowing eyes
             headNode = roboNode.createChildSceneNode(name + "HeadNode");
+            addResponsibility(headNode);
 
             // create head
             headObj = sm.createEntity(name + "Head", (headId == 2) ? "head2.obj" : "head.obj");
@@ -244,6 +247,7 @@ public class Player extends GameEntity implements Attackable {
 
             // left eye
             leftEyeNode = headNode.createChildSceneNode(name + "EyeLNode");
+            addResponsibility(leftEyeNode);
             leftEyeNode.setLocalPosition(eyeSpacing, eyeHeight, distFromHead);
             Billboard leftEyeFlare = new Billboard(leftEyeNode, eyeSize, eyeSize, "flare1.png", eyeColor);
             addResponsibility(leftEyeFlare);
@@ -251,6 +255,7 @@ public class Player extends GameEntity implements Attackable {
             // right eye
             if (headId != 2) {
                 rightEyeNode = headNode.createChildSceneNode(name + "EyeRNode");
+                addResponsibility(rightEyeNode);
                 rightEyeNode.setLocalPosition(-eyeSpacing, eyeHeight, distFromHead);
                 Billboard rightEyeFlare = new Billboard(rightEyeNode, eyeSize, eyeSize, "flare1.png", eyeColor);
                 addResponsibility(rightEyeFlare);
@@ -452,6 +457,8 @@ public class Player extends GameEntity implements Attackable {
             nextStepTime = 200;
         }
 
+        if (hurtSoundTimeout > 0) { hurtSoundTimeout -= delta; }
+
         if (robo != null) {
             // update animations
             robo.update(delta);
@@ -486,8 +493,9 @@ public class Player extends GameEntity implements Attackable {
         }
 
         // play sounds
-        if (value > 5) {
+        if (hurtSoundTimeout <= 0 && value > 5) {
             glitchSound.play();
+            hurtSoundTimeout = 250;
         }
         if (oldHealth >= 20 && health < 20) {
             nearDeathSound.play();

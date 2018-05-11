@@ -12,7 +12,7 @@ import ray.rml.*;
 public class RemoteCharacterAnimationController implements Updatable, CharacterAnimationController {
     private Player player;
     private CharacterController controller;
-    private String lastAnimationTag;
+    private String lastAnimationTag = "";
     private Vector3 knockDirection = null;
     private float knockAmount = 0;
     private boolean knockReached = true;
@@ -145,7 +145,7 @@ public class RemoteCharacterAnimationController implements Updatable, CharacterA
             return;
         }
 
-        if (controller.isOnGround() && lastAnimationTag != null && lastAnimationTag.equals("falling")) {
+        if (controller.isOnGround() && lastAnimationTag.equals("falling")) {
             animate("land", "land", 0.025f, SkeletalEntity.EndType.NONE, false);
             return;
         }

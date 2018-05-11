@@ -1,5 +1,7 @@
 package a3;
 
+import myGameEngine.Singletons.Settings;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -12,6 +14,8 @@ public class CommandLine {
     private byte headId = 1;
     private int bots = -1;
     private DisplaySettings display;
+    private Boolean verticalSync = null;
+    private Integer fov = null;
 
     public static void read(String[] args) {
         if (args.length <= 0) { return; }
@@ -41,7 +45,10 @@ public class CommandLine {
                 instance.display.bitDepth = Integer.parseInt(s[2]);
                 instance.display.refreshRate = Integer.parseInt(s[3]);
                 instance.display.fullscreen = s[4].equals("1");
-                instance.display.vsync = s[5].equals("1");
+            } else if (arg.toLowerCase().startsWith("vsync=")) {
+                instance.verticalSync = arg.split("=", 2)[1].equals("1");
+            } else if (arg.toLowerCase().startsWith("fov=")) {
+                instance.fov = Integer.parseInt(arg.split("=", 2)[1]);
             }
         }
     }
@@ -53,6 +60,8 @@ public class CommandLine {
     public static byte getHeadId() { return instance.headId; }
     public static int getBots() { return instance.bots; }
     public static DisplaySettings getDisplaySettings() { return instance.display; }
+    public static Boolean isVerticalSync() { return instance.verticalSync != null ? instance.verticalSync : Settings.get().verticalSync; }
+    public static Integer getFov() { return instance.fov != null ? instance.fov : Settings.get().fov; }
 
     public static class DisplaySettings {
         public int width;
@@ -60,6 +69,5 @@ public class CommandLine {
         public int bitDepth;
         public int refreshRate;
         public boolean fullscreen;
-        public boolean vsync;
     }
 }

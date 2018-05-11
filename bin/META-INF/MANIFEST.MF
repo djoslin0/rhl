@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Class-Path: lib/joal.jar lib/jogl-all.jar lib/gluegen-rt.jar lib/ray.j
+ ar lib/jinput.jar lib/jbullet.jar lib/vecmath.jar
+Main-Class: a3.MyGame
+
