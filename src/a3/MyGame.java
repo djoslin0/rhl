@@ -88,7 +88,7 @@ public class MyGame extends VariableFrameRateGame {
         }
 
         System.out.println("continuing without networking");
-        player = new Player((byte)1, true, Player.Team.Blue, (byte)1);
+        player = new Player((byte)1, true, Player.Team.Orange, (byte)1);
 
 
     }
