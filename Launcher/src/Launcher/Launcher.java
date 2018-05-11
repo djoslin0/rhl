@@ -127,7 +127,7 @@ public class Launcher extends JFrame {
 
     public static void launchGame(String params) {
         String javaParams = classMode ? "a3.MyGame" : "-jar RoboHockeyLeague.jar";
-        String[] arr = ("java " + javaParams + " " + params).split(" ");
+        String[] arr = ("java " + javaParams + " -Dsun.java2d.noddraw=true " + params).split(" ");
         ProcessBuilder pb = new ProcessBuilder(arr);
         if (!classMode) {
             pb.directory(new File(System.getProperty("user.dir") + "/game/"));

@@ -1,1 +1,1 @@
-java a3.MyGame
+java -Dsun.java2d.noddraw=true a3.MyGame
