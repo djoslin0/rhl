@@ -194,6 +194,14 @@ public class Puck extends GameEntity implements Attackable {
         reset(true, dunk);
     }
 
+    private void showImpactParticle(Vector3 point, Vector3 velocity, float size) {
+        try {
+            new Particle(size, size, point, velocity, "pow2.png", Color.white, 200f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void playerCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
 
         Player player = (Player) entity;
@@ -247,11 +255,7 @@ public class Puck extends GameEntity implements Attackable {
             playerImpactTimeout.add(250f);
             float size = 1 + hurtAmount / 15f;
             if (size > 2) { size = 2; }
-            try {
-                new Particle(size, size, Vector3f.createFrom(contactPoint.positionWorldOnB), push.mult(0.000014f), "pow2.png", Color.white, 200f);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            showImpactParticle(Vector3f.createFrom(contactPoint.positionWorldOnB), push.mult(0.000014f), size);
         }
 
         if (hurtAmount > 0) {
@@ -297,13 +301,17 @@ public class Puck extends GameEntity implements Attackable {
         if (rinkPoint.y() <= 1f) {
             if (iceImpactTimeout <= 0) {
                 int volume = (int) ((averageLinearVelocity.length() / 30f) * 100f);
+                if (volume > 100) { volume = 100; }
                 iceSound.play(volume);
+                showImpactParticle(rinkPoint, Vector3f.createZeroVector(), volume / 110f + 0.15f);
             }
             iceImpactTimeout = 500;
         } else {
             if (rinkImpactTimeout <= 0) {
                 int volume = (int) ((averageLinearVelocity.length() / 60f) * 100f);
+                if (volume > 100) { volume = 100; }
                 rinkSound.play(volume);
+                showImpactParticle(rinkPoint, Vector3f.createZeroVector(), volume / 70f + 0.15f);
             }
             rinkImpactTimeout = 500;
         }
