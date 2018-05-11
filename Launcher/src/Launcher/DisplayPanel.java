@@ -12,6 +12,7 @@ public class DisplayPanel {
     private JComboBox resolution;
     private JComboBox bitDepth;
     private JComboBox refreshRate;
+    private JTextField fov;
     private JCheckBox fullscreen;
     private JCheckBox vsync;
 
@@ -21,6 +22,7 @@ public class DisplayPanel {
         map.put("displayResolution", currentMode.getWidth() + " x " + currentMode.getHeight());
         map.put("displayBitDepth", Integer.toString(currentMode.getBitDepth()));
         map.put("displayRefreshRate", Integer.toString(currentMode.getRefreshRate()));
+        map.put("displayFov", "100");
         map.put("displayFullscreen", "1");
         map.put("displayVSync", "1");
     }
@@ -29,6 +31,7 @@ public class DisplayPanel {
         Launcher.setComboBoxIndex(instance.resolution, map.get("displayResolution"));
         Launcher.setComboBoxIndex(instance.bitDepth, map.get("displayBitDepth"));
         Launcher.setComboBoxIndex(instance.refreshRate, map.get("displayRefreshRate"));
+        instance.fov.setText(map.get("displayFov"));
         instance.fullscreen.setSelected(map.get("displayFullscreen").equals("1"));
         instance.vsync.setSelected(map.get("displayVSync").equals("1"));
     }
@@ -37,6 +40,7 @@ public class DisplayPanel {
         map.put("displayResolution", (String)instance.resolution.getSelectedItem());
         map.put("displayBitDepth", instance.bitDepth.getSelectedItem().toString());
         map.put("displayRefreshRate", instance.refreshRate.getSelectedItem().toString());
+        map.put("displayFov", instance.fov.getText());
         map.put("displayFullscreen", instance.fullscreen.isSelected() ? "1" : "0");
         map.put("displayVSync", instance.vsync.isSelected() ? "1" : "0");
     }
@@ -54,6 +58,9 @@ public class DisplayPanel {
 
         instance.refreshRate = new JComboBox(new String[] { "" });
         groups.add(new ComponentGroup(new JLabel("Refresh Rate: "), instance.refreshRate));
+
+        instance.fov = new JTextField();
+        groups.add(new ComponentGroup(new JLabel("FOV: "), instance.fov));
 
         JPanel checkPanel = new JPanel();
         checkPanel.setBackground(Launcher.bgColor);
@@ -121,8 +128,9 @@ public class DisplayPanel {
         displayString += (instance.resolution.getSelectedItem().toString()).replace(" x ", ",") + ",";
         displayString += instance.bitDepth.getSelectedItem().toString() + ",";
         displayString += instance.refreshRate.getSelectedItem().toString() + ",";
-        displayString += (instance.fullscreen.isSelected() ? "1" : "0") + ",";
-        displayString += (instance.vsync.isSelected() ? "1" : "0");
+        displayString += (instance.fullscreen.isSelected() ? "1" : "0");
+        displayString += " vsync=" + (instance.vsync.isSelected() ? "1" : "0");
+        displayString += " fov=" + instance.fov.getText();
         return displayString;
     }
 }

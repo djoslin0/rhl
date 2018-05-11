@@ -4,6 +4,9 @@ var JavaPackages = new JavaImporter(
 	);
 
 with (JavaPackages) {
+	var verticalSync = true;
+	var fov = 100;
+
 	var ambientColor = new Color(.3, .3, .3);
 	var diffuseColor = new Color(.75, .75, .75);
 	var specularColor = new Color(.75, .7, 1.0);

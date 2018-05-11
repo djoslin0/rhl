@@ -17,6 +17,9 @@ public class Settings {
     private ScriptEngine jsEngine;
     private File scriptFile;
 
+    public boolean verticalSync;
+    public int fov;
+
     public Color ambientColor;
     public Color diffuseColor;
     public Color specularColor;
@@ -58,6 +61,9 @@ public class Settings {
             FileReader fileReader = new FileReader(instance.scriptFile);
             instance.jsEngine.eval(fileReader);
             fileReader.close();
+
+            instance.verticalSync = (Boolean) (instance.jsEngine.eval("verticalSync"));
+            instance.fov = (Integer) (instance.jsEngine.eval("fov"));
 
             instance.ambientColor = (Color)(instance.jsEngine.eval("ambientColor"));
             instance.diffuseColor = (Color)(instance.jsEngine.eval("diffuseColor"));

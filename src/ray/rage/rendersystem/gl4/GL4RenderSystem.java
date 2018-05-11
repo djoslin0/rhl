@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import myGameEngine.Helpers.HudText;
 import myGameEngine.Helpers.SortableRenderable;
 import myGameEngine.Helpers.SortableSecondary;
+import myGameEngine.Singletons.Settings;
 import ray.rage.rendersystem.RenderQueue;
 import ray.rage.rendersystem.RenderSystem;
 import ray.rage.rendersystem.RenderWindow;
@@ -50,8 +51,10 @@ import ray.rage.rendersystem.shader.glsl.GlslProgramFactory;
 import ray.rage.rendersystem.states.RenderState;
 import ray.rage.rendersystem.states.ZBufferState;
 import ray.rage.scene.AmbientLight;
+import ray.rage.scene.Camera;
 import ray.rage.scene.Light;
 import ray.rage.scene.TessellationBody;
+import ray.rml.Degreef;
 import ray.rml.Matrix4;
 import ray.rml.Matrix4f;
 import ray.rml.Vector3;
@@ -213,7 +216,7 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         gl.glEnable(GL4.GL_TEXTURE_CUBE_MAP_SEAMLESS);
         gl.glEnable(GL.GL_BLEND);  /* MyChange: ADDED LINE */
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA); /* MyChange: ADDED LINE */
-        if (CommandLine.getDisplaySettings() != null && !CommandLine.getDisplaySettings().vsync) {
+        if (!CommandLine.isVerticalSync()) {
             gl.setSwapInterval(0); /* MyChange: disables VSync */
         }
 
@@ -287,6 +290,7 @@ public final class GL4RenderSystem implements RenderSystem, GLEventListener {
         }
 
         // draw secondary stage
+        projMatrix = Matrix4f.createPerspectiveMatrix(Degreef.createFrom(60), (float)glad.getSurfaceWidth() / (float)glad.getSurfaceHeight(), 0.001f, 1000);
         gl.glDepthMask(true);
         gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
         while (secondStage.size() > 0) {
