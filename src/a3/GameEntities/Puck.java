@@ -29,6 +29,7 @@ public class Puck extends GameEntity implements Attackable {
     private RigidBody body;
     private SceneNode angularTestNode;
     private PuckParticle[] particles = new PuckParticle[8];
+    private Vector3 averageLinearVelocity = Vector3f.createZeroVector();
 
     private boolean dunk = false;
     private CollisionBox dunkBox1;
@@ -287,17 +288,16 @@ public class Puck extends GameEntity implements Attackable {
     }
 
     private void rinkCollision(GameEntity entity, ManifoldPoint contactPoint, boolean isA) {
-        Vector3 linearVelocity = getLinearVelocity();
         Vector3 rinkPoint = isA ? Vector3f.createFrom(contactPoint.positionWorldOnB) : Vector3f.createFrom(contactPoint.positionWorldOnA);
         if (rinkPoint.y() <= 1f) {
             if (iceImpactTimeout <= 0) {
-                int volume = (int) (linearVelocity.length() / 10f) * 100;
+                int volume = (int) ((averageLinearVelocity.length() / 30f) * 100f);
                 iceSound.play(volume);
             }
             iceImpactTimeout = 500;
         } else {
             if (rinkImpactTimeout <= 0) {
-                int volume = (int) (linearVelocity.length() / 10f) * 100;
+                int volume = (int) ((averageLinearVelocity.length() / 60f) * 100f);
                 rinkSound.play(volume);
             }
             rinkImpactTimeout = 500;
@@ -382,16 +382,19 @@ public class Puck extends GameEntity implements Attackable {
         } else {
             rinkSlideTimeout -= delta;
         }
+        float slidePitch = Math.min(linearVelocity.length() / 30f + 0.5f, 1f);
+        slidePitch += (float)Math.sin(TimeManager.getElapsed() / 100f) * 0.1f;
         slideSound.setVolume(slideVolume);
+        slideSound.setPitch(slidePitch);
 
         // spin sound
         javax.vecmath.Vector3f angularVelocity = new javax.vecmath.Vector3f();
         body.getAngularVelocity(angularVelocity);
-        int spinVolume = (int)(Math.abs(angularVelocity.y) + Math.abs(angularVelocity.x) * 2f + Math.abs(angularVelocity.z) * 2f - 0.2f);
+        int spinVolume = (int)(Math.abs(angularVelocity.y) * 1f + Math.abs(angularVelocity.x) * 2.5f + Math.abs(angularVelocity.z) * 2.5f - 3f);
         if (spinVolume < 0) { spinVolume = 0; }
-        if (spinVolume > 20) { spinVolume = 20; }
-        float spinPitch = 0.5f + Math.abs(angularVelocity.y) / 20f + Math.abs(angularVelocity.x) / 150f + Math.abs(angularVelocity.z) / 150f;
-        if (spinPitch > 10f) { spinPitch = 10f; }
+        if (spinVolume > 30) { spinVolume = 30; }
+        float spinPitch = 0.25f + Math.abs(angularVelocity.y) / 20f + Math.abs(angularVelocity.x) / 20f + Math.abs(angularVelocity.z) / 20f;
+        if (spinPitch > 20f) { spinPitch = 20f; }
         spinSound.setVolume(spinVolume);
         spinSound.setPitch(spinPitch);
 
@@ -408,6 +411,7 @@ public class Puck extends GameEntity implements Attackable {
         }
 
         if (blockGoal > 0) { blockGoal--; }
+        averageLinearVelocity = averageLinearVelocity.lerp(linearVelocity, 0.2f);
     }
 
 }
