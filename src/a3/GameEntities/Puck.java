@@ -23,6 +23,7 @@ import ray.rml.*;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Puck extends GameEntity implements Attackable {
     private Entity obj;
@@ -30,6 +31,7 @@ public class Puck extends GameEntity implements Attackable {
     private SceneNode angularTestNode;
     private PuckParticle[] particles = new PuckParticle[8];
     private Vector3 averageLinearVelocity = Vector3f.createZeroVector();
+    private int blockGoal = 0;
 
     private boolean dunk = false;
     private CollisionBox dunkBox1;
@@ -44,7 +46,8 @@ public class Puck extends GameEntity implements Attackable {
     private float rinkSlideTimeout = 0;
     private float iceImpactTimeout = 0;
     private float rinkImpactTimeout = 0;
-    private int blockGoal = 0;
+    private ArrayList<Player> playerImpact = new ArrayList();
+    private ArrayList<Float> playerImpactTimeout = new ArrayList();
 
     private SoundGroup explosionSound;
     private SoundGroup cheerSound;
@@ -239,7 +242,9 @@ public class Puck extends GameEntity implements Attackable {
         int hurtAmount = (int)(linearDot + angularVelocity.length() * 2f);
 
         // create small pow particle
-        if (hurtAmount > 5 && player.willHurt(hurtAmount)) {
+        if (!playerImpact.contains(player) && hurtAmount > 5 && player.willHurt(hurtAmount)) {
+            playerImpact.add(player);
+            playerImpactTimeout.add(250f);
             float size = 1 + hurtAmount / 15f;
             if (size > 2) { size = 2; }
             try {
@@ -398,6 +403,7 @@ public class Puck extends GameEntity implements Attackable {
         spinSound.setVolume(spinVolume);
         spinSound.setPitch(spinPitch);
 
+        // deal with timeouts
         if (iceImpactTimeout <= 0) {
             iceImpactTimeout = 0;
         } else {
@@ -411,6 +417,20 @@ public class Puck extends GameEntity implements Attackable {
         }
 
         if (blockGoal > 0) { blockGoal--; }
+
+        ArrayList<Integer> removePlayerImpact = new ArrayList<>();
+        for (int i = 0; i < playerImpact.size(); i++) {
+            float timeout = playerImpactTimeout.get(i) - delta;
+            playerImpactTimeout.set(i, timeout);
+            if (timeout <= 0) { removePlayerImpact.add(i); }
+        }
+        for (int i = removePlayerImpact.size() - 1; i >= 0; i--) {
+            int index = removePlayerImpact.get(i);
+            playerImpact.remove(index);
+            playerImpactTimeout.remove(index);
+        }
+
+        // update average velocity
         averageLinearVelocity = averageLinearVelocity.lerp(linearVelocity, 0.2f);
     }
 

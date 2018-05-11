@@ -67,6 +67,7 @@ public class Player extends GameEntity implements Attackable {
     public static float respawnSeconds = 5f;
 
     private float nextStepTime;
+    private float hurtSoundTimeout;
     private SoundGroup stepSound;
     private SoundGroup deathSound;
     private SoundGroup nearDeathSound;
@@ -452,6 +453,8 @@ public class Player extends GameEntity implements Attackable {
             nextStepTime = 200;
         }
 
+        if (hurtSoundTimeout > 0) { hurtSoundTimeout -= delta; }
+
         if (robo != null) {
             // update animations
             robo.update(delta);
@@ -486,8 +489,9 @@ public class Player extends GameEntity implements Attackable {
         }
 
         // play sounds
-        if (value > 5) {
+        if (hurtSoundTimeout <= 0 && value > 5) {
             glitchSound.play();
+            hurtSoundTimeout = 250;
         }
         if (oldHealth >= 20 && health < 20) {
             nearDeathSound.play();
