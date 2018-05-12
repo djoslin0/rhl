@@ -89,15 +89,15 @@ public class Glove extends GameEntity {
 
         impact = AudioManager.get().impact.clone(player.getCameraNode());
         addResponsibility(impact);
-        impact.setVolume(player.isLocal() ? 100 : 60);
+        impact.setVolume(player.isLocal() ? 80 : 100);
 
         miss = AudioManager.get().miss.clone(player.getCameraNode());
         addResponsibility(miss);
-        miss.setVolume(player.isLocal() ? 40 : 20);
+        miss.setVolume(player.isLocal() ? 30 : 40);
 
         punch = AudioManager.get().punch.clone(player.getCameraNode());
         addResponsibility(punch);
-        punch.setVolume(player.isLocal() ? 100 : 60);
+        punch.setVolume(player.isLocal() ? 80 : 100);
 
         this.player = player;
         this.handNode = handNode;
