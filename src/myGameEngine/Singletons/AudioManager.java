@@ -51,47 +51,47 @@ public class AudioManager implements Updatable {
     public static void initialize() {
         instance.impact = new SoundGroup(instance.audio,
                 new String[] { "impact1.wav", "impact2.wav", "impact3.wav", "impact4.wav" },
-                100, false, 300, 0.25f
+                100, false, 300, 0.1f
         );
 
         instance.miss = new SoundGroup(instance.audio,
                 new String[] { "miss1.wav", "miss2.wav", "miss3.wav", "miss4.wav" },
-                100, false, 300, 0.25f
+                100, false, 300, 0.1f
         );
 
         instance.punch = new SoundGroup(instance.audio,
                 new String[] { "punch1.wav", "punch2.wav", "punch3.wav", "punch4.wav" },
-                100, false, 300, 0.25f
+                100, false, 300, 0.1f
         );
 
         instance.step = new SoundGroup(instance.audio,
                 new String[] { "step1.wav", "step2.wav", "step3.wav", "step4.wav" },
-                60, false, 200, 0.25f
+                60, false, 200, 0.1f
         );
 
         instance.death = new SoundGroup(instance.audio,
                 new String[] { "death.wav" },
-                80, false, 300, 0.25f
+                80, false, 300, 0.1f
         );
 
         instance.nearDeath = new SoundGroup(instance.audio,
                 new String[] { "neardeath.wav" },
-                100, false, 200, 0.25f
+                100, false, 200, 0.1f
         );
 
         instance.respawn = new SoundGroup(instance.audio,
                 new String[] { "respawn.wav" },
-                100, false, 100, 0.25f
+                100, false, 100, 0.1f
         );
 
         instance.glitch = new SoundGroup(instance.audio,
                 new String[] { "glitch1.wav", "glitch2.wav", "glitch3.wav", "glitch4.wav" },
-                100, false, 200, 0.25f
+                100, false, 200, 0.1f
         );
 
         instance.explosion = new SoundGroup(instance.audio,
                 new String[] { "explosion1.wav", "explosion2.wav" },
-                100, false, 500, 0.25f
+                100, false, 500, 0.1f
         );
 
         instance.goalWon = new SoundGroup(instance.audio,
@@ -111,32 +111,32 @@ public class AudioManager implements Updatable {
 
         instance.jump = new SoundGroup(instance.audio,
                 new String[] { "jump1.wav", "jump2.wav" },
-                30, false, 200, 0.25f
+                30, false, 200, 0.1f
         );
 
         instance.land = new SoundGroup(instance.audio,
                 new String[] { "land1.wav", "land2.wav" },
-                50, false, 200, 0.25f
+                50, false, 200, 0.1f
         );
 
         instance.slide = new SoundGroup(instance.audio,
                 new String[] { "slide.wav" },
-                0, true, 200, 0.35f
+                0, true, 200, 0.15f
         );
 
         instance.spin = new SoundGroup(instance.audio,
                 new String[] { "spin.wav" },
-                0, true, 200, 0.25f
+                0, true, 200, 0.1f
         );
 
         instance.ice = new SoundGroup(instance.audio,
                 new String[] { "ice1.wav", "ice2.wav", "ice3.wav" },
-                50, false, 200, 0.25f
+                50, false, 200, 0.1f
         );
 
         instance.rink = new SoundGroup(instance.audio,
                 new String[] { "rink1.wav", "rink2.wav", "rink3.wav" },
-                50, false, 200, 0.25f
+                50, false, 200, 0.1f
         );
 
         instance.matchOver = new SoundGroup(instance.audio,
