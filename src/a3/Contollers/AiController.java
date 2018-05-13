@@ -14,8 +14,6 @@ import ray.rml.Vector3f;
 
 public class AiController {
     private AIPlayer aiPlayer;
-    private Player closestFreindlyPlayer;
-    private static int makingplay = 0;
     private States currentState = States.InSpawn;
 
     private float accuracy;
@@ -54,7 +52,7 @@ public class AiController {
         }
     }
     static enum States{
-        Thinking, Shooting , InSpawn, Reset, InGaol, BehindGoal, Defending,Dunking,MakingPlay,BehindPuck
+        Thinking, Shooting , InSpawn, Reset, InGaol, BehindGoal, Defending,Dunking,MakingPlay,Goalie
     }
 
     public void desideCurrentAction(){
@@ -78,9 +76,15 @@ public class AiController {
                    currentState = States.Reset;
                    break;
                }
-               if(getClosestFreindly() != null && getClosestFreindly().sub(puckPos).length() < aiPlayer.getPosition().sub(puckPos).length() && (Math.abs(puckPos.sub(goalPosition).length()) < 60f || Math.abs(puckPos.sub(enemyGoalPosition).length()) < 60f)) {
+               // make a play on attack
+               if(getFurthestFreindly() == true && Math.abs(puckPos.sub(goalPosition).length()) < 60f) {
             	   currentState = States.MakingPlay;
             	   break;
+               }
+               // goalie state
+               if(getFurthestFreindly() == true && Math.abs(puckPos.sub(enemyGoalPosition).length()) < 60f){
+                   currentState = States.Goalie;
+                   break;
                }
                // in goal
                if(Math.abs(desiredLocation.z()) > 49f && currentState != States.InSpawn){
@@ -253,31 +257,42 @@ public class AiController {
                    currentState = States.Thinking;
                }
                break;
+               // make a play on attack
            case MakingPlay:
                accuracy = 1f;
-               boolean attacking = false;
+               aiPlayer.getController().jump();
+               accuracy = 1f;
                int scaler = -1;
                if(goalPosition.x() < 0){
                    scaler = 1;
                }
-        	   if(Math.abs(puckPos.sub(goalPosition).length()) < 60f) {
-                   makingplay++;
-                   attacking = true;
-        		   desiredLocation = Vector3f.createFrom(goalPosition.add(scaler * 50f,0f,0f).x(),aiPlayer.getPosition().y(),puckPos.z());
-        		   target = puckPos;
-        	   }else if(Math.abs(puckPos.sub(enemyGoalPosition).length()) < 60f) {
-        	       desiredLocation = Vector3f.createFrom(scaler *78f,aiPlayer.getPosition().y(),puckPos.z()/49f * 8f);
-        	       target = puckPos;
-        	   }
-        	   if(attacking == false || puckPos.x() <= 50f){
-                   currentState = States.Thinking;
+               desiredLocation = Vector3f.createFrom(goalPosition.add(scaler * 50f,0f,0f).x(),aiPlayer.getPosition().y(),puckPos.z() + bestShot().z());
+               target = puckPos;
+               if(aiPlayer.getPosition().sub(puckPos).length() < 8f || puckPos.sub(goalPosition).length() >= 65f){
+                   currentState = States.Shooting;
                }
 
         	   break;
+        	   // play as the goalie
+           case Goalie:
+               accuracy = 1f;
+               if(goalPosition.x() < 0){
+                   scaler = 1;
+               }else{
+                   scaler = -1;
+               }
+               desiredLocation = Vector3f.createFrom(scaler *78f,aiPlayer.getPosition().y(),puckPos.z()/49f * 8f);
+               target = puckPos;
+               currentState = States.Thinking;
+               break;
        }
+
 
     }
     public void executeCurrentAction(){
+        if(currentState == States.MakingPlay){
+            System.out.println(desiredLocation);
+        }
         Vector3 puckPos = EntityManager.getPuck().getNode().getWorldPosition();
         desiredLocation = Vector3f.createFrom(desiredLocation.x(),aiPlayer.getPosition().y(),desiredLocation.z());
         if(aiPlayer.getPosition().sub(desiredLocation).length()>accuracy){
@@ -304,25 +319,10 @@ public class AiController {
             }
         }
     }
-    private Vector3 bestShot(){
-        Vector3 velocity = EntityManager.getPuck().getLinearVelocity();
-        System.out.println(velocity);
-        Vector3 puckPos = EntityManager.getPuck().getNode().getWorldPosition();
-        if(puckPos.z() < -8f ){
-            if(velocity.z() > 0f){
-                return puckPos.sub(goalPosition).normalize().mult(7f);
-            }else{
-                return puckPos.sub(goalPosition.add(0f,0f,16f)).normalize().mult(7f);
-            }
-        }else if(puckPos.z() > 8f){
-            if(velocity.z() > 0f){
-                return puckPos.sub(goalPosition).normalize().mult(7f);
-            }else{
-                return puckPos.sub(goalPosition.add(0f,0f,-16f)).normalize().mult(7f);
-            }
-        }
-        return puckPos.sub(goalPosition).normalize().mult(7f);
 
+    private Vector3 bestShot(){
+        Vector3 puckPos = EntityManager.getPuck().getNode().getWorldPosition();
+        return puckPos.sub(goalPosition).normalize().mult(7f);
     }
     private boolean stuckBehindGoal(){
         Vector3 puckPos  = EntityManager.getPuck().getNode().getWorldPosition();
@@ -374,10 +374,31 @@ public class AiController {
             if(player == aiPlayer) {continue;}
             if(closestsFreindly == null || closestsFreindly.sub(puckPos).length() > player.getPosition().sub(puckPos).length()){
                 closestsFreindly = player.getPosition();
-                closestFreindlyPlayer = player;
             }
         }
         return closestsFreindly;
+    }
+    private boolean getFurthestFreindly(){
+        boolean friends = false;
+        boolean meFurthest = true;
+        Vector3 puckPos = EntityManager.getPuck().getNode().getLocalPosition();
+        for(Object o : EntityManager.get("player")){
+            Player player = (Player)o;
+            if(player == null) { continue;}
+            if(player.getSide() != aiPlayer.getSide()) {continue;}
+            if(player.getSide() == aiPlayer.getSide()) { friends = true;}
+            if(player.isDead()){ meFurthest = false; continue;}
+            if(player == aiPlayer) {continue;}
+            if(Math.abs(aiPlayer.getPosition().sub(puckPos).length()) < Math.abs(player.getPosition().sub(puckPos).length())){
+                meFurthest = false;
+            }
+        }
+        if(friends == false){
+            return  false;
+        }else{
+            return meFurthest;
+        }
+
     }
     
     private Vector3 getClosestEnemy(){
