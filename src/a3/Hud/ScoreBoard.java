@@ -3,7 +3,10 @@ package a3.Hud;
 import a3.GameEntities.Player;
 import a3.GameState;
 import myGameEngine.GameEntities.HudElement;
+import myGameEngine.Helpers.SoundGroup;
 import myGameEngine.Helpers.Updatable;
+import myGameEngine.Singletons.AudioManager;
+import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.UpdateManager;
 import ray.rage.scene.SceneNode;
 import ray.rml.Vector2f;
@@ -18,15 +21,29 @@ public class ScoreBoard implements Updatable {
     private HudNumber blue;
     private HudNumber minutes;
     private HudNumber seconds;
+    private HudNumber timer;
     private HudElement colon;
     private HudElement overtime;
     private HudElement container;
 
+    private SoundGroup timerSound;
+    private SoundGroup startSound;
+
+    private float timeToStart = 5000f;
     private float orangeChangeTime = 0;
     private float blueChangeTime = 0;
 
+    private int timerNumber = 0;
+
     public ScoreBoard(SceneNode parentNode) {
         try {
+            // timer
+            SceneNode timerNode = parentNode.createChildSceneNode("timer");
+            timerNode.setLocalPosition(0f,0,0f);
+            timer = new HudNumber(timerNode, 1, 0.005f, Vector2f.createFrom(0f,0f), Color.WHITE, false);
+
+            timer.hide();
+            // score hud
             container = new HudElement(parentNode,0.002f, Vector2f.createFrom(0f,.90f), Vector2f.createZeroVector(),"scorehud.png", Color.WHITE);
 
             // orange side score board
@@ -55,6 +72,13 @@ public class ScoreBoard implements Updatable {
             // overtime
             overtime = new HudElement(parentNode, 0.0008f, Vector2f.createFrom(0f,.90f), Vector2f.createZeroVector(), "overtime.png", Color.WHITE);
 
+            startSound = AudioManager.get().start.clone(parentNode);
+            timerSound = AudioManager.get().timer.clone(parentNode);
+            startSound.setPitch(1f);
+            timerSound.setPitch(1f);
+
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -74,6 +98,27 @@ public class ScoreBoard implements Updatable {
 
     @Override
     public void update(float delta) {
+        // start timer
+        if(EntityManager.getPuck().isFrozen()){
+            float strength = (float) Math.pow(timeToStart/1000f/timer.getNumber(),4);
+            timeToStart -= delta;
+            timer.setScale(1 + strength * 1.25f);
+            timer.update((int)(timeToStart/1000f)+1);
+            if(timer.getNumber() <= 3){
+                timer.show();
+                if(timerNumber != timer.getNumber()){
+                    timerSound.play();
+                    timerNumber = timer.getNumber();
+                }
+                if(timeToStart/1000f < .02){
+                    startSound.play();
+                }
+            }
+
+        }else{
+            timer.hide();
+            timeToStart = 5000f;
+        }
         // scale and flash number if it changed
         if (orangeChangeTime > 0) {
             orangeChangeTime -= delta;

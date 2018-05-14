@@ -13,6 +13,7 @@ public class HudNumber {
     private SceneNode[] digitNodes;
     private HudElement[] digits;
     private float spacing;
+    private int number;
     private boolean showLeadingZeros = false;
 
     public HudNumber(SceneNode parentNode, int digits, float scale, Vector2 location, Color color, boolean showLeadingZeros) throws IOException {
@@ -29,6 +30,7 @@ public class HudNumber {
     }
 
     public void update(int number) {
+        this.number = number;
         int numberLength = 0;
         for (int i = 0; i < digits.length; i++) {
             String textureName = (number % 10) + ".png";
@@ -58,6 +60,7 @@ public class HudNumber {
         }
     }
 
+    public int getNumber(){return number;}
     public void show() {
         for (HudElement digit : digits) { digit.show(); }
     }
