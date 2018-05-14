@@ -104,14 +104,17 @@ public class ScoreBoard implements Updatable {
             timeToStart -= delta;
             timer.setScale(1 + strength * 1.25f);
             timer.update((int)(timeToStart/1000f)+1);
-            timer.show();
-            if(timerNumber != timer.getNumber()){
-                timerSound.play();
-                timerNumber = timer.getNumber();
+            if(timer.getNumber() <= 3){
+                timer.show();
+                if(timerNumber != timer.getNumber()){
+                    timerSound.play();
+                    timerNumber = timer.getNumber();
+                }
+                if(timeToStart/1000f < .02){
+                    startSound.play();
+                }
             }
-            if(timeToStart/1000f < .02){
-                startSound.play();
-            }
+
         }else{
             timer.hide();
             timeToStart = 5000f;
