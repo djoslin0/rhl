@@ -112,11 +112,11 @@ public class Glove extends GameEntity {
         boolean hadTarget = (this.target != null);
 
         if (attackable instanceof Player) {
-            punch.play();
+            punch.play(false);
         } else if (attackable != null) {
-            impact.play();
+            impact.play(false);
         } else {
-            miss.play();
+            miss.play(false);
         }
 
         this.hit = (attackable != null);

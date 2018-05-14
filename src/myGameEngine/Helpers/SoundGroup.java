@@ -64,7 +64,7 @@ public class SoundGroup implements Updatable {
         }
     }
 
-    public void play(int volume) {
+    public void play(int volume ,boolean pitchFree) {
         UpdateManager.remove(this);
 
         if (sound != null) { sound.stop(); }
@@ -75,7 +75,11 @@ public class SoundGroup implements Updatable {
 
         sound = sounds[index];
 
-        pitch = 1 + (float)Math.random() * 0.2f - 0.1f;
+        if(pitchFree == false){
+            pitch = 1 + (float)Math.random() * 0.2f - 0.1f;
+        }else{
+            pitch = 1;
+        }
 
         setVolume(volume);
 
@@ -99,8 +103,8 @@ public class SoundGroup implements Updatable {
         UpdateManager.add(this);
     }
 
-    public void play() {
-        play(this.volume);
+    public void play(boolean pitchFree) {
+        play(this.volume,pitchFree);
     }
 
     public void destroy() {
@@ -126,7 +130,7 @@ public class SoundGroup implements Updatable {
         if (sound.getProgress() >= lengths[index] * 0.8) {
             stop();
             if (looping) {
-                play();
+                play(false);
             }
         }
     }
