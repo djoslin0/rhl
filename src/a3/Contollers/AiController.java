@@ -76,6 +76,11 @@ public class AiController {
                    currentState = States.Reset;
                    break;
                }
+               // stuck behind goal get back
+               if(stuckBehindGoal()){
+                   currentState = States.BehindGoal;
+                   break;
+               }
                // make a play on attack
                if(getFurthestFreindly() == true && Math.abs(puckPos.sub(goalPosition).length()) < 60f) {
             	   currentState = States.MakingPlay;
@@ -119,11 +124,6 @@ public class AiController {
                    break;
                }
 
-               // stuck behind goal get back
-                if(stuckBehindGoal()){
-                   currentState = States.BehindGoal;
-                   break;
-                }
                // behind goal then dunk
                if(behindGoal()){
                    currentState = States.Dunking;
@@ -290,9 +290,6 @@ public class AiController {
 
     }
     public void executeCurrentAction(){
-        if(currentState == States.MakingPlay){
-            System.out.println(desiredLocation);
-        }
         Vector3 puckPos = EntityManager.getPuck().getNode().getWorldPosition();
         desiredLocation = Vector3f.createFrom(desiredLocation.x(),aiPlayer.getPosition().y(),desiredLocation.z());
         if(aiPlayer.getPosition().sub(desiredLocation).length()>accuracy){

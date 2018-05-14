@@ -21,6 +21,8 @@ public class AudioManager implements Updatable {
     private HashMap<String, AudioResource> resources = new HashMap<>();
     private HashMap<String, Float> resourceLengths = new HashMap<>();
 
+    public SoundGroup timer;
+    public SoundGroup start;
     public SoundGroup impact;
     public SoundGroup miss;
     public SoundGroup punch;
@@ -49,6 +51,14 @@ public class AudioManager implements Updatable {
     }
 
     public static void initialize() {
+        instance.start = new SoundGroup(instance.audio,
+                new String[] {"start.wav"},50,false,0,0f
+        );
+
+        instance.timer = new SoundGroup(instance.audio,
+                new String[] {"timer.wav"},50,false,0,0f
+        );
+
         instance.impact = new SoundGroup(instance.audio,
                 new String[] { "impact1.wav", "impact2.wav", "impact3.wav", "impact4.wav" },
                 100, false, 300, 0.1f

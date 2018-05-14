@@ -100,6 +100,18 @@ public class Puck extends GameEntity implements Attackable {
         spinSound = AudioManager.get().spin.clone(node);
         addResponsibility(spinSound);
         spinSound.play();
+
+        // set puck position on start
+        body.setLinearVelocity(new javax.vecmath.Vector3f());
+        body.setAngularVelocity(new javax.vecmath.Vector3f());
+        Transform t = new Transform();
+        t.origin.x = 0f;
+        t.origin.y = 25f;
+        t.origin.z = 0;
+        node.setLocalPosition(0, 25, 0);
+        body.setWorldTransform(t);
+        body.clearForces();
+        freeze();
     }
 
     private void initPhysics() {
