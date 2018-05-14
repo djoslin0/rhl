@@ -21,7 +21,7 @@ with (JavaPackages) {
 	var goalDistance = 85.0;
 
 	var serverBotCount = 4;
-	var localBotCount = 4;
+	var localBotCount = 0;
 	var matchSeconds = 5 * 60;
 	var intermissionSeconds = 5;
 

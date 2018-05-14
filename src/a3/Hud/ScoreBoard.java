@@ -6,6 +6,7 @@ import myGameEngine.GameEntities.HudElement;
 import myGameEngine.Helpers.SoundGroup;
 import myGameEngine.Helpers.Updatable;
 import myGameEngine.Singletons.AudioManager;
+import myGameEngine.Singletons.EngineManager;
 import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.UpdateManager;
 import ray.rage.scene.SceneNode;
@@ -99,7 +100,7 @@ public class ScoreBoard implements Updatable {
     @Override
     public void update(float delta) {
         // start timer
-        if(EntityManager.getPuck().isFrozen()){
+        if(EntityManager.getPuck().isFrozen() && GameState.getSecondsLeft() != 0){
             float strength = (float) Math.pow(timeToStart/1000f/timer.getNumber(),4);
             timeToStart -= delta;
             timer.setScale(1 + strength * 1.25f);
