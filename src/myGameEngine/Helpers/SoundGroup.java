@@ -19,10 +19,12 @@ public class SoundGroup implements Updatable {
     private float rollOff;
     private SceneNode node;
     private float pitch = 1;
+    private boolean dynamicPitch;
 
     private Sound sound;
 
-    public SoundGroup(IAudioManager audioMgr, String[] soundFiles, int volume, boolean looping, float maxDistance, float rollOff) {
+    public SoundGroup(IAudioManager audioMgr, String[] soundFiles, int volume, boolean looping, float maxDistance, float rollOff, boolean dynamicPitch) {
+        this.dynamicPitch = dynamicPitch;
         this.audioMgr = audioMgr;
         this.soundFiles = soundFiles;
         this.volume = volume;
@@ -45,8 +47,8 @@ public class SoundGroup implements Updatable {
         }
     }
 
-    public SoundGroup(IAudioManager audioMgr, String[] soundFiles, int volume, boolean looping, float maxDistance, float rollOff, SceneNode node) {
-        this(audioMgr, soundFiles, volume, looping, maxDistance, rollOff);
+    public SoundGroup(IAudioManager audioMgr, String[] soundFiles, int volume, boolean looping, float maxDistance, float rollOff, SceneNode node, boolean dynamicPitch) {
+        this(audioMgr, soundFiles, volume, looping, maxDistance, rollOff, dynamicPitch);
         this.node = node;
     }
 
@@ -64,7 +66,7 @@ public class SoundGroup implements Updatable {
         }
     }
 
-    public void play(int volume ,boolean pitchFree) {
+    public void play(int volume) {
         UpdateManager.remove(this);
 
         if (sound != null) { sound.stop(); }
@@ -75,7 +77,7 @@ public class SoundGroup implements Updatable {
 
         sound = sounds[index];
 
-        if(pitchFree == false){
+        if(dynamicPitch == true){
             pitch = 1 + (float)Math.random() * 0.2f - 0.1f;
         }else{
             pitch = 1;
@@ -103,8 +105,8 @@ public class SoundGroup implements Updatable {
         UpdateManager.add(this);
     }
 
-    public void play(boolean pitchFree) {
-        play(this.volume,pitchFree);
+    public void play() {
+        play(this.volume);
     }
 
     public void destroy() {
@@ -114,7 +116,7 @@ public class SoundGroup implements Updatable {
     }
 
     public SoundGroup clone(SceneNode node) {
-        return new SoundGroup(audioMgr, soundFiles, volume, looping, maxDistance, rollOff, node);
+        return new SoundGroup(audioMgr, soundFiles, volume, looping, maxDistance, rollOff, node,dynamicPitch);
     }
 
     public void stop() {
@@ -130,7 +132,7 @@ public class SoundGroup implements Updatable {
         if (sound.getProgress() >= lengths[index] * 0.8) {
             stop();
             if (looping) {
-                play(false);
+                play();
             }
         }
     }

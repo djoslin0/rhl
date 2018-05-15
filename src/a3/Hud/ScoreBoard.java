@@ -41,7 +41,7 @@ public class ScoreBoard implements Updatable {
             // timer
             SceneNode timerNode = parentNode.createChildSceneNode("timer");
             timerNode.setLocalPosition(0f,0,0f);
-            timer = new HudNumber(timerNode, 1, 0.005f, Vector2f.createFrom(0f,0f), Color.WHITE, false);
+            timer = new HudNumber(timerNode, 1, 0.0025f, Vector2f.createFrom(0f,0.5f), Color.WHITE, false);
 
             timer.hide();
             // score hud
@@ -108,11 +108,11 @@ public class ScoreBoard implements Updatable {
             if(timer.getNumber() <= 3){
                 timer.show();
                 if(timerNumber != timer.getNumber()){
-                    timerSound.play(true);
+                    timerSound.play();
                     timerNumber = timer.getNumber();
                 }
                 if(timeToStart/1000f < .02){
-                    startSound.play(true);
+                    startSound.play();
                 }
             }
 

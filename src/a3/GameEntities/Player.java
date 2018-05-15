@@ -173,8 +173,8 @@ public class Player extends GameEntity implements Attackable {
     }
 
     public byte getHeadId() { return headId; }
-    public void playJumpSound() { jumpSound.play(false); }
-    public void playLandSound() { landSound.play(false); }
+    public void playJumpSound() { jumpSound.play(); }
+    public void playLandSound() { landSound.play(); }
 
     private void loadLocalCharacter(String name) {
         // right hand
@@ -328,10 +328,10 @@ public class Player extends GameEntity implements Attackable {
         if (!dead && health <= 0) { die(); }
         else if (dead && health > 0) { respawn(); }
         if (health - this.health <= -5) {
-            glitchSound.play(false);
+            glitchSound.play();
         }
         if (this.health >= 20 && health < 20) {
-            nearDeathSound.play(false);
+            nearDeathSound.play();
         }
         this.health = health;
     }
@@ -450,7 +450,7 @@ public class Player extends GameEntity implements Attackable {
             if (nextStepTime <= 0) {
                 int volume = local ? 40 : 60;
                 if (controller.isCrouching()) { volume /= 2; }
-                stepSound.play(volume,false);
+                stepSound.play(volume);
                 nextStepTime = 400;
             }
         } else {
@@ -494,11 +494,11 @@ public class Player extends GameEntity implements Attackable {
 
         // play sounds
         if (hurtSoundTimeout <= 0 && value > 5) {
-            glitchSound.play(false);
+            glitchSound.play();
             hurtSoundTimeout = 250;
         }
         if (oldHealth >= 20 && health < 20) {
-            nearDeathSound.play(false);
+            nearDeathSound.play();
         }
 
         if (local) {
@@ -553,7 +553,7 @@ public class Player extends GameEntity implements Attackable {
 
         dead = true;
 
-        deathSound.play(false);
+        deathSound.play();
     }
 
     private Vector3 getSpawnPosition() {
@@ -591,7 +591,7 @@ public class Player extends GameEntity implements Attackable {
             if (rightEyeNode != null) { rightEyeNode.setLocalScale(1f, 1f, 1f); }
         }
 
-        respawnSound.play(false);
+        respawnSound.play();
     }
 
     private Debris createDebrisPart(String boneName) {

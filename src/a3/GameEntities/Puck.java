@@ -95,11 +95,11 @@ public class Puck extends GameEntity implements Attackable {
 
         slideSound = AudioManager.get().slide.clone(node);
         addResponsibility(slideSound);
-        slideSound.play(false);
+        slideSound.play();
 
         spinSound = AudioManager.get().spin.clone(node);
         addResponsibility(spinSound);
-        spinSound.play(false);
+        spinSound.play();
 
         // set puck position on start
         body.setLinearVelocity(new javax.vecmath.Vector3f());
@@ -167,9 +167,9 @@ public class Puck extends GameEntity implements Attackable {
             e.printStackTrace();
         }
 
-        explosionSound.play(false);
+        explosionSound.play();
         if (scored && dunk) {
-            cheerSound.play(false);
+            cheerSound.play();
             cheerSound.setPitch(EntityManager.getLocalPlayer().getSide() == team ? 1 : 0.7f);
         }
 
@@ -314,7 +314,7 @@ public class Puck extends GameEntity implements Attackable {
             if (iceImpactTimeout <= 0) {
                 int volume = (int) ((averageLinearVelocity.length() / 30f) * 100f);
                 if (volume > 100) { volume = 100; }
-                iceSound.play(volume,false);
+                iceSound.play(volume);
                 showImpactParticle(rinkPoint, Vector3f.createZeroVector(), volume / 110f + 0.15f);
             }
             iceImpactTimeout = 500;
@@ -322,7 +322,7 @@ public class Puck extends GameEntity implements Attackable {
             if (rinkImpactTimeout <= 0) {
                 int volume = (int) ((averageLinearVelocity.length() / 60f) * 100f);
                 if (volume > 100) { volume = 100; }
-                rinkSound.play(volume,false);
+                rinkSound.play(volume);
                 showImpactParticle(rinkPoint, Vector3f.createZeroVector(), volume / 70f + 0.15f);
             }
             rinkImpactTimeout = 500;

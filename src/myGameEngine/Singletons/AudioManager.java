@@ -52,106 +52,107 @@ public class AudioManager implements Updatable {
 
     public static void initialize() {
         instance.start = new SoundGroup(instance.audio,
-                new String[] {"start.wav"},50,false,0,0f
+                new String[] {"start.wav"},25,false,0,0f, false
         );
 
         instance.timer = new SoundGroup(instance.audio,
-                new String[] {"timer.wav"},50,false,0,0f
+                new String[] {"timer.wav"},50,false,0,0f, false
         );
 
         instance.impact = new SoundGroup(instance.audio,
                 new String[] { "impact1.wav", "impact2.wav", "impact3.wav", "impact4.wav" },
-                100, false, 300, 0.1f
+                100, false, 300, 0.1f, true
+
         );
 
         instance.miss = new SoundGroup(instance.audio,
                 new String[] { "miss1.wav", "miss2.wav", "miss3.wav", "miss4.wav" },
-                100, false, 300, 0.1f
+                100, false, 300, 0.1f, true
         );
 
         instance.punch = new SoundGroup(instance.audio,
                 new String[] { "punch1.wav", "punch2.wav", "punch3.wav", "punch4.wav" },
-                100, false, 300, 0.1f
+                100, false, 300, 0.1f, true
         );
 
         instance.step = new SoundGroup(instance.audio,
                 new String[] { "step1.wav", "step2.wav", "step3.wav", "step4.wav" },
-                60, false, 200, 0.1f
+                60, false, 200, 0.1f, true
         );
 
         instance.death = new SoundGroup(instance.audio,
                 new String[] { "death.wav" },
-                80, false, 300, 0.1f
+                80, false, 300, 0.1f, true
         );
 
         instance.nearDeath = new SoundGroup(instance.audio,
                 new String[] { "neardeath.wav" },
-                100, false, 200, 0.1f
+                100, false, 200, 0.1f, true
         );
 
         instance.respawn = new SoundGroup(instance.audio,
                 new String[] { "respawn.wav" },
-                100, false, 100, 0.1f
+                100, false, 100, 0.1f, true
         );
 
         instance.glitch = new SoundGroup(instance.audio,
                 new String[] { "glitch1.wav", "glitch2.wav", "glitch3.wav", "glitch4.wav" },
-                100, false, 200, 0.1f
+                100, false, 200, 0.1f, true
         );
 
         instance.explosion = new SoundGroup(instance.audio,
                 new String[] { "explosion1.wav", "explosion2.wav" },
-                100, false, 500, 0.1f
+                100, false, 500, 0.1f, true
         );
 
         instance.goalWon = new SoundGroup(instance.audio,
                 new String[] { "goalwon.wav" },
-                75, false, 200, 0.1f
+                75, false, 200, 0.1f, true
         );
 
         instance.goalLost = new SoundGroup(instance.audio,
                 new String[] { "goallost.wav" },
-                75, false, 200, 0.1f
+                75, false, 200, 0.1f, true
         );
 
         instance.cheer = new SoundGroup(instance.audio,
                 new String[] { "cheer1.wav", "cheer2.wav" },
-                75, false, 200, 0.1f
+                75, false, 200, 0.1f, true
         );
 
         instance.jump = new SoundGroup(instance.audio,
                 new String[] { "jump1.wav", "jump2.wav" },
-                30, false, 200, 0.1f
+                30, false, 200, 0.1f, true
         );
 
         instance.land = new SoundGroup(instance.audio,
                 new String[] { "land1.wav", "land2.wav" },
-                50, false, 200, 0.1f
+                50, false, 200, 0.1f, true
         );
 
         instance.slide = new SoundGroup(instance.audio,
                 new String[] { "slide.wav" },
-                0, true, 200, 0.15f
+                0, true, 200, 0.15f, true
         );
 
         instance.spin = new SoundGroup(instance.audio,
                 new String[] { "spin.wav" },
-                0, true, 200, 0.1f
+                0, true, 200, 0.1f, true
         );
 
         instance.ice = new SoundGroup(instance.audio,
                 new String[] { "ice1.wav", "ice2.wav", "ice3.wav" },
-                50, false, 200, 0.1f
+                50, false, 200, 0.1f, true
         );
 
         instance.rink = new SoundGroup(instance.audio,
                 new String[] { "rink1.wav", "rink2.wav", "rink3.wav" },
-                50, false, 200, 0.1f
+                50, false, 200, 0.1f, true
         );
 
         instance.matchOver = new SoundGroup(instance.audio,
                 new String[] { "matchover.wav" },
-                75, false, 200, 0.1f
+                75, false, 200, 0.1f, true
         );
         UpdateManager.add(instance);
     }

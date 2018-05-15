@@ -50,9 +50,9 @@ public class GameState implements Updatable {
         if (amount > 0) {
             Player localPlayer = EntityManager.getLocalPlayer();
             if (localPlayer.getSide() == team) {
-                AudioManager.get().goalWon.play(false);
+                AudioManager.get().goalWon.play();
             } else {
-                AudioManager.get().goalLost.play(false);
+                AudioManager.get().goalLost.play();
             }
         }
     }
@@ -77,9 +77,9 @@ public class GameState implements Updatable {
         if (update && amount > 0) {
             Player localPlayer = EntityManager.getLocalPlayer();
             if (localPlayer.getSide() == team) {
-                AudioManager.get().goalWon.play(false);
+                AudioManager.get().goalWon.play();
             } else {
-                AudioManager.get().goalLost.play(false);
+                AudioManager.get().goalLost.play();
             }
         }
     }
@@ -96,7 +96,7 @@ public class GameState implements Updatable {
         if (UDPServer.hasServer()) { UDPServer.sendToAll(new PacketMatch()); }
 
         HudController.showWinLose(EntityManager.getLocalPlayer().getSide() == winningTeam);
-        instance.matchOverSound.play(false);
+        instance.matchOverSound.play();
     }
 
     public static void resetMatch() {
