@@ -103,6 +103,8 @@ public class InputSetup {
         im.associateAction(c, Axis.Z, instance.zAction, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
         im.associateAction(c, Button._0, instance.jumpAction, INPUT_ACTION_TYPE.ON_PRESS_ONLY);
         im.associateAction(c, Button._1, instance.crouchAction, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);
+        im.associateAction(c, Button._5, instance.jumpAction, INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+        im.associateAction(c, Button._4, instance.crouchAction, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);
     }
 
     public static void listenToControllers(InputManager im, Player player) {
