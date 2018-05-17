@@ -153,9 +153,9 @@ public class Puck extends GameEntity implements Attackable {
         body.setLinearVelocity(new javax.vecmath.Vector3f());
         body.setAngularVelocity(new javax.vecmath.Vector3f());
         Transform t = new Transform();
-        t.origin.x = 0f;
-        t.origin.y = 25f;
-        t.origin.z = 0;
+        t.origin.x = Settings.get().puckSpawnPoint.x();
+        t.origin.y = Settings.get().puckSpawnPoint.y();
+        t.origin.z = Settings.get().puckSpawnPoint.z();
         node.setLocalPosition(0, 25, 0);
 
         body.setWorldTransform(t);

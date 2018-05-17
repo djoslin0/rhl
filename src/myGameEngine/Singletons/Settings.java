@@ -25,7 +25,6 @@ public class Settings {
     public Color specularColor;
     public Vector3 lightDirection;
 
-    public Vector3 spawnPoint;
     public Vector3 puckSpawnPoint;
 
     public Color terrainEmissive;
@@ -70,7 +69,6 @@ public class Settings {
             instance.specularColor = (Color)(instance.jsEngine.eval("specularColor"));
             instance.lightDirection = (Vector3)(instance.jsEngine.eval("lightDirection"));
 
-            instance.spawnPoint = (Vector3)(instance.jsEngine.eval("spawnPoint"));
             instance.puckSpawnPoint = (Vector3)(instance.jsEngine.eval("puckSpawnPoint"));
 
             instance.terrainEmissive = (Color)(instance.jsEngine.eval("terrainEmissive"));

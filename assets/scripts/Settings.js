@@ -12,7 +12,7 @@ with (JavaPackages) {
 	var specularColor = new Color(.75, .7, 1.0);
 	var lightDirection = Vector3f.createFrom(-1.8, 1, -1);
 	
-	var spawnPoint = Vector3f.createFrom(-40, 1.9, -53.5);
+	var spawnPoint = Vector3f.createFrom(0, 25, 0);
 	var puckSpawnPoint = Vector3f.createFrom(0, 5, -10);
 	
 	var terrainEmissive = new Color(.2, .2, .2);
