@@ -13,8 +13,6 @@ import myGameEngine.Singletons.EntityManager;
 import myGameEngine.Singletons.Settings;
 import myGameEngine.Singletons.UpdateManager;
 
-import java.util.ArrayList;
-
 public class GameState implements Updatable {
     private static GameState instance = new GameState();
     private int orangeScore = 0;
@@ -24,9 +22,12 @@ public class GameState implements Updatable {
     private boolean matchOver = false;
 
     private SoundGroup matchOverSound;
+    private SoundGroup ambientSound;
 
     public GameState() {
         matchOverSound = AudioManager.get().matchOver.clone(EntityManager.getLocalPlayer().getCameraNode());
+        ambientSound = AudioManager.get().ambient.clone(EntityManager.getLocalPlayer().getCameraNode());
+        ambientSound.play();
         UpdateManager.add(this);
     }
 
