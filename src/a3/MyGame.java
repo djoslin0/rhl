@@ -4,9 +4,9 @@ import Networking.PacketJoin;
 import Networking.UDPClient;
 import Networking.UDPServer;
 import a3.GameEntities.*;
-import a3.GameEntities.Box;
 import com.jogamp.opengl.util.gl2.GLUT;
-import myGameEngine.GameEntities.*;
+import myGameEngine.GameEntities.StaticSkyBox;
+import myGameEngine.GameEntities.Terrain;
 import myGameEngine.Helpers.HudText;
 import myGameEngine.Singletons.*;
 import ray.input.GenericInputManager;
@@ -18,17 +18,11 @@ import ray.rage.rendersystem.RenderWindow;
 import ray.rage.rendersystem.gl4.GL4RenderSystem;
 import ray.rage.scene.*;
 import ray.rml.Degreef;
-import ray.rml.Vector3;
-import ray.rml.Vector3f;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class MyGame extends VariableFrameRateGame {
 
@@ -179,7 +173,7 @@ public class MyGame extends VariableFrameRateGame {
         InputSetup.setupKeyboard(im, player);
         InputSetup.setupMouse(im, player);
         initMouseMode();
-        //InputSetup.listenToControllers(im, player, healthText);
+        InputSetup.listenToControllers(im, player);
     }
 
     private void initMouseMode() {

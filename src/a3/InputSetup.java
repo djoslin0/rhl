@@ -2,9 +2,12 @@ package a3;
 
 import a3.Actions.*;
 import a3.GameEntities.Player;
-import myGameEngine.Helpers.HudText;
+import myGameEngine.Actions.ActionAxis;
+import myGameEngine.Actions.ActionAxisToggle;
+import myGameEngine.Actions.ActionScale;
 import net.java.games.input.Controller;
 import ray.input.InputManager;
+
 import static net.java.games.input.Component.Identifier.*;
 import static ray.input.InputManager.INPUT_ACTION_TYPE;
 
@@ -22,6 +25,12 @@ public class InputSetup {
     ActionJump jumpAction;
     ActionAttack attackAction;
     ActionCrouch crouchAction;
+
+    ActionAxis xAction;
+    ActionAxis yAction;
+    ActionAxisToggle zAction;
+    ActionScale rxAction;
+    ActionScale ryAction;
 
     private boolean actions;
     private boolean startedController;
@@ -45,6 +54,12 @@ public class InputSetup {
         yawAction = new ActionRotate(player, ActionRotate.Direction.X);
         pitchAction = new ActionRotate(player, ActionRotate.Direction.Y);
 
+        // controller actions
+        xAction = new ActionAxis(moveLeftAction, moveRightAction);
+        yAction = new ActionAxis(moveForwardAction, moveBackwardAction);
+        zAction = new ActionAxisToggle(attackAction, attackAction, 0.6f, 0.4f);
+        rxAction = new ActionScale(yawAction, 8f);
+        ryAction = new ActionScale(pitchAction, 8f);
     }
 
     public static void setupKeyboard(InputManager im, Player player) {
@@ -81,18 +96,19 @@ public class InputSetup {
         instance.setupActions(player);
 
         // movement / camera actions
-        /*im.associateAction(c, Axis.X, instance.xAxisAction, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-        im.associateAction(c, Axis.Y, instance.yAxisAction, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-        im.associateAction(c, Axis.RX, instance.posAzimuthAction2, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-        im.associateAction(c, Axis.RY, instance.negElevationAction2, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-        im.associateAction(c, Axis.Z, instance.zAxisAction, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-        im.associateAction(c, Button._0, instance.attachYawAction2, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);*/
+        im.associateAction(c, Axis.X, instance.xAction, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        im.associateAction(c, Axis.Y, instance.yAction, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        im.associateAction(c, Axis.RX, instance.rxAction, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        im.associateAction(c, Axis.RY, instance.ryAction, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        im.associateAction(c, Axis.Z, instance.zAction, INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+        im.associateAction(c, Button._0, instance.jumpAction, INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+        im.associateAction(c, Button._1, instance.crouchAction, INPUT_ACTION_TYPE.ON_PRESS_AND_RELEASE);
     }
 
-    public static void listenToControllers(InputManager im, Player player, HudText helpText) {
+    public static void listenToControllers(InputManager im, Player player) {
         for (Controller c : im.getControllers()) {
             if (c.getType().equals(Controller.Type.GAMEPAD) || c.getType().equals(Controller.Type.STICK)) {
-                ActionGamepadStart gamepadStartAction = new ActionGamepadStart(im, player, c, helpText);
+                ActionGamepadStart gamepadStartAction = new ActionGamepadStart(im, player, c);
                 im.associateAction(c, Button._7, gamepadStartAction, INPUT_ACTION_TYPE.ON_PRESS_ONLY);
             }
         }
