@@ -100,7 +100,7 @@ public class ScoreBoard implements Updatable {
     @Override
     public void update(float delta) {
         // start timer
-        if(EntityManager.getPuck().isFrozen() && GameState.getSecondsLeft() != 0){
+        if(EntityManager.getPuck().isFrozen() && GameState.getSecondsLeft() >= 1){
             float strength = (float) Math.pow(timeToStart/1000f/timer.getNumber(),4);
             timeToStart -= delta;
             timer.setScale(1 + strength * 1.25f);
