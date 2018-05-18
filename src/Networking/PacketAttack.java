@@ -86,6 +86,7 @@ public class PacketAttack extends Packet {
     public void receivedOnClient() {
         if (attackerId == UDPClient.getPlayerId()) { return; }
         Player attacker = UDPClient.getPlayer(attackerId);
+        if (attacker == null || attacker.getGlove() == null) { return; }
         Puck puck = EntityManager.getPuck();
         if (attackedId == (byte)-1) {
             attacker.getGlove().attack(null, relative);
